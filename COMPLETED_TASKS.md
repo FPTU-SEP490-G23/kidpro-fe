@@ -325,7 +325,107 @@ Hệ thống frontend `kidpro-fe` được xây dựng từ đầu để đáp �
 
 ---
 
-## 3. BẢNG THỐNG KÊ TỔNG HỢP KHẢ NĂNG CRUD TRÊN TỪNG MÀN HÌNH
+### Task UC-007: Cấu hình Dịch vụ & Tích hợp Ngoại vi (Platform Integrations)
+- **File thực hiện:** `src/pages/admin/integrations/IntegrationsPage.tsx`, `src/pages/admin/integrations/components/PaymentTab.tsx`, `src/pages/admin/integrations/components/FirebaseTab.tsx`, `src/pages/admin/integrations/components/FaceAiTab.tsx`, `src/pages/admin/integrations/components/SmsTab.tsx`, `src/api/integrationApi.ts`, `src/types/integration.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Tab 1 - Cổng thanh toán tự động (VietQR / PayOS / SePay)**:
+    - Nhập Client ID/Merchant ID, Secret Key (Password toggle Eye/EyeOff), Checksum Key (Password toggle Eye/EyeOff), URL Webhook đối soát (`/api/payments/webhook`).
+    - Nút kiểm tra Webhook & Chữ ký mật mã HMAC-SHA256, nút lưu cấu hình thanh toán. Badge trạng thái kết nối Xanh lá ("HOẠT ĐỘNG BÌNH THƯỜNG") / Đỏ ("MẤT KẾT NỐI").
+  - **Tab 2 - Thông báo đẩy di động (Firebase FCM)**:
+    - Tải tệp `firebase-service-account.json`: kiểm tra định dạng `.json`, dung lượng < 2MB, validate client-side bắt buộc có `project_id`, `private_key`, `client_email` (báo lỗi `MSG-027` nếu thiếu trường).
+    - Khóa FCM Server Key dự phòng, công tắc Toggle kích hoạt Push Notification (`app.fcm.enabled`), nút gửi thông báo thử nghiệm (Test Ping).
+  - **Tab 3 - Vi dịch vụ Nhận diện AI Khuôn mặt (Face AI Microservice)**:
+    - Nhập Base URL máy chủ AI, API Key / Secret Token (Password toggle), Slider & input điều chỉnh ngưỡng tin cậy tối thiểu (Threshold, mặc định 0.75 - 75%).
+    - Nút kiểm tra kết nối (Ping AI Endpoint): Đo độ trễ mạng thực tế (`120ms - Đã kết nối`, viền Mint Green `#78C2AD`).
+    - Cam kết bảo vệ dữ liệu sinh trắc học trẻ em theo Nghị định 13/2023/NĐ-CP.
+  - **Tab 4 - Cổng Tin nhắn Xác thực (SMS Gateway / OTP)**:
+    - Chọn nhà cung cấp (VietGuys, eSMS, Zalo ZNS), SMS API Key, Brandname Tên trường, Hạn mức gửi tin/giờ (`BR-003`).
+    - Modal gửi thử nghiệm tin nhắn SMS OTP với kiểm tra số điện thoại Việt Nam chuẩn.
+  - **Toasts & Validation**: Đầy đủ `MSG-025`, `MSG-026`, `MSG-027`, `MSG-028`, `MSG-004`.
+
+---
+
+### Task UC-008: Giám sát Sức khỏe & Uptime Nền tảng (Platform Health & Infrastructure Monitoring)
+- **File thực hiện:** `src/pages/admin/health/HealthMonitoringPage.tsx`, `src/pages/admin/health/components/StatusBanner.tsx`, `src/pages/admin/health/components/HealthCardsGrid.tsx`, `src/pages/admin/health/components/PerformanceCharts.tsx`, `src/pages/admin/health/components/GateCameraWatcher.tsx`, `src/api/healthMonitoringApi.ts`, `src/types/healthMonitoring.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Status Banner**:
+    - Banner tổng quan: Tag Xanh "Tất cả các dịch vụ cốt lõi đang vận hành bình thường" (`MSG-029`) hoặc Đỏ nếu gặp sự cố khẩn cấp.
+    - Công tắc "Tự động làm mới (Auto-refresh mỗi 30s)" kèm đồng hồ đếm ngược và nút "Làm mới ngay (Instant Refresh)".
+    - Sandbox mô phỏng sự cố (DB quá tải, Face AI timeout, Nghẽn hàng đợi) để kiểm thử đổi màu và cảnh báo.
+  - **Lưới thẻ chỉ số sức khỏe (5 Cards)**:
+    - PostgreSQL 7 Schemas: Latency ms (vd: 5ms, tự động đổi màu Vàng Cam khi > 1000ms + `MSG-030`), Active connections (18/100), Dung lượng DB (2.4 GB), 7 Schemas tags.
+    - Redis / BullMQ: Connected (1ms), Queue Depth (nếu > 100 báo `MSG-032`), RAM usage (248MB / 2048MB).
+    - Face AI Microservice: Trạng thái (85ms), Số lượt nhận diện (482 lượt), Tỷ lệ thành công (99.2%). Nếu Timeout > 5s -> Đổi sang Đỏ + cảnh báo `MSG-031` chuyển sang điểm danh thủ công dự phòng (BR-007).
+    - MinIO S3: Sẵn sàng, Dung lượng ảnh điểm danh & bằng chứng y tế (14.8 GB / 100 GB).
+    - FCM Push Gateway: Sẵn sàng, 1,240 thông báo đã đẩy hôm nay.
+  - **Biểu đồ Hiệu năng & Lưu lượng Điểm danh**:
+    - Interactive SVG Line Chart: Độ trễ phản hồi trong 24 giờ qua (hover tooltip).
+    - Interactive SVG/CSS Bar Chart: Lưu lượng điểm danh cổng theo từng khung giờ (cao điểm sáng 07:00 - 08:30 và chiều 16:00 - 17:30).
+  - **Camera Gate Stream Watcher**:
+    - Giám sát luồng camera Cổng chính 01, Cổng chính 02, Cổng phụ 03 kèm FPS (30 FPS), Latency (42ms), Full HD, Stream status LIVE.
+    - Khung nhận diện AI camera viền xanh Mint Green `#78C2AD` kèm badge Đã xác thực theo chuẩn DESIGN_SYSTEM.md.
+  - **TanStack React Query Auto-poll**: Polling tự động mỗi 30 giây qua `refetchInterval: 30000`.
+
+---
+
+### Task UC-009: Thiết lập Kế hoạch Năm học & Tuyển sinh (Academic Year & Enrollment Planning)
+- **File thực hiện:** `src/pages/academic/years/AcademicYearsPage.tsx`, `src/pages/academic/years/components/AcademicYearModal.tsx`, `src/pages/academic/years/components/ArchiveYearModal.tsx`, `src/pages/academic/years/components/AcademicYearDetailModal.tsx`, `src/pages/academic/AcademicPage.tsx`, `src/api/academicYearApi.ts`, `src/types/academicYear.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Header & Niên khóa hiện hành**:
+    - Thẻ nổi bật Niên khóa đang áp dụng (Badge Xanh: `ACTIVE`), số tuần thực học, tổng chỉ tiêu và tiến độ tuyển sinh / sĩ số. Nút "Thêm Năm học Mới".
+  - **Bộ lọc & Data Table**:
+    - Lọc theo trạng thái: Tất cả, `ACTIVE`, `PLANNING`, `CLOSED`.
+    - Bảng danh sách: Tên niên khóa, Khung thời gian, Số tuần học (Badge xanh nếu ≥ 35 tuần), Tổng chỉ tiêu, Chi tiết từng khối (Nhà trẻ, Mầm, Chồi, Lá), Trạng thái, Thao tác (Xem chi tiết, Chỉnh sửa, Kích hoạt, Đóng & Lưu trữ, Xóa).
+  - **Modal Thiết lập Niên khóa (Tạo mới & Sửa)**:
+    - Nhóm khung thời gian: Tên niên khóa (YYYY-YYYY), Ngày bắt đầu - kết thúc, Mốc thời gian Học kỳ I & II.
+    - Nhóm chỉ tiêu: Number input cho Nhà trẻ (18-36th), Khối Mầm (3-4t), Khối Chồi (4-5t), Khối Lá (5-6t). Tự động tính tổng chỉ tiêu và kiểm tra với công suất tối đa trường (350 trẻ).
+    - Validation Client-side & Zod:
+      - Kiểm tra tối thiểu **35 tuần thực học** theo đúng khung thời gian Bộ GD&ĐT (BR-008, `MSG-034`).
+      - Kiểm tra chồng lấn thời gian với năm học đang `ACTIVE` (`MSG-035`).
+      - Kiểm tra tổng chỉ tiêu không vượt quá công suất cơ sở vật chất (350 trẻ) (`MSG-036`).
+  - **Modal Xác nhận Đóng & Lưu trữ Niên khóa (Archive)**:
+    - Cảnh báo chuyển toàn bộ sổ điểm, điểm danh và bảng kê học phí sang trạng thái Chỉ Đọc (Read-only) an toàn.
+  - **Tích hợp kép**:
+    - Route độc lập: `/academic/years` (BGH, Giáo vụ, Super Admin).
+    - Tab 4 tích hợp ngay trong `AcademicPage.tsx` ("Kế hoạch Năm học (UC-009)").
+    - Tự động gọi `queryClient.invalidateQueries` cập nhật dữ liệu tức thì sau mỗi thao tác mutate.
+
+---
+
+### Task UC-012: Xem Dashboard Điều hành Toàn trường (Executive Operations Dashboard)
+- **File thực hiện:** `src/pages/dashboard/executive/ExecutiveDashboardPage.tsx`, `src/pages/dashboard/executive/components/ExecutiveToolbar.tsx`, `src/pages/dashboard/executive/components/ExecutiveMetricCards.tsx`, `src/pages/dashboard/executive/components/KitchenMealBreakdownChart.tsx`, `src/pages/dashboard/executive/components/SecurityGateAlertsWatcher.tsx`, `src/api/executiveApi.ts`, `src/types/executiveDashboard.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Top Toolbar**: Bộ chọn ngày xem dữ liệu (mặc định hôm nay), Nút làm mới dữ liệu thủ công, Badge trạng thái đồng bộ (`MSG-046`), Cơ chế tự động polling mỗi 30 giây (`refetchInterval: 30000`).
+  - **4 Thẻ Chỉ Số Tổng Quan**:
+    1. Sĩ số & Chuyên cần: Tỷ lệ học sinh có mặt hôm nay (320/350 trẻ, 91.4%), tiến độ chuyên cần toàn trường.
+    2. Báo Cáo Bếp Ăn: Đọc snapshot số suất ăn chốt 08:30 AM (`/kitchen/meal-headcounts`), phân tách rõ Suất cơm thường (268), Suất cháo `porridge_count` (44), Suất kiêng dị ứng thực phẩm nặng (8 trẻ).
+    3. Tài Chính & Học Phí: Doanh thu thực thu, tiến độ thanh toán (84.2%), số hóa đơn còn nợ / quá hạn cần nhắc nhở.
+    4. An Ninh Cổng & Nhận Diện AI: Số lượng cảnh báo người lạ chưa giải quyết (`/attendance/face-logs/unresolved-alerts`).
+  - **Biểu Đồ Phân Tích Suất Ăn Từng Lớp**: Trực quan hóa dữ liệu tổng hợp `/kitchen/daily-summary` theo từng lớp học (Mầm 1, Chồi 1, Lá 1, Nhà Trẻ 1) với thanh tỷ lệ Cơm thường / Cháo / Kiêng dị ứng.
+  - **Security Gate Alerts Watcher**: Danh sách ảnh chụp người lạ trực tiếp tại cổng (isMatch=false), mốc thời gian chụp, camera cổng, và nút "Xác Minh & Giải Quyết Cảnh Báo" tức thì.
+
+---
+
+### Task UC-013: Xem Báo cáo Biến động Học sinh (Student Retention & Mobility Analytics)
+- **File thực hiện:** `src/pages/academic/analytics/StudentAnalyticsPage.tsx`, `src/pages/academic/analytics/components/StudentAnalyticsToolbar.tsx`, `src/pages/academic/analytics/components/StudentTableWithPrivacy.tsx`, `src/pages/academic/analytics/components/MobilityRequestsTab.tsx`, `src/api/studentAnalyticsApi.ts`, `src/types/studentAnalytics.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Filter Toolbar**: Dropdown Niên khóa (`academic_years`), Dropdown Lớp học (`/classes`), Bộ lọc trạng thái học sinh (`STUDYING`, `TRANSFERRED`, `RESERVED`, `DROPPED_OUT`), Toggle chỉ xem học sinh có dị ứng, Lọc theo khoảng ngày có kiểm tra tính hợp lệ (`MSG-051`), Nút "Xuất Báo Cáo" kèm bảo mật.
+  - **Data Privacy & Nghị Định 13/2023/NĐ-CP**: Tự động che mờ (Masking `***`) số CCCD người giám hộ và địa chỉ chi tiết trong danh sách chung; hiển thị thông báo chính sách bảo vệ dữ liệu trẻ em (`MSG-053`).
+  - **Allergy Red Alert Tags**: Tự động bóc tách và làm nổi bật màu đỏ (`#DC2626`) các nhãn dị ứng thực phẩm nghiêm trọng (Đậu phộng, Hải sản, Sữa bò tươi) tại danh sách học sinh.
+  - **Tab Biến Động & Yêu Cầu Chuyển Lớp / Bảo Lưu**: Danh sách đơn chuyển lớp từ phụ huynh, lớp hiện tại, lớp xin chuyển đến, lý do chuyển, và nút "Xem xét & Duyệt Đơn" (`PUT /api/academic/transfer-requests/{id}/review`). Khi phê duyệt, hệ thống tự động cập nhật lớp học và gửi thông báo.
+
+---
+
+### Task UC-014: Tra cứu Nhật ký An ninh Hệ thống (Immutable Security Audit Trail)
+- **File thực hiện:** `src/pages/admin/audit/AuditLogsPage.tsx`, `src/pages/admin/audit/components/AuditLogToolbar.tsx`, `src/pages/admin/audit/components/AuditLogDetailModal.tsx`, `src/pages/admin/audit/components/ReAuthExportModal.tsx`, `src/api/auditLogApi.ts`, `src/types/auditLog.types.ts`.
+- **Mô tả & Tính năng đã hoàn thành:**
+  - **Bộ Lọc Nâng Cao & Kiểm Soát Phân Vùng Nóng**: Lọc theo Bảng tác động (`core.tenants`, `attendance.face_logs`, `finance.invoices`, `academic.timetables`, `core.users`), Hành động (`CREATE`, `UPDATE`, `DELETE`, `LOGIN`, `VERIFY`), Tìm kiếm từ khóa và Khoảng ngày. Tự động cảnh báo `MSG-057` khi khoảng ngày tra cứu vượt quá 90 ngày (yêu cầu kết nối kho lưu trữ trữ lạnh).
+  - **Bảng Nhật Ký Kiểm Toán Bất Biến**: Cột mốc thời gian, người thực hiện (Tên, Email, Role), Bảng dữ liệu, Badge hành động chuẩn màu sắc, Mã bản ghi, Địa chỉ IP, Nút xem diff.
+  - **Modal So Sánh Thay Đổi (JSON Diff Viewer)**: So sánh trực quan bảng thuộc tính giữa `old_values` (màu đỏ) và `new_values` (màu xanh ngọc), hiển thị SHA-256 Block Hash-chain bất biến và User-Agent thiết bị thao tác. Hỗ trợ chuyển đổi giữa chế độ Bảng Diff và Raw JSON Preview kèm nút sao chép.
+  - **Kiểm Tra Toàn Vẹn Chuỗi Khối (Hash Chain Integrity Verification)**: Nút kiểm tra toàn vẹn băm SHA-256 chuỗi khối WORM (Write Once, Read Many) đảm bảo tính toàn vẹn và phát hiện nghi ngờ can thiệp dữ liệu trái phép (`MSG-056`).
+  - **Modal Tái Xác Thực Bảo Mật Khi Xuất File (Re-Auth Export)**: Bắt buộc người dùng nhập mật khẩu tài khoản quản trị trước khi xuất tệp log. Nếu sai mật khẩu, hủy thao tác và hiện `MSG-055`. Hỗ trợ xuất định dạng bảng tính Excel/CSV hoặc JSON Dump.
+
+---
 
 | Phân hệ / Trang | Thực thể Quản lý | Use Case SRS Tương Ứng | Thêm (Create) | Xem (Read) | Sửa (Edit) | Xóa (Delete) | Cơ chế Lưu Trữ DB |
 |:---|:---|:---|:---:|:---:|:---:|:---:|:---|
@@ -351,6 +451,12 @@ Hệ thống frontend `kidpro-fe` được xây dựng từ đầu để đáp �
 | **Hồ sơ Cá nhân (`ProfilePage`)**| Hồ sơ & Đổi Mật khẩu | **UC-004** | — | ✅ | ✅ | — | `core.users` / Supabase |
 | **Quản trị Trường (`TenantsPage`)**| Quản lý Multi-Tenant | **UC-005** | ✅ | ✅ | ✅ | ✅ *(Tạm dừng)*| `core.tenants` |
 | **Phân quyền RBAC (`RbacPage`)** | Ma trận quyền & Tài khoản | **UC-006** | ✅ | ✅ | ✅ *(Matrix)* | ✅ *(Khóa)* | `core.roles_permissions` |
+| **Tích hợp Ngoại vi (`IntegrationsPage`)** | Tích hợp dịch vụ (`integrations`) | **UC-007** | ✅ | ✅ | ✅ | — | `core.integrations` |
+| **Giám sát Nền tảng (`HealthMonitoringPage`)** | Giám sát hạ tầng & Uptime (`health_monitoring`) | **UC-008** | — | ✅ *(Real-time)*| — | — | Spring Boot `/actuator/health` |
+| **Kế hoạch Năm học (`AcademicYearsPage`)** | Niên khóa & Tuyển sinh (`academic_years`) | **UC-009** | ✅ | ✅ | ✅ | ✅ *(Lưu trữ/Xóa)* | `academic.academic_years` |
+| **Điều hành Toàn trường (`ExecutiveDashboardPage`)** | Điều hành thời gian thực (`executive_operations`) | **UC-012** | — | ✅ *(Real-time 30s)* | ✅ *(Giải quyết alert)* | — | `/kitchen/daily-summary`, `/kitchen/meal-headcounts`, `/attendance/face-logs` |
+| **Biến động Học sinh (`StudentAnalyticsPage`)** | Hồ sơ & Biến động (`student_mobility_analytics`) | **UC-013** | — | ✅ *(Masked CCCD)* | ✅ *(Duyệt chuyển lớp)* | — | `/academic/students`, `/academic/transfer-requests` |
+| **Nhật ký An ninh (`AuditLogsPage`)** | Nhật ký kiểm toán WORM (`security_audit_logs`) | **UC-014** | — | ✅ *(Hash chain verify)* | — | — *(Immutable)* | `core.audit_logs`, Re-auth `/auth/login` |
 
 ---
 

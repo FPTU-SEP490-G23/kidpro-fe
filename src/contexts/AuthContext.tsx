@@ -222,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const mockLogin = (selectedRole: UserRole) => {
     const mockUsers: Record<UserRole, User> = {
       SYSTEM_ADMIN: { id: 'sa-01', email: 'admin@kidpro.edu.vn', fullName: 'Quản trị viên Hệ thống', role: 'SYSTEM_ADMIN', status: 'ACTIVE' },
+      SUPER_ADMIN: { id: 'spa-01', email: 'superadmin@kidpro.edu.vn', fullName: 'Platform Super Admin', role: 'SUPER_ADMIN', status: 'ACTIVE' },
       BGH: { id: 'bgh-01', email: 'hieutruong@kidpro.edu.vn', fullName: 'Cô Nguyễn Thu Hà (Hiệu Trưởng)', role: 'BGH', status: 'ACTIVE' },
       GIAO_VU: { id: 'gv-01', email: 'giaovu@kidpro.edu.vn', fullName: 'Thầy Trần Quốc Bảo (Giáo vụ)', role: 'GIAO_VU', status: 'ACTIVE' },
       KE_TOAN: { id: 'kt-01', email: 'ketoan@kidpro.edu.vn', fullName: 'Cô Lê Hoàng Mai (Kế toán)', role: 'KE_TOAN', status: 'ACTIVE' },

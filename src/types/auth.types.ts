@@ -1,5 +1,6 @@
 export type UserRole =
   | 'SYSTEM_ADMIN'
+  | 'SUPER_ADMIN'
   | 'BGH'
   | 'GIAO_VU'
   | 'KE_TOAN'

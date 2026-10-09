@@ -15,7 +15,7 @@ export const userProfileApi = {
         return res as unknown as UserProfile;
       }
     } catch (err) {
-      console.warn('Backend API /v1/users/me chưa sẵn sàng, sử dụng dữ liệu phiên hoạt động hiện tại.');
+      console.warn('Backend API /users/me chưa sẵn sàng, sử dụng dữ liệu phiên hoạt động hiện tại.');
     }
 
     // Fallback: Lấy từ Supabase / localStorage

@@ -16,6 +16,12 @@ import AnnouncementsPage from './pages/comms/AnnouncementsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import TenantsPage from './pages/admin/tenants/TenantsPage';
 import RbacPage from './pages/admin/rbac/RbacPage';
+import IntegrationsPage from './pages/admin/integrations/IntegrationsPage';
+import HealthMonitoringPage from './pages/admin/health/HealthMonitoringPage';
+import AcademicYearsPage from './pages/academic/years/AcademicYearsPage';
+import ExecutiveDashboardPage from './pages/dashboard/executive/ExecutiveDashboardPage';
+import StudentAnalyticsPage from './pages/academic/analytics/StudentAnalyticsPage';
+import AuditLogsPage from './pages/admin/audit/AuditLogsPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 
@@ -124,7 +130,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/tenants"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <TenantsPage />
               </ProtectedRoute>
             }
@@ -134,8 +140,68 @@ export const App: React.FC = () => {
           <Route
             path="/admin/rbac"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <RbacPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 12. UC-007: Cấu hình Dịch vụ & Tích hợp Ngoại vi (Chỉ Platform Super Admin) */}
+          <Route
+            path="/admin/integrations"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <IntegrationsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 13. UC-008: Giám sát Sức khỏe & Uptime Nền tảng (Chỉ Platform Super Admin) */}
+          <Route
+            path="/admin/health"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <HealthMonitoringPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 14. UC-009: Thiết lập Kế hoạch Năm học & Tuyển sinh (BGH, Giáo vụ, Super Admin) */}
+          <Route
+            path="/academic/years"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicYearsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 15. UC-012: Xem Dashboard Điều hành Toàn trường (Hiệu trưởng BGH & Admin) */}
+          <Route
+            path="/executive-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <ExecutiveDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 16. UC-013: Xem Báo cáo Biến động Học sinh (Hiệu trưởng BGH, Giáo vụ, Admin) */}
+          <Route
+            path="/academic/student-analytics"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <StudentAnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 17. UC-014: Tra cứu Nhật ký An ninh Hệ thống (Hiệu trưởng BGH, System Admin) */}
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AuditLogsPage />
               </ProtectedRoute>
             }
           />

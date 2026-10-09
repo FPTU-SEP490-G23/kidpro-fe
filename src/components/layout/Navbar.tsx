@@ -7,6 +7,7 @@ import { LogOut, Bell, User as UserIcon } from 'lucide-react';
 
 const allRoles: UserRole[] = [
   'SYSTEM_ADMIN',
+  'SUPER_ADMIN',
   'BGH',
   'GIAO_VIEN',
   'GIAO_VU',

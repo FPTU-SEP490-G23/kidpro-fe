@@ -22,7 +22,9 @@ import {
   Clock,
   MapPin,
   Building,
+  CalendarDays,
 } from 'lucide-react';
+import AcademicYearsPage from './years/AcademicYearsPage';
 
 interface ClassTransferRow {
   id: string;
@@ -49,7 +51,7 @@ export const AcademicPage: React.FC = () => {
   const [classesList, setClassesList] = useState<ClassItem[]>([]);
   const [timetables, setTimetables] = useState<Timetable[]>([]);
   const [selectedTimetableClassId, setSelectedTimetableClassId] = useState<string>('ALL');
-  const [activeTab, setActiveTab] = useState<'transfers' | 'classes' | 'timetable'>('transfers');
+  const [activeTab, setActiveTab] = useState<'transfers' | 'classes' | 'timetable' | 'academic_years'>('transfers');
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [apiFeedback, setApiFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -713,12 +715,12 @@ export const AcademicPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-slate-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('transfers')}
-          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'transfers'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#275A4E] text-[#275A4E]'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -728,9 +730,9 @@ export const AcademicPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('classes')}
-          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'classes'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#275A4E] text-[#275A4E]'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -740,14 +742,26 @@ export const AcademicPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('timetable')}
-          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'timetable'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#275A4E] text-[#275A4E]'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Calendar className="h-4 w-4" />
           <span>Thời khóa biểu sinh hoạt ({timetables.length} tiết)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('academic_years')}
+          className={`py-3 px-5 text-sm font-semibold border-b-2 transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'academic_years'
+              ? 'border-[#275A4E] text-[#275A4E] bg-emerald-50/40'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <CalendarDays className="h-4 w-4 text-[#E5A93C]" />
+          <span>Kế hoạch Năm học (UC-009)</span>
         </button>
       </div>
 
@@ -1187,6 +1201,13 @@ export const AcademicPage: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ================= TAB 4: KẾ HOẠCH NĂM HỌC & TUYỂN SINH (UC-009) ================= */}
+      {activeTab === 'academic_years' && (
+        <div className="pt-2">
+          <AcademicYearsPage />
         </div>
       )}
 
