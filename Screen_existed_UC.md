@@ -1,0 +1,40 @@
+# BẢNG ĐỐI CHIẾU MÀN HÌNH FRONTEND & USE CASE ĐẶC TẢ SRS
+
+> **Dự án:** KIDPRO Ecosystem (`kidpro-fe`)  
+> **Tài liệu tham chiếu:** SRS & Thiết kế hệ thống KIDPRO  
+> **Mục đích:** Thống kê và đối chiếu mức độ tương thích giữa các màn hình / thực thể đã hoàn thành trên Frontend với các Use Case trong tài liệu đặc tả nghiệp vụ SRS.
+
+---
+
+## 1. Bảng đối chiếu các màn hình / thực thể ĐÃ THUỘC Use Case
+
+| STT | Phân hệ / Màn hình | Thực thể quản lý | Use Case tương ứng trong SRS | Đánh giá độ khớp nghiệp vụ |
+|:---:|:---|:---|:---|:---|
+| 1 | **Học vụ (`AcademicPage`)** | Lớp học (`classes`) | • **UC-010**: Phê duyệt Cấu trúc Lớp học Mới<br>• **UC-016**: Phân công Giáo viên Phụ trách Lớp | Khớp luồng tạo/quản lý cơ cấu lớp học và phân công giáo viên. |
+| 2 | **Học vụ (`AcademicPage`)** | Thời khóa biểu (`timetables`) | • **UC-017**: Xếp & Ban hành Thời khóa biểu Tuần<br>• **UC-018**: Kiểm tra Xung đột Lịch dạy & Phòng học | Khớp hoàn toàn nghiệp vụ xếp lịch và kiểm tra trùng lịch. |
+| 3 | **Học vụ (`AcademicPage`)** | Đơn chuyển lớp (`transfer_requests`) | • **UC-019**: Xử lý Đơn Chuyển lớp & Bảo lưu | Khớp luồng tiếp nhận, duyệt hoặc từ chối chuyển lớp. |
+| 4 | **Học vụ (`AcademicPage`)** | Học sinh (`students`) | • **UC-015**: Tiếp nhận Học sinh & Phân lớp | Khớp nghiệp vụ quản lý hồ sơ và xếp lớp cho trẻ. |
+| 5 | **Điểm danh (`AttendancePage`)** | Điểm danh học sinh (`attendances`) | • **UC-021**: Điểm danh Đón trẻ bằng AI Khuôn mặt<br>• **UC-022**: Điểm danh Thủ công Dự phòng | Khớp màn hình chấm điểm danh và xem sổ chuyên cần. |
+| 6 | **Báo bếp (`KitchenPage`)** | Món ăn thực đơn tuần (`weekly_menus`) | • **UC-029**: Thiết lập Thực đơn Bán trú Tuần | Khớp chức năng lập thực đơn các bữa (Sáng, Trưa, Xế). |
+| 7 | **Báo bếp (`KitchenPage`)** | Báo cáo suất ăn (`daily_summary`) | • **UC-030**: Theo dõi Dashboard Khóa số Suất ăn 08:30 | Khớp luồng chốt và khóa số suất ăn tự động lúc 08:30. |
+| 8 | **Tài chính (`FinancePage`)** | Cấu hình khoản thu (`fee_configs`) | • **UC-033**: Cấu hình Danh mục Khoản thu & Tính chất<br>• **UC-011**: Phê duyệt Chính sách Biểu phí Học phí | Khớp luồng thiết lập danh mục các khoản thu phí. |
+| 9 | **Tài chính (`FinancePage`)** | Chính sách miễn giảm (`discount_rules`) | • **UC-011**: Phê duyệt Chính sách Biểu phí Học phí<br>• **UC-035**: Chạy Lệnh Sinh Bảng kê Học phí Động (BR-042/BR-056 giảm trừ anh chị em) | Nằm trong phạm vi quy tắc chiết khấu, miễn giảm của biểu phí. |
+| 10 | **Tài chính (`FinancePage`)** | Khung phạt đón muộn (`late_pickup_rules`) | • **UC-011**: Phê duyệt Chính sách Biểu phí Học phí<br>• **UC-025**: Ghi nhận Mốc giờ Trẻ Đón muộn | Khớp cấu hình khung tính phụ phí đón trẻ ngoài giờ. |
+| 11 | **Tài chính (`FinancePage`)** | Hóa đơn học phí (`invoices`) | • **UC-035**: Chạy Lệnh Sinh Bảng kê Học phí Động<br>• **UC-037**: Duyệt & Phát hành Bảng kê Học phí Hàng loạt<br>• **UC-038**: Gạch nợ Thủ công & Thu Tiền mặt | Khớp luồng tạo nháp, duyệt phát hành và quản lý trạng thái nợ/thu tiền. |
+| 12 | **Y tế & Sức khỏe (`HealthPage`)** | Chỉ số BMI thể trạng (`health_metrics`) | • **UC-051**: Ghi nhận Chỉ số Chiều cao & Cân nặng | Khớp theo dõi chiều cao, cân nặng và chỉ số BMI. |
+| 13 | **Y tế & Sức khỏe (`HealthPage`)** | Giấc ngủ trưa (`nap_records`) | • Sổ nhật ký theo dõi sinh hoạt & giấc ngủ bán trú | Khớp chức năng ghi nhận giờ ngủ, thức và chất lượng giấc ngủ trưa. |
+| 14 | **Y tế & Sức khỏe (`HealthPage`)** | Khẩu phần bữa ăn (`meal_records`) | • Sổ nhật ký dinh dưỡng và khẩu phần ăn từng bữa | Khớp theo dõi mức tiêu thụ suất ăn từng bữa (hết suất/nửa suất/bỏ bữa). |
+| 15 | **Y tế & Sức khỏe (`HealthPage`)** | Đánh giá TT 51 (`development_evaluations`) | • Chuẩn đánh giá trẻ theo Thông tư 51/2020/TT-BGDĐT | Khớp chức năng đánh giá sự phát triển của trẻ theo 5 lĩnh vực GD mầm non. |
+| 16 | **Y tế & Sức khỏe (`HealthPage`)** | Nhật ký lớp học (`classroom_journals`) | • **UC-028**: Đăng Nhật ký & Hình ảnh Hoạt động Lớp | Khớp bảng tin nhật ký sinh hoạt/hình ảnh của lớp. |
+| 17 | **Phụ huynh (`ParentPage`)** | Đơn xin nghỉ học (`leave_requests`) | • **UC-044**: Nộp Đơn xin Nghỉ học Trực tuyến (phía phụ huynh)<br>• **UC-026**: Tiếp nhận & Duyệt Đơn xin Nghỉ học (phía giáo viên) | Khớp nghiệp vụ gửi và theo dõi trạng thái đơn xin nghỉ. |
+| 18 | **Phụ huynh (`ParentPage`)** | Xem & Thanh toán hóa đơn con | • **UC-047**: Xem Bảng kê Học phí & Chi tiết Khấu trừ<br>• **UC-048**: Thanh toán Học phí qua VietQR 1-Chạm | Khớp màn hình tra cứu bảng kê và kích hoạt VietQR PayOS. |
+| 19 | **Thông báo (`AnnouncementsPage`)** | Thông báo trường (`announcements`) | • **UC-067**: Phát hành Bản tin & Thông báo Toàn trường | Khớp nghiệp vụ soạn thảo, duyệt và phát thông báo. |
+| 20 | **Hồ sơ Cá nhân (`ProfilePage`)** | Hồ sơ & Đổi Mật khẩu | • **UC-004**: Cập nhật Thông tin Cá nhân & Đổi Mật khẩu | Khớp quản lý thông tin tài khoản, avatar và đổi mật khẩu an toàn. |
+| 21 | **Quản trị Trường (`TenantsPage`)** | Quản lý Multi-Tenant | • **UC-005**: Quản lý Trường học Đa Chi nhánh (Multi-Tenant) | Khớp tạo mới cơ sở trường, mã trường, phân quyền hiệu trưởng và gói thuê bao. |
+| 22 | **Phân quyền RBAC (`RbacPage`)** | Ma trận quyền & Tài khoản | • **UC-006**: Quản lý Tài khoản & Ma trận Phân quyền Vai trò | Khớp gán vai trò, quản lý phân quyền chức năng và tài khoản người dùng. |
+| 23 | **Tích hợp Ngoại vi (`IntegrationsPage`)** | Tích hợp dịch vụ (`integrations`) | • **UC-007**: Cấu hình Dịch vụ & Tích hợp Ngoại vi (Platform Integrations & External Services) | Khớp 100% 4 Tab: Cổng thanh toán VietQR/PayOS/SePay, Firebase FCM, Python Face AI Microservice, SMS Gateway OTP. Bảo mật mật mã ẩn/hiện và cam kết NĐ 13/2023/NĐ-CP. |
+| 24 | **Giám sát Nền tảng (`HealthMonitoringPage`)** | Sức khỏe hạ tầng & Uptime (`health_monitoring`) | • **UC-008**: Giám sát Sức khỏe & Uptime Nền tảng (Platform Health & Infrastructure Monitoring) | Khớp 100% Status Banner Uptime 99.9%, 5 Thẻ dịch vụ (PostgreSQL 7 schemas, Redis/BullMQ, Face AI, MinIO S3, FCM), Auto-polling 30s, Biểu đồ Latency/Traffic và Gate Camera Stream Watcher viền Mint Green. |
+| 25 | **Kế hoạch Năm học (`AcademicYearsPage`)** | Niên khóa & Tuyển sinh (`academic_years`) | • **UC-009**: Thiết lập Kế hoạch Năm học & Tuyển sinh (Academic Year & Enrollment Planning) | Khớp 100% quản lý niên khóa, mốc học kỳ I & II, chỉ tiêu 4 khối (Nhà trẻ, Mầm, Chồi, Lá), kiểm tra ≥ 35 tuần học (BR-008), công suất trường và đóng lưu trữ (Archive) niên khóa an toàn. |
+| 26 | **Điều hành Toàn trường (`ExecutiveDashboardPage`)** | Bảng điều hành toàn trường (`executive_operations`) | • **UC-012**: Xem Dashboard Điều hành Toàn trường (Executive Operations Dashboard) | Khớp 100% 4 Thẻ chỉ số (Sĩ số & Chuyên cần, Báo cáo bếp ăn Cơm/Cháo/Dị ứng, Tài chính thu học phí, Cảnh báo an ninh cổng), Polling 30s (`MSG-046`), Biểu đồ suất ăn từng lớp, Watcher phát hiện người lạ và xử lý trực tiếp. |
+| 27 | **Biến động Học sinh (`StudentAnalyticsPage`)** | Biến động & Học sinh (`student_mobility_analytics`) | • **UC-013**: Xem Báo cáo Biến động Học sinh (Student Retention & Mobility Analytics) | Khớp 100% lọc niên khóa, lớp, trạng thái, cảnh báo dị ứng đỏ `#DC2626`, tab Duyệt đơn Chuyển lớp & Bảo lưu (`/academic/transfer-requests/{id}/review`), che mờ CCCD/địa chỉ theo Nghị định 13/2023/NĐ-CP (`MSG-053`), kiểm tra khoảng ngày lọc (`MSG-051`). |
+| 28 | **Nhật ký An ninh (`AuditLogsPage`)** | Nhật ký kiểm toán an ninh (`security_audit_logs`) | • **UC-014**: Tra cứu Nhật ký An ninh Hệ thống (Immutable Security Audit Trail) | Khớp 100% truy xuất `core.audit_logs`, lọc theo Table/Action/Date/User, Modal xem JSON Diff chi tiết (`old_values` vs `new_values`), kiểm tra toàn vẹn băm SHA-256 chuỗi khối WORM (`MSG-056`), cảnh báo phân vùng nóng > 90 ngày (`MSG-057`), Modal tái xác thực mật khẩu (Re-auth `MSG-055`) trước khi xuất tệp an ninh. |
