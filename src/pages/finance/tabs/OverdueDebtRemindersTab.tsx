@@ -26,137 +26,6 @@ import {
 import { useTriggerDebtReminders } from '../../../hooks/useTriggerDebtReminders';
 import { formatCurrency } from '../../../utils/formatters';
 
-// Dữ liệu mẫu hóa đơn quá hạn chuẩn nghiệp vụ kế toán mầm non
-const INITIAL_OVERDUE_INVOICES: OverdueInvoiceItem[] = [
-  {
-    id: 'INV-OD-001',
-    invoiceNumber: 'HD-2026-09-001',
-    studentId: 'STU-101',
-    studentCode: 'KP-2611',
-    studentName: 'Nguyễn Tuấn Kiệt',
-    className: 'Mầm 1 (24-36 tháng)',
-    parentName: 'Nguyễn Văn Tuấn',
-    parentPhone: '0903123456',
-    parentEmail: 'tuan.nguyen@gmail.com',
-    teacherName: 'Cô Lê Thị Mai',
-    totalDebtAmount: 3850000,
-    overdueDays: 2,
-    dueDate: '2026-09-10',
-    agingBucket: 'DAYS_1_3',
-    lastReminderChannel: 'FCM',
-    lastReminderAt: '2026-09-11 09:00',
-    reminderCount: 1,
-    disputeStatus: 'NONE',
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=3850000&addInfo=HOCPHI%20KP2611'
-  },
-  {
-    id: 'INV-OD-002',
-    invoiceNumber: 'HD-2026-09-002',
-    studentId: 'STU-102',
-    studentCode: 'KP-2612',
-    studentName: 'Đặng Ngọc Ánh',
-    className: 'Chồi 1 (3-4 tuổi)',
-    parentName: 'Trịnh Thị Lan',
-    parentPhone: '0912345678',
-    parentEmail: 'lan.trinh@gmail.com',
-    teacherName: 'Cô Trần Mỹ Dung',
-    totalDebtAmount: 4200000,
-    overdueDays: 3,
-    dueDate: '2026-09-09',
-    agingBucket: 'DAYS_1_3',
-    lastReminderChannel: 'FCM',
-    lastReminderAt: '2026-09-10 09:00',
-    reminderCount: 1,
-    disputeStatus: 'NONE',
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=4200000&addInfo=HOCPHI%20KP2612'
-  },
-  {
-    id: 'INV-OD-003',
-    invoiceNumber: 'HD-2026-09-003',
-    studentId: 'STU-103',
-    studentCode: 'KP-2613',
-    studentName: 'Phan Minh Khang',
-    className: 'Lá 2 (4-5 tuổi)',
-    parentName: 'Phan Quốc Việt',
-    parentPhone: '0988776655',
-    parentEmail: 'viet.phan@gmail.com',
-    teacherName: 'Cô Nguyễn Thị Ngọc',
-    totalDebtAmount: 4500000,
-    overdueDays: 7,
-    dueDate: '2026-09-05',
-    agingBucket: 'DAYS_4_10',
-    lastReminderChannel: 'SMS',
-    lastReminderAt: '2026-09-09 09:15',
-    reminderCount: 2,
-    disputeStatus: 'NONE',
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=4500000&addInfo=HOCPHI%20KP2613'
-  },
-  {
-    id: 'INV-OD-004',
-    invoiceNumber: 'HD-2026-09-004',
-    studentId: 'STU-104',
-    studentCode: 'KP-2614',
-    studentName: 'Bùi Hải Yến',
-    className: 'Mầm 2 (24-36 tháng)',
-    parentName: 'Bùi Văn Hùng',
-    parentPhone: '0977112233',
-    parentEmail: 'hung.bui@gmail.com',
-    teacherName: 'Cô Hoàng Thu Hà',
-    totalDebtAmount: 3950000,
-    overdueDays: 8,
-    dueDate: '2026-09-04',
-    agingBucket: 'DAYS_4_10',
-    lastReminderChannel: 'SMS',
-    lastReminderAt: '2026-09-08 14:00',
-    reminderCount: 3,
-    disputeStatus: 'DISPUTED', // Có khiếu nại sai lệch học phí -> MSG-254
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=3950000&addInfo=HOCPHI%20KP2614'
-  },
-  {
-    id: 'INV-OD-005',
-    invoiceNumber: 'HD-2026-09-005',
-    studentId: 'STU-105',
-    studentCode: 'KP-2615',
-    studentName: 'Trương Hoàng Nam',
-    className: 'Chồi 2 (3-4 tuổi)',
-    parentName: 'Trương Quốc Bảo',
-    parentPhone: '0909998877',
-    parentEmail: 'bao.truong@gmail.com',
-    teacherName: 'Cô Phạm Kim Loan',
-    totalDebtAmount: 5100000,
-    overdueDays: 14,
-    dueDate: '2026-08-28',
-    agingBucket: 'DAYS_OVER_10',
-    lastReminderChannel: 'SMS',
-    lastReminderAt: '2026-09-07 10:00',
-    reminderCount: 4,
-    disputeStatus: 'NONE',
-    fallbackTeacherNoticeCreated: true,
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=5100000&addInfo=HOCPHI%20KP2615'
-  },
-  {
-    id: 'INV-OD-006',
-    invoiceNumber: 'HD-2026-09-006',
-    studentId: 'STU-106',
-    studentCode: 'KP-2616',
-    studentName: 'Lâm Khánh Vy',
-    className: 'Lá 1 (4-5 tuổi)',
-    parentName: 'Lâm Đình Trọng',
-    parentPhone: '0000000000', // SĐT không liên lạc được -> gây lỗi SMS để kích hoạt MSG-253
-    parentEmail: 'trong.lam@gmail.com',
-    teacherName: 'Cô Đỗ Thúy Hằng',
-    totalDebtAmount: 4800000,
-    overdueDays: 6,
-    dueDate: '2026-09-06',
-    agingBucket: 'DAYS_4_10',
-    lastReminderChannel: 'FCM',
-    lastReminderAt: '2026-09-09 09:00',
-    reminderCount: 2,
-    disputeStatus: 'NONE',
-    vietQrUrl: 'https://img.vietqr.io/image/970422-KIDPRO202609-compact2.png?amount=4800000&addInfo=HOCPHI%20KP2616'
-  }
-];
-
 export const OverdueDebtRemindersTab: React.FC = () => {
   // Filters & State
   const [searchTerm, setSearchTerm] = useState('');
@@ -186,13 +55,12 @@ export const OverdueDebtRemindersTab: React.FC = () => {
     queryFn: async () => {
       try {
         const res = await financeApi.getOverdueInvoices();
-        return res.data && res.data.length > 0 ? res.data : INITIAL_OVERDUE_INVOICES;
+        return res.data && res.data.length > 0 ? res.data : [];
       } catch {
-        return INITIAL_OVERDUE_INVOICES;
+        return [];
       }
     },
-    initialData: INITIAL_OVERDUE_INVOICES
-  });
+      });
 
   // Custom Mutations Hook
   const { batchReminderMutation, individualReminderMutation } = useTriggerDebtReminders();

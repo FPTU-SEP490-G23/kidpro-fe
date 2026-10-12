@@ -109,13 +109,13 @@ export const AnnouncementsPage: React.FC = () => {
         }
       }
 
-      if (!data || data.length === 0) {
-        data = getMockAnnouncements();
+      if (!data) {
+        data = [];
       }
 
       setAnnouncements(data);
     } catch {
-      setAnnouncements(getMockAnnouncements());
+      setAnnouncements([]);
     } finally {
       setIsLoading(false);
     }
@@ -956,58 +956,7 @@ export const AnnouncementsPage: React.FC = () => {
 
 // Dữ liệu mock minh họa
 function getMockAnnouncements(): Announcement[] {
-  return [
-    {
-      id: 'ann-01',
-      title: 'Thông báo khẩn: Toàn trường nghỉ học ngày mai (11/10) để phòng tránh Áp thấp nhiệt đới và Siêu bão',
-      content: 'Căn cứ công điện khẩn của UBND Thành phố và Sở GD&ĐT, để đảm bảo an toàn tuyệt đối cho trẻ mầm non, Nhà trường thông báo toàn bộ học sinh nghỉ học trực tiếp vào ngày 11/10/2026. Phụ huynh vui lòng phối hợp theo dõi sức khỏe và giữ bé an toàn tại gia đình. Nhà trường sẽ gửi thông báo đi học lại sau khi bão tan.',
-      priority: 'URGENT',
-      publishedAt: '2026-10-10T14:30:00Z',
-      publishedBy: 'TS. Nguyễn Thu Hà (Hiệu Trưởng)',
-      authorRole: 'BGH',
-      targetAudience: ['ALL'],
-      targetAudienceLabel: 'Toàn trường',
-      attachmentUrl: 'https://example.com/cong-van-phong-bao.pdf',
-      attachmentName: 'Cong_Van_Nghi_Hoc_Phong_Bao_11_10.pdf',
-      attachmentSizeMb: 1.8,
-      readCount: 418,
-      totalTargetCount: 450,
-      readRate: 92.9,
-      isRevoked: false,
-    },
-    {
-      id: 'ann-02',
-      title: 'Kế hoạch tổ chức Ngày hội STEAM & Lễ hội Khám phá Khoa học Mầm non 2026',
-      content: 'Nhà trường trân trọng kính mời Quý phụ huynh cùng các bé tham gia Ngày hội Khoa học Mầm non diễn ra vào Thứ Bảy, ngày 24/10/2026 tại Sân vận động trung tâm cơ sở. Chương trình có nhiều gian hàng trải nghiệm Robotics, làm tên lửa nước và pha chế màu tự nhiên.',
-      priority: 'NORMAL',
-      publishedAt: '2026-10-08T09:00:00Z',
-      publishedBy: 'Thầy Trần Quang Vinh (Giáo Vụ)',
-      authorRole: 'GIAO_VU',
-      targetAudience: ['MAM', 'CHOI', 'LA'],
-      targetAudienceLabel: 'Khối Mẫu Giáo',
-      attachmentName: 'Thu_Moi_Ngay_Hoi_STEAM.pdf',
-      attachmentSizeMb: 3.2,
-      readCount: 312,
-      totalTargetCount: 350,
-      readRate: 89.1,
-      isRevoked: false,
-    },
-    {
-      id: 'ann-03',
-      title: 'Lịch tiêm chủng mở rộng và khám sức khỏe răng miệng định kỳ đợt 1',
-      content: 'Trạm Y tế phối hợp cùng Phòng Y tế Trường học tổ chức khám sức khỏe nha khoa học đường và tư vấn chế độ dinh dưỡng cho trẻ vào các ngày 15/10 và 16/10. Đề nghị phụ huynh gửi sổ theo dõi tiêm chủng của bé cho cô giáo chủ nhiệm.',
-      priority: 'NORMAL',
-      publishedAt: '2026-10-05T08:15:00Z',
-      publishedBy: 'Phòng Y Tế & Chăm Sóc Trẻ',
-      authorRole: 'GIAO_VU',
-      targetAudience: ['ALL'],
-      targetAudienceLabel: 'Toàn trường',
-      readCount: 380,
-      totalTargetCount: 450,
-      readRate: 84.4,
-      isRevoked: false,
-    },
-  ];
+  return [];
 }
 
 export default AnnouncementsPage;

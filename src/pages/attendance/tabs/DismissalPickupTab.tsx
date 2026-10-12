@@ -148,58 +148,7 @@ export const DismissalPickupTab: React.FC = () => {
         console.warn('API getTodayEmergencyPickups error, using fallback data:', e);
       }
 
-      // High-quality fallback records for demonstration
-      return [
-        {
-          id: 'emg-01',
-          studentId: 'stu-01',
-          studentName: 'Trần Gia Bảo',
-          studentClassName: 'Mầm 1',
-          studentAvatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-          pickupPersonName: 'Nguyễn Thị Bích (Bác ruột)',
-          relationship: 'Bác ruột',
-          phone: '0912 345 678',
-          identityCard: '001198004521',
-          photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
-          qrCode: 'KIDPRO-EMG-7749',
-          validDate: new Date().toISOString().split('T')[0],
-          status: 'PENDING',
-          notes: 'Mẹ bận công tác đột xuất, ủy quyền bác ruột đón bé chiều nay.',
-          createdAt: '08:15:00'
-        },
-        {
-          id: 'emg-02',
-          studentId: 'stu-02',
-          studentName: 'Lê Minh Anh',
-          studentClassName: 'Nhà trẻ 1',
-          pickupPersonName: 'Trần Văn Long (Chú ruột)',
-          relationship: 'Chú ruột',
-          phone: '0988 765 432',
-          identityCard: '025091003412',
-          photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-          qrCode: 'KIDPRO-EMG-8891',
-          validDate: new Date().toISOString().split('T')[0],
-          status: 'PENDING',
-          notes: 'Bố mẹ đi làm về muộn, nhờ chú đón về nhà ông bà.',
-          createdAt: '09:30:00'
-        },
-        {
-          id: 'emg-03',
-          studentId: 'stu-03',
-          studentName: 'Phạm Hải Đăng',
-          studentClassName: 'Chồi 2',
-          pickupPersonName: 'Hoàng Mai Phương',
-          relationship: 'Người giúp việc gia đình',
-          phone: '0934 112 233',
-          identityCard: '031195009876',
-          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-          qrCode: 'KIDPRO-EMG-1029',
-          validDate: new Date().toISOString().split('T')[0],
-          status: 'REVOKED',
-          notes: 'Ủy quyền đã bị phụ huynh hủy trên ứng dụng di động lúc 14:00.',
-          createdAt: '07:45:00'
-        }
-      ];
+      return [];
     }
   });
 
@@ -248,7 +197,7 @@ export const DismissalPickupTab: React.FC = () => {
     if (type === 'FIXED_VALID') {
       const student = students[0] || {
         id: 'stu-01',
-        fullName: 'Trần Gia Bảo',
+        fullName: 'Học sinh',
         className: 'Mầm 1'
       };
 
@@ -264,7 +213,7 @@ export const DismissalPickupTab: React.FC = () => {
         isStudentPresentToday: true,
         hasAlreadyLeft,
         leftAtTime: dismissedStudentsMap.current.get(student.id),
-        pickupPersonName: 'Trần Quốc Tuấn',
+        pickupPersonName: 'Phụ huynh',
         relationship: 'Bố ruột',
         identityCard: '001085002134',
         phone: '0903 456 789',
@@ -282,15 +231,15 @@ export const DismissalPickupTab: React.FC = () => {
       setActiveAlert({
         id: 'alert-' + Date.now(),
         studentId,
-        studentName: emg?.studentName || 'Lê Minh Anh',
+        studentName: emg?.studentName || 'Học sinh',
         studentCode: 'HS-1002',
         className: emg?.studentClassName || 'Nhà trẻ 1',
         studentAvatarUrl: emg?.studentAvatarUrl || 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&auto=format&fit=crop&q=80',
         isStudentPresentToday: true,
         hasAlreadyLeft,
         leftAtTime: dismissedStudentsMap.current.get(studentId),
-        pickupPersonName: emg?.pickupPersonName || 'Nguyễn Thị Bích',
-        relationship: emg?.relationship || 'Bác ruột',
+        pickupPersonName: emg?.pickupPersonName || 'Người đón khẩn cấp',
+        relationship: emg?.relationship || 'Người thân',
         identityCard: emg?.identityCard || '001198004521',
         phone: emg?.phone || '0912 345 678',
         cameraPhotoUrl: emg?.photoUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
@@ -305,7 +254,7 @@ export const DismissalPickupTab: React.FC = () => {
       setActiveAlert({
         id: 'alert-' + Date.now(),
         studentId: 'stu-sample',
-        studentName: 'Nguyễn Tuấn Kiệt',
+        studentName: 'Học sinh',
         studentCode: 'HS-1005',
         className: 'Mầm 2',
         isStudentPresentToday: true,
@@ -321,7 +270,7 @@ export const DismissalPickupTab: React.FC = () => {
         arrivedAt: nowStr
       });
     } else if (type === 'ALREADY_PICKED') {
-      const student = students[0] || { id: 'stu-01', fullName: 'Trần Gia Bảo', className: 'Mầm 1' };
+      const student = students[0] || { id: 'stu-01', fullName: 'Học sinh', className: 'Mầm 1' };
       const leftTime = dismissedStudentsMap.current.get(student.id) || '16:15:30';
       dismissedStudentsMap.current.set(student.id, leftTime);
 
@@ -349,12 +298,12 @@ export const DismissalPickupTab: React.FC = () => {
       setActiveAlert({
         id: 'alert-' + Date.now(),
         studentId: rev?.studentId || 'stu-03',
-        studentName: rev?.studentName || 'Phạm Hải Đăng',
+        studentName: rev?.studentName || 'Học sinh',
         studentCode: 'HS-1003',
         className: rev?.studentClassName || 'Chồi 2',
         isStudentPresentToday: true,
         hasAlreadyLeft: false,
-        pickupPersonName: rev?.pickupPersonName || 'Hoàng Mai Phương',
+        pickupPersonName: rev?.pickupPersonName || 'Người đón',
         relationship: rev?.relationship || 'Người giúp việc',
         identityCard: rev?.identityCard || '031195009876',
         phone: rev?.phone || '0934 112 233',

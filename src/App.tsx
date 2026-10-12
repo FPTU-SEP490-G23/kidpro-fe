@@ -22,6 +22,8 @@ import AcademicYearsPage from './pages/academic/years/AcademicYearsPage';
 import ExecutiveDashboardPage from './pages/dashboard/executive/ExecutiveDashboardPage';
 import StudentAnalyticsPage from './pages/academic/analytics/StudentAnalyticsPage';
 import AuditLogsPage from './pages/admin/audit/AuditLogsPage';
+import BghFeePolicyApprovalPage from './pages/bgh/BghFeePolicyApprovalPage';
+import BghClassApprovalsPage from './pages/bgh/BghClassApprovalsPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 import { useAuth } from './contexts/AuthContext';
@@ -44,7 +46,23 @@ export const App: React.FC = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<RoleBasedRedirect />} />
 
-          {/* 1. Dashboard: Nhân sự trường học và Quản trị viên (loại trừ PHU_HUYNH) */}
+          {/* 1. DÙNG CHUNG CHO MỌI ROLE ĐÃ XÁC THỰC (UC-001 -> UC-004) */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/announcements"
+            element={
+              <ProtectedRoute>
+                <AnnouncementsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -54,172 +72,17 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 2. Điểm danh: Giáo viên, BGH, Giáo vụ, Admin */}
+          {/* 2. QUẢN TRỊ VIÊN NỀN TẢNG (SUPER_ADMIN / SYSTEM_ADMIN - UC-005 -> UC-008) */}
           <Route
-            path="/attendance"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <AttendancePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 3. Báo bếp & Thực đơn: Bếp, BGH, Giáo vụ, Giáo viên, Admin */}
-          <Route
-            path="/kitchen"
-            element={
-              <ProtectedRoute allowedRoles={['BEP', 'BGH', 'GIAO_VU', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <KitchenPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 4. Kế toán & Học phí: Kế toán, BGH, Admin */}
-          <Route
-            path="/finance"
-            element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 5. Sức khỏe & Nhật ký ảnh: Giáo viên, BGH, Giáo vụ, Admin */}
-          <Route
-            path="/health"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <HealthPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 6. Học vụ & Chuyển lớp: BGH, Giáo vụ, Giáo viên, Admin */}
-          <Route
-            path="/academic"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <AcademicPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 7. Cổng Phụ huynh: Phụ huynh, BGH, Giáo vụ, Admin */}
-          <Route
-            path="/parent"
-            element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <ParentPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 8. Thông báo trường: Mọi vai trò */}
-          <Route
-            path="/announcements"
-            element={
-              <ProtectedRoute>
-                <AnnouncementsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 9. UC-004: Hồ sơ cá nhân & Bảo mật tài khoản (Mọi vai trò đã đăng nhập) */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 10. UC-005: Quản lý Trường học & Multi-Tenant (Chỉ Super Admin) */}
-          <Route
-            path="/admin/tenants"
+            path="/admin/schools"
             element={
               <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <TenantsPage />
               </ProtectedRoute>
             }
           />
-
-          {/* 11. UC-006: Cấu hình Phân quyền Vai trò RBAC (Chỉ Super Admin) */}
           <Route
-            path="/admin/rbac"
-            element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <RbacPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 12. UC-007: Cấu hình Dịch vụ & Tích hợp Ngoại vi (Chỉ Platform Super Admin) */}
-          <Route
-            path="/admin/integrations"
-            element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <IntegrationsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 13. UC-008: Giám sát Sức khỏe & Uptime Nền tảng (Chỉ Platform Super Admin) */}
-          <Route
-            path="/admin/health"
-            element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <HealthMonitoringPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 14. UC-009: Thiết lập Kế hoạch Năm học & Tuyển sinh (BGH, Giáo vụ, Super Admin) */}
-          <Route
-            path="/academic/years"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <AcademicYearsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 15. UC-012: Xem Dashboard Điều hành Toàn trường (Hiệu trưởng BGH & Admin) */}
-          <Route
-            path="/executive-dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <ExecutiveDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 16. UC-013: Xem Báo cáo Biến động Học sinh (Hiệu trưởng BGH, Giáo vụ, Admin) */}
-          <Route
-            path="/academic/student-analytics"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <StudentAnalyticsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 17. UC-014: Tra cứu Nhật ký An ninh Hệ thống (Hiệu trưởng BGH, System Admin) */}
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <AuditLogsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ========================================================= */}
-          {/* CÁC TUYẾN ĐƯỜNG ĐIỀU HƯỚNG THEO VAI TRÒ (69 USE CASES)   */}
-          {/* ========================================================= */}
-          {/* SUPER_ADMIN / SYSTEM_ADMIN */}
-          <Route
-            path="/admin/schools"
+            path="/admin/tenants"
             element={
               <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <TenantsPage />
@@ -235,6 +98,22 @@ export const App: React.FC = () => {
             }
           />
           <Route
+            path="/admin/rbac"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <RbacPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/integrations"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <IntegrationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/system-health"
             element={
               <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
@@ -242,8 +121,16 @@ export const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/health"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <HealthMonitoringPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* BGH (HIỆU TRƯỞNG) */}
+          {/* 3. HIỆU TRƯỞNG TRƯỜNG HỌC (BGH - UC-009, UC-010, UC-011, UC-012, UC-013, UC-014, UC-067) */}
           <Route
             path="/dashboard/executive"
             element={
@@ -253,43 +140,99 @@ export const App: React.FC = () => {
             }
           />
           <Route
+            path="/executive-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <ExecutiveDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/bgh/academic-planning"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicYearsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/class-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <BghClassApprovalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/fee-policy-approval"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <BghFeePolicyApprovalPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/bgh/finance-policies"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <BghFeePolicyApprovalPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/student-analytics"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <StudentAnalyticsPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/bgh/safety-reports"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <StudentAnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/security-audit"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AuditLogsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AuditLogsPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/bgh/announcements"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AnnouncementsPage />
               </ProtectedRoute>
             }
           />
 
-          {/* GIAO_VU (HỌC VỤ) */}
+          {/* 4. CÁN BỘ GIÁO VỤ (GIAO_VU - UC-015 -> UC-020, UC-053, UC-062 -> UC-065) */}
+          <Route
+            path="/academic"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/academic/students"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -297,7 +240,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/classes"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -305,7 +248,31 @@ export const App: React.FC = () => {
           <Route
             path="/academic/timetables"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/timetable-conflicts"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/transfers"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/guardians"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -313,7 +280,47 @@ export const App: React.FC = () => {
           <Route
             path="/academic/safety-guardians"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/allergies"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/lesson-plan-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/equipment"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/moet-reports"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/year-archival"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -321,17 +328,41 @@ export const App: React.FC = () => {
           <Route
             path="/academic/reports"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/academic/years"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AcademicYearsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/student-analytics"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <StudentAnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* GIAO_VIEN (GIÁO VIÊN CHỦ NHIỆM & BỘ MÔN) */}
+          {/* 5. GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN - UC-021 -> UC-028, UC-051, UC-052, UC-054, UC-061) */}
+          <Route
+            path="/attendance"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <AttendancePage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/teacher/attendance"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AttendancePage />
               </ProtectedRoute>
             }
@@ -339,15 +370,23 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/dismissal"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AttendancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/health"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <HealthPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/teacher/health"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <HealthPage />
               </ProtectedRoute>
             }
@@ -355,7 +394,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/activities"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -363,51 +402,25 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/communication"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <AnnouncementsPage />
               </ProtectedRoute>
             }
           />
 
-          {/* KE_TOAN (KẾ TOÁN TRƯỜNG HỌC) */}
+          {/* 6. NHÂN VIÊN BẾP BÁN TRÚ (BEP - UC-029 -> UC-032, UC-055) */}
           <Route
-            path="/finance/configs"
+            path="/kitchen"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <KitchenPage />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/finance/billing-engine"
-            element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/finance/payments"
-            element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/finance/reports"
-            element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
-                <FinancePage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* BEP (BẾP BÁN TRÚ & DINH DƯỠNG) */}
           <Route
             path="/kitchen/menus"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'BGH', 'GIAO_VU', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -415,7 +428,7 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen/allergies"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'BGH', 'GIAO_VU', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -423,17 +436,67 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen/safety"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'BGH', 'GIAO_VU', 'GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
           />
 
-          {/* PHU_HUYNH (PHỤ HUYNH HỌC SINH) */}
+          {/* 7. KẾ TOÁN TRƯỜNG HỌC (KE_TOAN - UC-033 -> UC-039, UC-056, UC-057, UC-059, UC-060) */}
+          <Route
+            path="/finance"
+            element={
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <FinancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finance/configs"
+            element={
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <FinancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finance/billing-engine"
+            element={
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <FinancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finance/payments"
+            element={
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <FinancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finance/reports"
+            element={
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <FinancePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 8. PHỤ HUYNH HỌC SINH (PHU_HUYNH - UC-040 -> UC-050, UC-058, UC-066, UC-068, UC-069) */}
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+                <ParentPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/parent/children"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -441,7 +504,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/daily-care"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -449,7 +512,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/tuition"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -457,7 +520,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/interactions"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }

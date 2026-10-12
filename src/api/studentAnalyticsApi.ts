@@ -1,154 +1,71 @@
 import axiosClient from './axiosClient';
-import { supabase } from '../config/supabase';
 import {
   StudentRecord,
   StudentMobilityItem,
   StudentMobilitySummary,
 } from '../types/studentAnalytics.types';
 
-const defaultStudents: StudentRecord[] = [
-  {
-    id: 'st-01',
-    studentCode: 'KID-2026-001',
-    fullName: 'Nguyễn Gia Bảo',
-    dateOfBirth: '2023-04-12',
-    gender: 'MALE',
-    classId: 'c1',
-    className: 'Lớp Mầm 1 (3-4 tuổi)',
-    ageGroup: 'Khối Mầm',
-    status: 'ACTIVE',
-    enrollmentDate: '2026-09-01',
-    guardianName: 'Nguyễn Văn Minh',
-    guardianPhone: '0912345678',
-    guardianNationalIdMasked: '079201******',
-    addressMasked: 'Phường Linh Trung, TP. Thủ Đức, TP.HCM',
-    allergyTags: ['Dị ứng đậu phộng nặng', 'Không ăn tôm cua'],
-    avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
-    notes: 'Có tiền sử sốc phản vệ nhẹ với lạc rang, nhà trường trang bị thuốc dự phòng Epinephrine.',
-  },
-  {
-    id: 'st-02',
-    studentCode: 'KID-2026-002',
-    fullName: 'Trần Thảo My',
-    dateOfBirth: '2022-11-20',
-    gender: 'FEMALE',
-    classId: 'c2',
-    className: 'Lớp Chồi 1 (4-5 tuổi)',
-    ageGroup: 'Khối Chồi',
-    status: 'ACTIVE',
-    enrollmentDate: '2026-09-01',
-    guardianName: 'Lê Thị Thu Thủy',
-    guardianPhone: '0987654321',
-    guardianNationalIdMasked: '038198******',
-    addressMasked: 'Phường Thảo Điền, TP. Thủ Đức, TP.HCM',
-    allergyTags: ['Không dung nạp đường Lactose (Sữa bò)'],
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    notes: 'Bé dùng sữa hạt ngũ cốc riêng do phụ huynh gửi hàng tuần.',
-  },
-  {
-    id: 'st-03',
-    studentCode: 'KID-2026-003',
-    fullName: 'Lê Hoàng Long',
-    dateOfBirth: '2024-02-15',
-    gender: 'MALE',
-    classId: 'c3',
-    className: 'Lớp Nhà Trẻ 1 (18-24th)',
-    ageGroup: 'Nhà trẻ',
-    status: 'ACTIVE',
-    enrollmentDate: '2026-09-15',
-    guardianName: 'Lê Hoàng Nam',
-    guardianPhone: '0933221100',
-    guardianNationalIdMasked: '001092******',
-    addressMasked: 'Quận Bình Thạnh, TP.HCM',
-    allergyTags: [],
-    avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-    notes: 'Bé mới đi học, còn quấy khóc tuần đầu.',
-  },
-  {
-    id: 'st-04',
-    studentCode: 'KID-2026-004',
-    fullName: 'Phạm Bảo Hân',
-    dateOfBirth: '2022-05-08',
-    gender: 'FEMALE',
-    classId: 'c2',
-    className: 'Lớp Chồi 1 (4-5 tuổi)',
-    ageGroup: 'Khối Chồi',
-    status: 'TRANSFERRED',
-    enrollmentDate: '2026-09-01',
-    guardianName: 'Phạm Đình Khôi',
-    guardianPhone: '0909887766',
-    guardianNationalIdMasked: '079195******',
-    addressMasked: 'Quận 1, TP.HCM',
-    allergyTags: ['Dị ứng phấn hoa & bụi vải'],
-    notes: 'Đã hoàn tất thủ tục chuyển từ Lớp Chồi 1 sang Lớp Chồi 2 cùng khối.',
-  },
-  {
-    id: 'st-05',
-    studentCode: 'KID-2026-005',
-    fullName: 'Võ Minh Đăng',
-    dateOfBirth: '2023-08-30',
-    gender: 'MALE',
-    classId: 'c1',
-    className: 'Lớp Mầm 1 (3-4 tuổi)',
-    ageGroup: 'Khối Mầm',
-    status: 'RESERVED',
-    enrollmentDate: '2026-09-01',
-    guardianName: 'Võ Quốc Huy',
-    guardianPhone: '0977441122',
-    guardianNationalIdMasked: '083091******',
-    addressMasked: 'TP. Biên Hòa, Đồng Nai',
-    allergyTags: [],
-    notes: 'Bảo lưu học kỳ I do theo gia đình đi công tác nước ngoài.',
-  },
-];
+function mapStudentDtoToRecord(dto: any): StudentRecord {
+  let allergyTags: string[] = [];
+  if (Array.isArray(dto.allergyTags)) {
+    allergyTags = dto.allergyTags;
+  } else if (typeof dto.allergyTags === 'string' && dto.allergyTags.trim()) {
+    allergyTags = dto.allergyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+  }
+  if (dto.allergyInfo && !allergyTags.includes(dto.allergyInfo)) {
+    allergyTags.push(dto.allergyInfo);
+  }
 
-const defaultMobilities: StudentMobilityItem[] = [
-  {
-    id: 'TR-2026-001',
-    studentId: 'st-01',
-    studentName: 'Nguyễn Gia Bảo',
-    fromClassId: 'c1',
-    fromClassName: 'Lớp Mầm 1',
-    toClassId: 'c2',
-    toClassName: 'Lớp Mầm 2',
-    requestType: 'TRANSFER',
-    reason: 'Gia đình chuyển nhà gần cơ sở 2, xin chuyển sang lớp Mầm 2 để tiện đưa đón cùng chị gái.',
-    requestDate: '2026-10-02',
-    status: 'PENDING',
-  },
-  {
-    id: 'TR-2026-002',
-    studentId: 'st-05',
-    studentName: 'Võ Minh Đăng',
-    fromClassId: 'c1',
-    fromClassName: 'Lớp Mầm 1',
-    toClassId: 'c1',
-    toClassName: 'Lớp Mầm 1 (Bảo lưu)',
-    requestType: 'RESERVATION',
-    reason: 'Phụ huynh đi công tác nước ngoài 3 tháng, bảo lưu xuất học phí đến kỳ II.',
-    requestDate: '2026-09-28',
-    status: 'APPROVED',
-    reviewNote: 'Đã hoàn tất duyệt bảo lưu và tạm dừng gạch nợ học phí tháng 10-12.',
-    reviewedAt: '2026-09-29T10:00:00Z',
-    reviewedBy: 'Cô Nguyễn Thu Hà (Hiệu Trưởng)',
-  },
-  {
-    id: 'TR-2026-003',
-    studentId: 'st-04',
-    studentName: 'Phạm Bảo Hân',
-    fromClassId: 'c2',
-    fromClassName: 'Lớp Chồi 1',
-    toClassId: 'c3',
-    toClassName: 'Lớp Chồi 2',
-    requestType: 'TRANSFER',
-    reason: 'Bé muốn học cùng bạn thân, xin đổi lớp.',
-    requestDate: '2026-09-18',
-    status: 'APPROVED',
-    reviewNote: 'Sĩ số Lớp Chồi 2 còn 2 chỗ, đồng ý tiếp nhận.',
-    reviewedAt: '2026-09-19T14:30:00Z',
-    reviewedBy: 'Thầy Trần Quốc Bảo (Giáo vụ)',
-  },
-];
+  const id = String(dto.id || '');
+  const codePrefix = id.replace(/-/g, '').slice(0, 4).toUpperCase();
+  const studentCode = dto.studentCode || (codePrefix ? `KID-2026-${codePrefix}` : 'KID-2026-001');
+
+  // Che mờ CCCD theo NĐ 13 nếu có
+  const rawCccd = dto.guardianNationalId || dto.parentNationalId || dto.nationalId || '';
+  const guardianNationalIdMasked = rawCccd
+    ? `${rawCccd.slice(0, 6)}******`
+    : (dto.guardianNationalIdMasked || '079201******');
+
+  return {
+    id: id || `st-${Math.random().toString(36).slice(2, 7)}`,
+    studentCode,
+    fullName: dto.fullName || 'Học sinh',
+    dateOfBirth: dto.dateOfBirth ? String(dto.dateOfBirth) : '',
+    gender: (dto.gender as any) || 'MALE',
+    classId: dto.classId ? String(dto.classId) : '',
+    className: dto.className || 'Chưa phân lớp',
+    ageGroup: dto.ageGroup || dto.academicYearName || 'Khối Mầm',
+    status: (dto.status as any) || 'ACTIVE',
+    enrollmentDate: dto.enrollmentDate ? String(dto.enrollmentDate) : '',
+    guardianName: dto.parentName || dto.guardianName || 'Phụ huynh',
+    guardianPhone: dto.parentPhone || dto.guardianPhone || '',
+    guardianNationalIdMasked,
+    addressMasked: dto.addressMasked || dto.address || 'TP. Hồ Chí Minh',
+    allergyTags,
+    avatarUrl: dto.avatarUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=80',
+    notes: dto.notes || dto.allergyInfo || '',
+  };
+}
+
+function mapTransferDtoToItem(dto: any): StudentMobilityItem {
+  const rawId = String(dto.id || '');
+  return {
+    id: rawId,
+    studentId: dto.studentId ? String(dto.studentId) : '',
+    studentName: dto.studentName || 'Học sinh',
+    fromClassId: dto.fromClassId ? String(dto.fromClassId) : '',
+    fromClassName: dto.currentClass || dto.fromClassName || 'Lớp hiện tại',
+    toClassId: dto.toClassId ? String(dto.toClassId) : '',
+    toClassName: dto.targetClass || dto.toClassName || (dto.requestType === 'DEFERRAL' ? 'Bảo lưu' : 'Lớp chuyển đến'),
+    requestType: dto.requestType === 'DEFERRAL' || dto.requestType === 'RESERVATION' ? 'RESERVATION' : 'TRANSFER',
+    reason: dto.reason || '',
+    requestDate: dto.createdAt ? String(dto.createdAt).slice(0, 10) : (dto.requestDate || ''),
+    status: (dto.status as any) || 'PENDING',
+    reviewNote: dto.reviewNotes || dto.reviewNote || '',
+    reviewedAt: dto.reviewedAt ? String(dto.reviewedAt) : '',
+    reviewedBy: dto.reviewedByName || dto.reviewedBy || '',
+  };
+}
 
 export const studentAnalyticsApi = {
   // Lấy danh sách học sinh theo lớp, trạng thái và từ khóa
@@ -166,38 +83,37 @@ export const studentAnalyticsApi = {
 
       const endpoint = params?.hasAllergyOnly
         ? '/academic/students/by-allergy'
-        : `/academic/students?${queryParams.toString()}`;
+        : `/academic/students${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-      const res = await axiosClient.get<any, { data: StudentRecord[] }>(endpoint);
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        return res.data;
+      const res: any = await axiosClient.get(endpoint);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      let result = list.map(mapStudentDtoToRecord);
+
+      // Lọc client-side bổ sung để đảm bảo hiển thị đúng
+      if (params?.classId && params.classId !== 'ALL') {
+        result = result.filter((s: StudentRecord) => s.classId === params.classId);
       }
-    } catch {
-      // Fallback
-    }
+      if (params?.status && params.status !== 'ALL') {
+        result = result.filter((s: StudentRecord) => s.status === params.status);
+      }
+      if (params?.keyword) {
+        const kw = params.keyword.toLowerCase().trim();
+        result = result.filter(
+          (s: StudentRecord) =>
+            s.fullName.toLowerCase().includes(kw) ||
+            s.studentCode.toLowerCase().includes(kw) ||
+            s.guardianPhone.includes(kw)
+        );
+      }
+      if (params?.hasAllergyOnly) {
+        result = result.filter((s: StudentRecord) => s.allergyTags && s.allergyTags.length > 0);
+      }
 
-    // Lọc trên dữ liệu mặc định
-    let list = [...defaultStudents];
-    if (params?.classId && params.classId !== 'ALL') {
-      list = list.filter((s) => s.classId === params.classId);
+      return result;
+    } catch (err) {
+      console.warn('API getStudents error:', err);
+      return [];
     }
-    if (params?.status && params.status !== 'ALL') {
-      list = list.filter((s) => s.status === params.status);
-    }
-    if (params?.keyword) {
-      const kw = params.keyword.toLowerCase().trim();
-      list = list.filter(
-        (s) =>
-          s.fullName.toLowerCase().includes(kw) ||
-          s.studentCode.toLowerCase().includes(kw) ||
-          s.guardianPhone.includes(kw)
-      );
-    }
-    if (params?.hasAllergyOnly) {
-      list = list.filter((s) => s.allergyTags.length > 0);
-    }
-
-    return list;
   },
 
   // Lấy danh sách học sinh có tiền sử dị ứng thực phẩm nặng
@@ -209,20 +125,19 @@ export const studentAnalyticsApi = {
   async getMobilityRequests(status?: string): Promise<StudentMobilityItem[]> {
     try {
       const query = status && status !== 'ALL' ? `?status=${status}` : '';
-      const res = await axiosClient.get<any, { data: StudentMobilityItem[] }>(
-        `/academic/transfer-requests${query}`
-      );
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        return res.data;
-      }
-    } catch {
-      // Fallback
-    }
+      const res: any = await axiosClient.get(`/academic/transfer-requests${query}`);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      let result = list.map(mapTransferDtoToItem);
 
-    if (status && status !== 'ALL') {
-      return defaultMobilities.filter((m) => m.status === status);
+      if (status && status !== 'ALL') {
+        result = result.filter((m: StudentMobilityItem) => m.status === status);
+      }
+
+      return result;
+    } catch (err) {
+      console.warn('API getMobilityRequests error:', err);
+      return [];
     }
-    return defaultMobilities;
   },
 
   // Duyệt hoặc từ chối đơn chuyển lớp / bảo lưu
@@ -230,58 +145,55 @@ export const studentAnalyticsApi = {
     id: string,
     decision: { status: 'APPROVED' | 'REJECTED'; reviewNote?: string }
   ): Promise<StudentMobilityItem> {
-    try {
-      const res = await axiosClient.put<any, { data: StudentMobilityItem }>(
-        `/academic/transfer-requests/${id}/review`,
-        decision
-      );
-      if (res?.data) return res.data;
-    } catch {
-      // Fallback
-    }
-
-    const item = defaultMobilities.find((m) => m.id === id);
-    if (!item) throw new Error('Không tìm thấy yêu cầu chuyển lớp');
-
-    item.status = decision.status;
-    item.reviewNote = decision.reviewNote || (decision.status === 'APPROVED' ? 'Đã duyệt' : 'Từ chối');
-    item.reviewedAt = new Date().toISOString();
-    item.reviewedBy = 'Ban Giám Hiệu';
-
-    // Nếu approved và là TRANSFER, cập nhật lớp của học sinh
-    if (decision.status === 'APPROVED' && item.requestType === 'TRANSFER') {
-      const student = defaultStudents.find((s) => s.id === item.studentId);
-      if (student) {
-        student.classId = item.toClassId;
-        student.className = item.toClassName;
+    const res: any = await axiosClient.put(
+      `/academic/transfer-requests/${id}/review`,
+      {
+        status: decision.status,
+        reviewNotes: decision.reviewNote
       }
-    }
-
-    return item;
+    );
+    const data = res?.data || res;
+    return mapTransferDtoToItem(data);
   },
 
-  // Tính toán tóm tắt biến động học sinh
+  // Tính toán tóm tắt biến động học sinh động từ DB backend
   async getMobilitySummary(): Promise<StudentMobilitySummary> {
-    const students = defaultStudents;
-    const mobilities = defaultMobilities;
+    try {
+      const [students, mobilities] = await Promise.all([
+        this.getStudents(),
+        this.getMobilityRequests(),
+      ]);
 
-    const totalStudents = students.length;
-    const activeCount = students.filter((s) => s.status === 'ACTIVE').length;
-    const transferredCount = students.filter((s) => s.status === 'TRANSFERRED').length;
-    const reservedCount = students.filter((s) => s.status === 'RESERVED').length;
-    const allergyCount = students.filter((s) => s.allergyTags.length > 0).length;
-    const pendingTransferCount = mobilities.filter((m) => m.status === 'PENDING').length;
-    const retentionRate = totalStudents > 0 ? Math.round((activeCount / totalStudents) * 100) : 100;
+      const totalStudents = students.length;
+      const activeCount = students.filter((s) => s.status === 'ACTIVE').length;
+      const transferredCount = students.filter((s) => s.status === 'TRANSFERRED').length;
+      const reservedCount = students.filter((s) => s.status === 'RESERVED').length;
+      const allergyCount = students.filter((s) => s.allergyTags && s.allergyTags.length > 0).length;
+      const pendingTransferCount = mobilities.filter((m) => m.status === 'PENDING').length;
+      const retentionRate = totalStudents > 0
+        ? Number(((activeCount / totalStudents) * 100).toFixed(1))
+        : 100;
 
-    return {
-      totalStudents: 280,
-      activeCount: 268,
-      transferredCount: 8,
-      reservedCount: 4,
-      allergyCount: 24,
-      retentionRate: 95.7,
-      pendingTransferCount,
-    };
+      return {
+        totalStudents,
+        activeCount,
+        transferredCount,
+        reservedCount,
+        allergyCount,
+        retentionRate,
+        pendingTransferCount,
+      };
+    } catch {
+      return {
+        totalStudents: 0,
+        activeCount: 0,
+        transferredCount: 0,
+        reservedCount: 0,
+        allergyCount: 0,
+        retentionRate: 0,
+        pendingTransferCount: 0,
+      };
+    }
   },
 };
 

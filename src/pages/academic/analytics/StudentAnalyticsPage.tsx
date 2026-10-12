@@ -40,12 +40,7 @@ export const StudentAnalyticsPage: React.FC = () => {
         const res = await classroomApi.getClasses();
         return (res as any)?.data || res || [];
       } catch {
-        return [
-          { id: 'c1', name: 'Lớp Mầm 1 (3-4 tuổi)' },
-          { id: 'c2', name: 'Lớp Chồi 1 (4-5 tuổi)' },
-          { id: 'c3', name: 'Lớp Lá 1 (5-6 tuổi)' },
-          { id: 'c4', name: 'Lớp Nhà Trẻ 1 (18-24th)' },
-        ];
+        return [];
       }
     },
   });
@@ -118,10 +113,10 @@ export const StudentAnalyticsPage: React.FC = () => {
               Tổng Học Sinh Khóa Này
             </span>
             <span className="text-2xl font-extrabold text-slate-800 tracking-tight mt-1 block">
-              {summary?.totalStudents || students.length} trẻ
+              {summary ? `${summary.totalStudents} trẻ` : `${students.length} trẻ`}
             </span>
             <span className="text-[11px] text-[#275A4E] font-semibold mt-0.5 block">
-              {summary?.activeCount || 268} đang theo học
+              {summary ? summary.activeCount : students.filter((s) => s.status === 'ACTIVE').length} đang theo học
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-emerald-50 text-[#275A4E]">
@@ -136,7 +131,7 @@ export const StudentAnalyticsPage: React.FC = () => {
               Tỷ Lệ Duy Trì (Retention)
             </span>
             <span className="text-2xl font-extrabold text-[#275A4E] tracking-tight mt-1 block">
-              {summary?.retentionRate || 95.7}%
+              {summary?.retentionRate !== undefined ? `${summary.retentionRate}%` : (students.length > 0 ? `${((students.filter(s => s.status === 'ACTIVE').length / students.length) * 100).toFixed(1)}%` : '0%')}
             </span>
             <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
               Mục tiêu toàn trường &ge; 95%

@@ -110,122 +110,19 @@ export const ClassroomEquipmentTab: React.FC = () => {
 
   useEffect(() => {
     if (selectedClassId) {
-      const currentClass = classesData.find((c) => c.id === selectedClassId);
-      const roomNum = currentClass?.roomNumber || 'P.102';
-      const className = currentClass?.name || 'Lớp Mầm 1';
-
-      // Khởi tạo danh mục học cụ chuẩn theo Thông tư 34/2013/TT-BGDĐT
-      const initialItems: ClassroomEquipmentItem[] = [
-        {
-          id: `eq-${selectedClassId}-01`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100234',
-          name: 'Bộ khối lắp ghép thông minh STEAM (Hộp 120 chi tiết)',
-          category: 'STEAM_ROBOTICS',
-          standardQuantity: Math.ceil(studentCount / 6), // 1 bộ cho 6 trẻ theo TT 34
-          actualQuantity: 4,
-          condition: 'GOOD',
-          brokenNotes: '',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-02`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100235',
-          name: 'Tranh ghép gỗ hình học & chữ số nổi Montessori',
-          category: 'MONTESSORI_LEARNING',
-          standardQuantity: 5,
-          actualQuantity: 3, // Dưới định mức (MSG-272)
-          condition: 'FAIR',
-          brokenNotes: 'Thiếu 2 mảnh số 8 và số 9',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-03`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100236',
-          name: 'Bộ nhạc cụ gõ mầm non (Xắc xô, thanh phách, chuông leng keng)',
-          category: 'MONTESSORI_LEARNING',
-          standardQuantity: Math.ceil(studentCount / 2), // 1 nhạc cụ cho 2 trẻ
-          actualQuantity: 12,
-          condition: 'GOOD',
-          brokenNotes: '',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-04`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100237',
-          name: 'Giá vẽ tranh 2 mặt mầm non điều chỉnh độ cao',
-          category: 'MONTESSORI_LEARNING',
-          standardQuantity: 4,
-          actualQuantity: 2, // Dưới định mức (MSG-272)
-          condition: 'BROKEN_REPAIR',
-          brokenNotes: 'Khung gỗ lung lay, gãy chốt cố định chân bên phải',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-05`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100238',
-          name: 'Cầu trượt mini trong nhà kèm bể bóng nhựa 200 quả',
-          category: 'OUTDOOR_PLAY',
-          standardQuantity: 1,
-          actualQuantity: 1,
-          condition: 'DAMAGED_DISPOSAL', // Nứt vỡ nguy hiểm (MSG-273)
-          brokenNotes: 'Bậc thang nhựa nứt vỡ tạo gờ sắc nhọn, nguy cơ gây trầy xước rách da trẻ',
-          hasSafetyRisk: true,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-06`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100239',
-          name: 'Tivi thông minh 65 inch tương tác bài giảng mầm non',
-          category: 'AUDIO_VISUAL',
-          standardQuantity: 1,
-          actualQuantity: 1,
-          condition: 'GOOD',
-          brokenNotes: '',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-        {
-          id: `eq-${selectedClassId}-07`,
-          classId: selectedClassId,
-          className,
-          roomNumber: roomNum,
-          barcode: 'KP-TB-100240',
-          name: 'Máy điều hòa 2 chiều Inverter 24.000 BTU',
-          category: 'FURNITURE_APPLIANCE',
-          standardQuantity: 2,
-          actualQuantity: 2,
-          condition: 'GOOD',
-          brokenNotes: 'Vệ sinh lưới lọc định kỳ',
-          hasSafetyRisk: false,
-          lastInspectedDate: inventoryDate,
-        },
-      ];
-
-      setEquipmentList(initialItems);
+      academicApi
+        .getClassroomEquipment({ classId: selectedClassId })
+        .then((res: any) => {
+          const list = Array.isArray(res) ? res : (res?.data || []);
+          setEquipmentList(list);
+        })
+        .catch(() => {
+          setEquipmentList([]);
+        });
+    } else {
+      setEquipmentList([]);
     }
-  }, [selectedClassId, classesData, studentCount, inventoryDate]);
+  }, [selectedClassId]);
 
   // Kiểm tra tình trạng nứt vỡ nguy cơ sắc nhọn / nuốt nghẹn (MSG-273)
   useEffect(() => {

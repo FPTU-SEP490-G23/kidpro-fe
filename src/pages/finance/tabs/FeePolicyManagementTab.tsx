@@ -25,100 +25,23 @@ import {
   CreateFeeConfigPayload
 } from '../../../types/finance.types';
 
-// Dữ liệu mẫu khởi tạo chuẩn biểu phí bán trú mầm non
-const DEFAULT_FEE_CONFIGS: FeeConfig[] = [
-  {
-    id: 'fee-01',
-    feeCode: 'TUITION_FEE',
-    name: 'Học phí cơ bản',
-    type: 'MONTHLY_FIXED',
-    amount: 3200000,
-    cycle: 'MONTHLY',
-    feeNature: 'FIXED',
-    appliesToAgeGroup: 'ALL',
-    isMandatory: true,
-    isRefundableOnAbsence: false,
-    status: 'ACTIVE',
-    hasTransactions: true,
-    description: 'Chi phí chăm sóc, nuôi dạy và giáo dục mầm non chuẩn chương trình BGD&ĐT.'
-  },
-  {
-    id: 'fee-02',
-    feeCode: 'MEAL_FEE',
-    name: 'Tiền ăn bán trú',
-    type: 'MONTHLY_FIXED',
-    amount: 770000,
-    cycle: 'MONTHLY',
-    feeNature: 'DAILY_VARIABLE',
-    appliesToAgeGroup: 'ALL',
-    isMandatory: true,
-    isRefundableOnAbsence: true,
-    dailyRefundRate: 35000,
-    status: 'ACTIVE',
-    hasTransactions: true,
-    description: 'Bao gồm bữa trưa và bữa xế chiều (22 ngày/tháng, 35.000đ/ngày). Hoàn tiền khi có phép trước 08:30.'
-  },
-  {
-    id: 'fee-03',
-    feeCode: 'FACILITY_FEE',
-    name: 'Cơ sở vật chất & Đồ dùng bán trú',
-    type: 'ONE_TIME',
-    amount: 1500000,
-    cycle: 'YEARLY',
-    feeNature: 'FIXED',
-    appliesToAgeGroup: 'ALL',
-    isMandatory: true,
-    isRefundableOnAbsence: false,
-    status: 'ACTIVE',
-    hasTransactions: true,
-    description: 'Trang bị chăn ga gối nệm, máy lạnh, máy lọc không khí và đồ chơi an toàn đầu năm học.'
-  },
-  {
-    id: 'fee-04',
-    feeCode: 'LATE_PICKUP_FEE',
-    name: 'Phụ thu trông muộn ngoài giờ',
-    type: 'PER_ATTENDANCE_DAY',
-    amount: 50000,
-    cycle: 'DAILY',
-    feeNature: 'SURCHARGE',
-    appliesToAgeGroup: 'ALL',
-    isMandatory: false,
-    isRefundableOnAbsence: false,
-    status: 'ACTIVE',
-    hasTransactions: true,
-    description: 'Áp dụng khi phụ huynh đón trẻ sau 17:30 (tính theo từng khung 15-30 phút).'
-  },
-  {
-    id: 'fee-05',
-    feeCode: 'ENGLISH_KIDS',
-    name: 'Tiếng Anh mầm non bản ngữ',
-    type: 'MONTHLY_FIXED',
-    amount: 600000,
-    cycle: 'MONTHLY',
-    feeNature: 'FIXED',
-    appliesToAgeGroup: 'KINDERGARTEN',
-    isMandatory: false,
-    isRefundableOnAbsence: false,
-    status: 'ACTIVE',
-    hasTransactions: false,
-    description: 'Chương trình làm quen tiếng Anh cho khối Mầm, Chồi, Lá với giáo viên bản ngữ (2 buổi/tuần).'
-  },
-  {
-    id: 'fee-06',
-    feeCode: 'SWIMMING_CLUB',
-    name: 'Câu lạc bộ Thể chất & Bơi lội',
-    type: 'MONTHLY_FIXED',
-    amount: 450000,
-    cycle: 'MONTHLY',
-    feeNature: 'FIXED',
-    appliesToAgeGroup: 'KINDERGARTEN',
-    isMandatory: false,
-    isRefundableOnAbsence: false,
-    status: 'INACTIVE',
-    hasTransactions: true,
-    description: 'Đã tạm ngưng trong mùa đông để đảm bảo sức khỏe đường hô hấp cho trẻ.'
+// Hàm chuyển đổi tên khoản thu thành mã định danh không dấu chuẩn mực
+const generateFeeCode = (name: string, fallbackId?: any) => {
+  if (!name || !name.trim()) {
+    return `FEE_${String(fallbackId || Math.random().toString(36).slice(2, 8)).toUpperCase()}`;
   }
-];
+  const slug = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return slug || `FEE_${String(fallbackId || 'CODE').slice(0, 6).toUpperCase()}`;
+};
+
+// Dữ liệu rỗng khởi tạo
+const DEFAULT_FEE_CONFIGS: FeeConfig[] = [];
 
 export const FeePolicyManagementTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -165,28 +88,35 @@ export const FeePolicyManagementTab: React.FC = () => {
       try {
         const res: any = await financeApi.getFeeConfigs();
         const list = res?.data || res;
-        if (Array.isArray(list) && list.length > 0) {
-          return list.map((item: any) => ({
-            id: item.id || `fee-${Math.random()}`,
-            feeCode: item.feeCode || item.fee_code || 'FEE_CODE',
-            name: item.name || 'Khoản thu',
-            type: item.type || 'MONTHLY_FIXED',
-            amount: Number(item.amount || 0),
-            cycle: (item.cycle || 'MONTHLY') as FeeCycle,
-            feeNature: (item.feeNature || item.fee_nature || 'FIXED') as FeeNature,
-            appliesToAgeGroup: item.appliesToAgeGroup || item.applies_to_age_group || 'ALL',
-            isMandatory: item.isMandatory ?? item.is_mandatory ?? true,
-            isRefundableOnAbsence: item.isRefundableOnAbsence ?? item.is_refundable_on_absence ?? false,
-            dailyRefundRate: Number(item.dailyRefundRate || item.daily_refund_rate || 0),
-            status: (item.status || 'ACTIVE') as FeeStatus,
-            hasTransactions: item.hasTransactions ?? item.has_transactions ?? true,
-            description: item.description || ''
-          }));
+        if (Array.isArray(list)) {
+          return list.map((item: any, idx: number) => {
+            const rawCode = item.feeCode || item.fee_code;
+            const feeCode = rawCode && rawCode !== 'FEE_CODE'
+              ? rawCode
+              : generateFeeCode(item.name, item.id || idx + 1);
+
+            return {
+              id: item.id || `fee-${idx + 1}`,
+              feeCode,
+              name: item.name || 'Khoản thu',
+              type: item.type || 'MONTHLY_FIXED',
+              amount: Number(item.amount || 0),
+              cycle: (item.cycle || (item.type === 'ONE_TIME' ? 'YEARLY' : item.type === 'PER_ATTENDANCE_DAY' ? 'DAILY' : 'MONTHLY')) as FeeCycle,
+              feeNature: (item.feeNature || item.fee_nature || 'FIXED') as FeeNature,
+              appliesToAgeGroup: item.appliesToAgeGroup || item.applies_to_age_group || 'ALL',
+              isMandatory: item.isMandatory ?? item.is_mandatory ?? true,
+              isRefundableOnAbsence: item.isRefundableOnAbsence ?? item.is_refundable_on_absence ?? false,
+              dailyRefundRate: Number(item.dailyRefundRate || item.daily_refund_rate || 0),
+              status: (item.status || 'ACTIVE') as FeeStatus,
+              hasTransactions: item.hasTransactions ?? item.has_transactions ?? false,
+              description: item.description || ''
+            };
+          });
         }
-        return DEFAULT_FEE_CONFIGS;
+        return [];
       } catch (err: any) {
         console.warn('API /api/finance/fee-configs fallback:', err.message);
-        return DEFAULT_FEE_CONFIGS;
+        return [];
       }
     }
   });
@@ -229,22 +159,28 @@ export const FeePolicyManagementTab: React.FC = () => {
   const saveFeeMutation = useMutation({
     mutationFn: async (payload: CreateFeeConfigPayload) => {
       // Validate BR-076: Tính duy nhất của mã và tên khoản thu
-      const isCodeDuplicate = feeConfigs.some(
-        (f) =>
-          f.id !== editingFee?.id &&
-          f.feeCode.trim().toUpperCase() === payload.feeCode.trim().toUpperCase()
-      );
-      if (isCodeDuplicate) {
-        throw new Error('MSG-137: Mã khoản thu đã tồn tại trên hệ thống. Vui lòng đặt một mã định danh duy nhất.');
+      // Chỉ kiểm tra trùng mã nếu là tạo mới HOẶC mã được thay đổi so với bản ghi đang sửa
+      if (!editingFee || payload.feeCode.trim().toUpperCase() !== editingFee.feeCode.trim().toUpperCase()) {
+        const isCodeDuplicate = feeConfigs.some(
+          (f) =>
+            f.id !== editingFee?.id &&
+            f.feeCode.trim().toUpperCase() === payload.feeCode.trim().toUpperCase()
+        );
+        if (isCodeDuplicate) {
+          throw new Error('MSG-137: Mã khoản thu đã tồn tại trên hệ thống. Vui lòng đặt một mã định danh duy nhất.');
+        }
       }
 
-      const isNameDuplicate = feeConfigs.some(
-        (f) =>
-          f.id !== editingFee?.id &&
-          f.name.trim().toLowerCase() === payload.name.trim().toLowerCase()
-      );
-      if (isNameDuplicate) {
-        throw new Error('Tên khoản thu này đã tồn tại trong danh mục biểu phí của nhà trường.');
+      // Chỉ kiểm tra trùng tên nếu là tạo mới HOẶC tên được thay đổi so với bản ghi đang sửa
+      if (!editingFee || payload.name.trim().toLowerCase() !== editingFee.name.trim().toLowerCase()) {
+        const isNameDuplicate = feeConfigs.some(
+          (f) =>
+            f.id !== editingFee?.id &&
+            f.name.trim().toLowerCase() === payload.name.trim().toLowerCase()
+        );
+        if (isNameDuplicate) {
+          throw new Error('Tên khoản thu này đã tồn tại trong danh mục biểu phí của nhà trường.');
+        }
       }
 
       // Validate: Số tiền khoản thu phải lớn hơn 0 VNĐ (MSG-138)
@@ -252,10 +188,24 @@ export const FeePolicyManagementTab: React.FC = () => {
         throw new Error('MSG-138: Số tiền khoản thu phải lớn hơn 0 VNĐ.');
       }
 
+      const requestPayload: any = {
+        name: payload.name,
+        type: payload.type,
+        amount: payload.amount,
+        isRefundableOnAbsence: payload.isRefundableOnAbsence,
+        appliesToAgeGroup: payload.appliesToAgeGroup || null,
+        dailyRefundRate: payload.dailyRefundRate,
+        feeCode: payload.feeCode,
+        cycle: payload.cycle,
+        feeNature: payload.feeNature,
+        isMandatory: payload.isMandatory,
+        description: payload.description,
+      };
+
       if (editingFee) {
-        return await financeApi.updateFeeConfig(editingFee.id, payload);
+        return await financeApi.updateFeeConfig(editingFee.id, requestPayload);
       } else {
-        return await financeApi.createFeeConfig(payload);
+        return await financeApi.createFeeConfig(requestPayload);
       }
     },
     onSuccess: () => {
@@ -667,13 +617,12 @@ export const FeePolicyManagementTab: React.FC = () => {
                 <input
                   type="text"
                   required
-                  disabled={!!editingFee} // Mã khoản thu không nên thay đổi khi đã có giao dịch
                   value={formFeeCode}
                   onChange={(e) =>
                     setFormFeeCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))
                   }
                   placeholder="TUITION_FEE, MEAL_FEE, FACILITY_FEE..."
-                  className="w-full rounded-2xl border border-slate-200 p-2.5 font-mono text-slate-800 font-bold focus:border-[#275A4E] focus:outline-hidden disabled:bg-slate-100"
+                  className="w-full rounded-2xl border border-slate-200 p-2.5 font-mono text-slate-800 font-bold focus:border-[#275A4E] focus:outline-hidden"
                 />
               </div>
 
@@ -686,7 +635,13 @@ export const FeePolicyManagementTab: React.FC = () => {
                   type="text"
                   required
                   value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setFormName(newName);
+                    if (!editingFee && (!formFeeCode || formFeeCode === generateFeeCode(formName))) {
+                      setFormFeeCode(generateFeeCode(newName));
+                    }
+                  }}
                   placeholder="Ví dụ: Học phí cơ bản, Tiền ăn bán trú..."
                   className="w-full rounded-2xl border border-slate-200 p-2.5 text-slate-800 font-semibold focus:border-[#275A4E] focus:outline-hidden"
                 />
@@ -700,7 +655,7 @@ export const FeePolicyManagementTab: React.FC = () => {
                 <div className="relative">
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     step="1000"
                     required
                     value={formAmount}

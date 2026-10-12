@@ -91,34 +91,66 @@ export const userProfileApi = {
 
   // 3. Tải lên Avatar mới
   uploadAvatar: async (file: File): Promise<{ avatarUrl: string }> => {
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await axiosClient.post<{ avatarUrl: string }>('/users/me/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      if (res && (res as any).avatarUrl) {
-        return res as unknown as { avatarUrl: string };
-      }
-    } catch {
-      console.warn('Upload avatar qua backend thất bại, fallback lưu Base64 DataURL.');
-    }
-
-    return new Promise((resolve, reject) => {
+    // 1. Chuyển file sang Base64 Data URL trước
+    const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        const savedUserStr = localStorage.getItem('kidpro_user');
-        if (savedUserStr) {
-          const user = JSON.parse(savedUserStr);
-          user.avatarUrl = dataUrl;
-          localStorage.setItem('kidpro_user', JSON.stringify(user));
-        }
-        resolve({ avatarUrl: dataUrl });
-      };
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = () => reject(new Error('Không thể đọc file ảnh'));
       reader.readAsDataURL(file);
     });
+
+    try {
+      // 2. Gửi JSON payload { avatarUrl } trực tiếp tới backend
+      const res: any = await axiosClient.post('/users/me/avatar', { avatarUrl: dataUrl });
+      const url = res?.avatarUrl || res?.data?.avatarUrl || (typeof res === 'string' ? res : dataUrl);
+      if (url) {
+        const savedUserStr = localStorage.getItem('kidpro_user');
+        if (savedUserStr) {
+          try {
+            const user = JSON.parse(savedUserStr);
+            user.avatarUrl = url;
+            localStorage.setItem('kidpro_user', JSON.stringify(user));
+          } catch (_) {}
+        }
+        return { avatarUrl: url };
+      }
+    } catch (err) {
+      console.warn('Lỗi khi gọi API upload avatar backend dạng JSON, thử gửi FormData:', err);
+      try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        formData.append('file', file);
+        // Lưu ý: set headers Content-Type: undefined để browser tự điền boundary
+        const res: any = await axiosClient.post('/users/me/avatar', formData, {
+          headers: { 'Content-Type': undefined },
+        });
+        const url = res?.avatarUrl || res?.data?.avatarUrl || (typeof res === 'string' ? res : dataUrl);
+        if (url) {
+          const savedUserStr = localStorage.getItem('kidpro_user');
+          if (savedUserStr) {
+            try {
+              const user = JSON.parse(savedUserStr);
+              user.avatarUrl = url;
+              localStorage.setItem('kidpro_user', JSON.stringify(user));
+            } catch (_) {}
+          }
+          return { avatarUrl: url };
+        }
+      } catch (formErr) {
+        console.warn('Backend không phản hồi FormData, sử dụng Data URL cục bộ:', formErr);
+      }
+    }
+
+    // Fallback: Lưu vào localStorage và trả về dataUrl
+    const savedUserStr = localStorage.getItem('kidpro_user');
+    if (savedUserStr) {
+      try {
+        const user = JSON.parse(savedUserStr);
+        user.avatarUrl = dataUrl;
+        localStorage.setItem('kidpro_user', JSON.stringify(user));
+      } catch (_) {}
+    }
+    return { avatarUrl: dataUrl };
   },
 
   // 4. Đổi mật khẩu

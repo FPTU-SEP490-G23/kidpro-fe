@@ -40,8 +40,8 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
   // Modal Nghị định 13/2023/NĐ-CP
   const [showDecree13Modal, setShowDecree13Modal] = useState<boolean>(false);
   const [decree13ConsentAgreed, setDecree13ConsentAgreed] = useState<boolean>(false);
-  const [guardianName, setGuardianName] = useState<string>('Nguyễn Văn Hùng');
-  const [relationship, setRelationship] = useState<string>('Bố ruột');
+  const [guardianName, setGuardianName] = useState<string>('');
+  const [relationship, setRelationship] = useState<string>('');
 
   // Phương thức chụp / tải ảnh
   const [captureMode, setCaptureMode] = useState<'WEBCAM' | 'UPLOAD'>('WEBCAM');

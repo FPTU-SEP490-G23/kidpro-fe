@@ -143,45 +143,19 @@ export const YearEndArchivalTab: React.FC = () => {
     }
   };
 
-  // Danh sách học bạ lưu trữ mẫu
-  const mockDossiers = [
-    {
-      studentId: 'st-arch-01',
-      studentName: 'Lê Gia Hưng',
-      studentCode: 'HS-2025-089',
-      gender: 'Nam',
-      dateOfBirth: '15/04/2020',
-      academicYearName: '2025-2026',
-      graduatedClassName: 'Lớp Lá 1 (5-6 Tuổi)',
-      certificateNumber: 'TN-MN/2026/0142',
-      finalEvaluationSummary: 'Hoàn thành xuất sắc chương trình giáo dục mầm non 5 tuổi, thể lực và nhận thức đạt chuẩn chuẩn bị vào Lớp 1.',
-      attendanceRate: 97.5,
-    },
-    {
-      studentId: 'st-arch-02',
-      studentName: 'Phạm Minh Trang',
-      studentCode: 'HS-2025-090',
-      gender: 'Nữ',
-      dateOfBirth: '28/09/2020',
-      academicYearName: '2025-2026',
-      graduatedClassName: 'Lớp Lá 2 (5-6 Tuổi)',
-      certificateNumber: 'TN-MN/2026/0143',
-      finalEvaluationSummary: 'Đạt chuẩn 5 lĩnh vực phát triển theo Thông tư 28, ngôn ngữ mạch lạc, tự tin giao tiếp.',
-      attendanceRate: 95.8,
-    },
-    {
-      studentId: 'st-arch-03',
-      studentName: 'Hoàng Quốc Bảo',
-      studentCode: 'HS-2024-045',
-      gender: 'Nam',
-      dateOfBirth: '03/02/2019',
-      academicYearName: '2024-2025',
-      graduatedClassName: 'Lớp Lá 1 (5-6 Tuổi)',
-      certificateNumber: 'TN-MN/2025/0098',
-      finalEvaluationSummary: 'Đạt chuẩn phổ cập mầm non cho trẻ 5 tuổi. Năng khiếu tạo hình và âm nhạc vượt trội.',
-      attendanceRate: 98.2,
-    },
-  ];
+  // Danh sách học bạ lưu trữ
+  const mockDossiers: Array<{
+    studentId: string;
+    studentName: string;
+    studentCode: string;
+    gender: string;
+    dateOfBirth: string;
+    academicYearName: string;
+    graduatedClassName: string;
+    certificateNumber: string;
+    finalEvaluationSummary: string;
+    attendanceRate: number;
+  }> = [];
 
   const filteredDossiers = mockDossiers.filter((d) => {
     if (selectedDossierYear !== 'ALL' && d.academicYearName !== selectedDossierYear) {
@@ -554,7 +528,14 @@ export const YearEndArchivalTab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredDossiers.map((d, idx) => (
+                  {filteredDossiers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        Chưa có hồ sơ học bạ lưu trữ nào trong kho dữ liệu.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDossiers.map((d, idx) => (
                     <tr key={d.studentId} className="hover:bg-slate-50/60 transition">
                       <td className="py-3.5 px-3 text-center font-bold text-slate-400">
                         {idx + 1}
@@ -595,8 +576,9 @@ export const YearEndArchivalTab: React.FC = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </div>

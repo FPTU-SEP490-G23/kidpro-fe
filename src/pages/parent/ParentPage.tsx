@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../config/supabase';
 import {
   Baby,
@@ -48,9 +48,118 @@ export type ParentTabKey =
   | 'survey'
   | 'privacy-decree13';
 
+interface ParentTabMeta {
+  uc: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  badge?: string;
+  specialColor?: 'alert';
+}
+
+export const PARENT_TAB_META: Record<ParentTabKey, ParentTabMeta> = {
+  'gate-notifications': {
+    uc: 'UC-046',
+    title: 'Thông Báo Đón Trả Kèm Ảnh (Real-time Gate Timeline)',
+    description: 'Nhận thông báo kèm hình ảnh con check-in/check-out qua cổng trường từ camera AI (< 2s) thời gian thực.',
+    icon: Bell,
+    badge: 'Thông Báo AI',
+  },
+  leave: {
+    uc: 'UC-044',
+    title: 'Nộp Đơn Xin Nghỉ Học Trực Tuyến',
+    description: 'Phụ huynh gửi đơn xin nghỉ ốm, việc bận trước 08:30 sáng để cô giáo chủ nhiệm duyệt và bếp bán trú hoàn tiền ăn.',
+    icon: Calendar,
+    badge: 'Đơn Xin Nghỉ',
+  },
+  'emergency-pickup': {
+    uc: 'UC-043',
+    title: 'Ủy Quyền Đón Hộ Đột Xuất Bằng Mã QR 1-Lần',
+    description: 'Sinh mã QR dùng một lần cấp cho người thân đến đón bé đột xuất trong ngày, xác thực an toàn tuyệt đối tại cổng.',
+    icon: QrCode,
+    badge: 'QR Đón Hộ',
+  },
+  medication: {
+    uc: 'UC-045',
+    title: 'Gửi Đơn Dặn Thuốc Điện Tử Cho Bé',
+    description: 'Gửi đơn thuốc, liều dùng, hướng dẫn bảo quản và nhận ảnh chụp xác thực từ cô giáo lúc 14:00 chiều.',
+    icon: Pill,
+    badge: 'Dặn Thuốc',
+  },
+  'face-biometric': {
+    uc: 'UC-041',
+    title: 'Đăng Ký & Quản Lý Khuôn Mặt Của Bé',
+    description: 'Cập nhật ảnh chân dung của con để hệ thống trạm AI tại cổng nhận diện tự động khi đón trả trường.',
+    icon: Camera,
+    badge: 'Sinh Trắc Học AI',
+  },
+  guardians: {
+    uc: 'UC-042',
+    title: 'Danh Sách Người Thân Đón Bé Ủy Quyền',
+    description: 'Đăng ký thông tin ông bà, bố mẹ, người giám hộ được phép đón trẻ kèm CCCD để giáo vụ phê duyệt.',
+    icon: Users,
+    badge: 'Người Thân Đón',
+  },
+  invoice: {
+    uc: 'UC-047/048/049',
+    title: 'Bảng Kê Học Phí & Thanh Toán VietQR 1-Chạm',
+    description: 'Tra cứu hóa đơn học phí chi tiết, chính sách miễn giảm, hoàn tiền ăn và quét mã VietQR PayOS chuyển khoản tức thì.',
+    icon: Receipt,
+    badge: 'Học Phí VietQR',
+  },
+  petitions: {
+    uc: 'UC-050',
+    title: 'Nộp Đơn Yêu Cầu Sự Vụ Học Sinh & Góp Ý',
+    description: 'Gửi đơn đề đạt nguyện vọng, kiến nghị hoặc trao đổi các sự vụ học đường trực tiếp tới ban giám hiệu và giáo vụ.',
+    icon: FileCheck2,
+    badge: 'Sự Vụ Học Sinh',
+  },
+  survey: {
+    uc: 'UC-068',
+    title: 'Khảo Sát Ý Kiến & Đánh Giá Chất Lượng Dịch Vụ',
+    description: 'Đóng góp ý kiến về chất lượng bữa ăn bán trú, chương trình giảng dạy và dịch vụ chăm sóc mầm non của nhà trường.',
+    icon: Star,
+    badge: 'Khảo Sát Dịch Vụ',
+  },
+  'privacy-decree13': {
+    uc: 'UC-069',
+    title: 'Quyền Xóa Dữ Liệu Sinh Trắc Học (Nghị Định 13/2023/NĐ-CP)',
+    description: 'Yêu cầu xóa toàn bộ dữ liệu vector khuôn mặt của trẻ và chuyển đổi sang phương thức thẻ từ/thủ công bảo mật.',
+    icon: ShieldAlert,
+    badge: 'Nghị Định 13',
+    specialColor: 'alert',
+  },
+};
+
 export const ParentPage: React.FC = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const resolveTab = (tabParam: string | null): ParentTabKey | null => {
+    if (!tabParam) return null;
+    if (tabParam === 'interactions') return 'petitions';
+    if (
+      [
+        'gate-notifications',
+        'leave',
+        'emergency-pickup',
+        'medication',
+        'face-biometric',
+        'guardians',
+        'invoice',
+        'petitions',
+        'survey',
+        'privacy-decree13'
+      ].includes(tabParam)
+    ) {
+      return tabParam as ParentTabKey;
+    }
+    return null;
+  };
+
   const [activeTab, setActiveTab] = useState<ParentTabKey>(() => {
+    const fromQuery = resolveTab(searchParams.get('tab'));
+    if (fromQuery) return fromQuery;
     if (location.pathname === '/parent/children') return 'face-biometric';
     if (location.pathname === '/parent/daily-care') return 'gate-notifications';
     if (location.pathname === '/parent/tuition') return 'invoice';
@@ -59,7 +168,10 @@ export const ParentPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (location.pathname === '/parent/children') {
+    const fromQuery = resolveTab(searchParams.get('tab'));
+    if (fromQuery) {
+      setActiveTab(fromQuery);
+    } else if (location.pathname === '/parent/children') {
       setActiveTab('face-biometric');
     } else if (location.pathname === '/parent/daily-care') {
       setActiveTab('gate-notifications');
@@ -68,20 +180,10 @@ export const ParentPage: React.FC = () => {
     } else if (location.pathname === '/parent/interactions') {
       setActiveTab('petitions');
     }
-  }, [location.pathname]);
-  const [students, setStudents] = useState<StudentOption[]>([
-    {
-      id: 'STU-001',
-      fullName: 'Nguyễn Minh Khang',
-      className: 'Mầm 1 (3-4 Tuổi)',
-    },
-    {
-      id: 'STU-002',
-      fullName: 'Nguyễn Thảo Linh',
-      className: 'Chồi 2 (4-5 Tuổi)',
-    },
-  ]);
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('STU-001');
+  }, [location.pathname, searchParams]);
+
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Trạng thái điểm danh hôm nay của bé (phục vụ đối soát UC-043)
@@ -126,11 +228,14 @@ export const ParentPage: React.FC = () => {
           return {
             id: s.id,
             fullName: s.full_name || 'Học sinh',
-            className: matchedClass?.name || 'Mầm 1 (3-4 Tuổi)',
+            className: matchedClass?.name || 'Chưa xếp lớp',
           };
         });
         setStudents(mappedStu);
-        setSelectedStudentId((prev) => (mappedStu.some((s) => s.id === prev) ? prev : mappedStu[0].id));
+        setSelectedStudentId((prev) => (mappedStu.some((s) => s.id === prev) ? prev : (mappedStu[0]?.id || '')));
+      } else {
+        setStudents([]);
+        setSelectedStudentId('');
       }
     } catch (err: any) {
       console.warn('Lỗi khi tải dữ liệu phụ huynh:', err.message);
@@ -146,36 +251,57 @@ export const ParentPage: React.FC = () => {
   const currentStudent = students.find((s) => s.id === selectedStudentId) || students[0];
 
   // Lấy số lượng thông báo cổng chưa đọc (UC-046 badge)
-  const { data: notifications = [] } = useQuery({
+  const { data: _notifications = [] } = useQuery({
     queryKey: ['gate-notifications', currentStudent?.id],
     queryFn: () => parentApi.getGateNotifications(currentStudent?.id),
     staleTime: 5000,
   });
 
-  const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
+  const currentMeta = PARENT_TAB_META[activeTab] || PARENT_TAB_META['gate-notifications'];
+  const MetaIcon = currentMeta.icon;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
       {/* Header trang & Thông tin Con (Hệ màu thương hiệu: #275A4E -> #1E4D40) */}
       <div className="rounded-3xl bg-linear-to-r from-[#275A4E] via-[#1E4D40] to-[#14382F] p-6 md:p-8 text-white shadow-lg shadow-[#275A4E]/20 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-md mb-2 border border-white/20">
-            <Baby className="h-3.5 w-3.5 text-[#E5A93C]" />
-            <span>Cổng Phụ Huynh Học Sinh • Hệ Thống Mầm Non KidPro</span>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                currentMeta.specialColor === 'alert'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-[#E5A93C] text-slate-950'
+              } shadow-xs`}
+            >
+              <Baby className="w-3.5 h-3.5" />
+              <span>Phụ Huynh • {currentMeta.uc}</span>
+            </span>
+            {currentMeta.badge && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
+                {currentMeta.badge}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-emerald-100 border border-white/15">
+              Lớp {currentStudent?.className}
+            </span>
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight">
-            {currentStudent ? `Bé ${currentStudent.fullName}` : 'Cổng Phụ Huynh Trực Tuyến'}
-          </h2>
-          <p className="mt-1 text-xs text-emerald-100/90 max-w-xl">
-            Lớp <strong>{currentStudent?.className}</strong> • Quản lý điểm danh cổng AI, xin nghỉ học, dặn thuốc, đón hộ khẩn cấp và thanh toán VietQR 1-chạm.
+
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
+              <MetaIcon className="h-5 w-5" />
+            </div>
+            <span>{currentMeta.title}</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl">
+            {currentMeta.description}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
           {/* Chọn con nếu có nhiều bé */}
           {students.length > 1 && (
-            <div className="rounded-xl bg-white/15 backdrop-blur-md px-3 py-1.5 border border-white/20 text-xs">
-              <label className="text-[11px] text-emerald-200 block mb-0.5 font-medium">Chọn con:</label>
+            <div className="rounded-2xl bg-white/15 backdrop-blur-md px-3.5 py-2 border border-white/20 text-xs">
+              <label className="text-[10px] text-emerald-200 block mb-0.5 font-bold uppercase tracking-wider">Học sinh:</label>
               <select
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
@@ -195,7 +321,7 @@ export const ParentPage: React.FC = () => {
             type="button"
             onClick={() => setIsStudentPresentToday((prev) => !prev)}
             title="Nhấp để chuyển trạng thái kiểm thử có mặt / vắng mặt cho UC-043"
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold backdrop-blur-md transition border ${
+            className={`inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2.5 text-xs font-bold backdrop-blur-md transition border ${
               isStudentPresentToday
                 ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100 hover:bg-emerald-500/35'
                 : 'bg-rose-500/25 border-rose-400 text-rose-100 hover:bg-rose-500/35'
@@ -204,7 +330,7 @@ export const ParentPage: React.FC = () => {
             {isStudentPresentToday ? (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#78C2AD]" />
-                <span>Bé đang có mặt (07:45 AM)</span>
+                <span>Bé đang có mặt (07:45)</span>
               </>
             ) : (
               <>
@@ -217,7 +343,7 @@ export const ParentPage: React.FC = () => {
           <button
             onClick={loadParentData}
             disabled={isLoading}
-            className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-3.5 py-2 text-xs font-semibold backdrop-blur-md hover:bg-white/25 transition text-white border border-white/20"
+            className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-3.5 py-2.5 text-xs font-semibold backdrop-blur-md hover:bg-white/25 transition text-white border border-white/20 cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Làm mới</span>
@@ -225,233 +351,106 @@ export const ParentPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs Điều Hướng (Hệ màu #275A4E, viền và badge rõ nét) */}
-      <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar gap-1 bg-white p-1 rounded-2xl shadow-2xs">
-        {/* Tab 1: UC-046 */}
-        <button
-          onClick={() => setActiveTab('gate-notifications')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] relative ${
-            activeTab === 'gate-notifications'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Bell className="h-4 w-4" />
-          <span>UC-046: Thông Báo Cổng</span>
-          {unreadNotifCount > 0 && (
-            <span className="rounded-full bg-amber-400 text-slate-950 px-1.5 py-0.2 text-[10px] font-extrabold shadow-xs">
-              {unreadNotifCount}
-            </span>
-          )}
-        </button>
-
-        {/* Tab 2: UC-044 */}
-        <button
-          onClick={() => setActiveTab('leave')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'leave'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Calendar className="h-4 w-4" />
-          <span>UC-044: Xin Nghỉ Học Trực Tuyến</span>
-        </button>
-
-        {/* Tab 3: UC-043 */}
-        <button
-          onClick={() => setActiveTab('emergency-pickup')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'emergency-pickup'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <QrCode className="h-4 w-4" />
-          <span>UC-043: Đón Hộ Đột Xuất (QR)</span>
-        </button>
-
-        {/* Tab 4: UC-045 */}
-        <button
-          onClick={() => setActiveTab('medication')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'medication'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Pill className="h-4 w-4" />
-          <span>UC-045: Dặn Thuốc Điện Tử</span>
-        </button>
-
-        {/* Tab 5: UC-041 */}
-        <button
-          onClick={() => setActiveTab('face-biometric')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'face-biometric'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Camera className="h-4 w-4" />
-          <span>UC-041: Mặt Bé AI</span>
-        </button>
-
-        {/* Tab 6: UC-042 */}
-        <button
-          onClick={() => setActiveTab('guardians')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'guardians'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          <span>UC-042: Người Thân Đón Bé</span>
-        </button>
-
-        {/* Tab 7: UC-047 & UC-048 */}
-        <button
-          onClick={() => setActiveTab('invoice')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'invoice'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Receipt className="h-4 w-4" />
-          <span>UC-047/048/049: Học Phí & Biên Lai</span>
-        </button>
-
-        {/* Tab 8: UC-050 */}
-        <button
-          onClick={() => setActiveTab('petitions')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'petitions'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <FileCheck2 className="h-4 w-4" />
-          <span>UC-050: Đơn Sự Vụ Học Đường</span>
-        </button>
-
-        {/* Tab 9: UC-068 */}
-        <button
-          onClick={() => setActiveTab('survey')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'survey'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Star className="h-4 w-4 text-[#E5A93C]" />
-          <span>UC-068: Khảo Sát Dịch Vụ</span>
-        </button>
-
-        {/* Tab 10: UC-069 */}
-        <button
-          onClick={() => setActiveTab('privacy-decree13')}
-          className={`py-3 px-4 text-xs font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'privacy-decree13'
-              ? 'bg-rose-700 text-white shadow-xs'
-              : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50'
-          }`}
-        >
-          <ShieldAlert className="h-4 w-4 text-rose-500" />
-          <span>UC-069: Quyền Xóa Sinh Trắc Học (NĐ 13)</span>
-        </button>
-      </div>
-
       {/* ================= NỘI DUNG TỪNG TAB ================= */}
+      {students.length === 0 && !isLoading ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white/60 p-12 text-center backdrop-blur-xs">
+          <Baby className="mx-auto h-12 w-12 text-slate-400" />
+          <h3 className="mt-4 text-base font-bold text-slate-800">Chưa có hồ sơ học sinh liên kết</h3>
+          <p className="mt-1.5 text-xs text-slate-500 max-w-md mx-auto">
+            Hệ thống chưa tìm thấy hồ sơ học sinh nào thuộc quyền quản lý của phụ huynh này. Vui lòng liên hệ nhà trường để được hỗ trợ kết nối.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Tab 1: UC-046 - Nhận Thông Báo Điểm Danh & Đón Trả Kèm Ảnh */}
+          {activeTab === 'gate-notifications' && (
+            <GateNotificationsTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 1: UC-046 - Nhận Thông Báo Điểm Danh & Đón Trả Kèm Ảnh */}
-      {activeTab === 'gate-notifications' && (
-        <GateNotificationsTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
+          {/* Tab 2: UC-044 - Nộp Đơn Xin Nghỉ Học Trực Tuyến */}
+          {activeTab === 'leave' && (
+            <LeaveRequestTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 2: UC-044 - Nộp Đơn Xin Nghỉ Học Trực Tuyến */}
-      {activeTab === 'leave' && (
-        <LeaveRequestTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
+          {/* Tab 3: UC-043 - Ủy Quyền Đón Hộ Đột Xuất Trong Ngày */}
+          {activeTab === 'emergency-pickup' && (
+            <EmergencyPickupTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+              isStudentPresentToday={isStudentPresentToday}
+            />
+          )}
 
-      {/* Tab 3: UC-043 - Ủy Quyền Đón Hộ Đột Xuất Trong Ngày */}
-      {activeTab === 'emergency-pickup' && (
-        <EmergencyPickupTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-          isStudentPresentToday={isStudentPresentToday}
-        />
-      )}
+          {/* Tab 4: UC-045 - Gửi Đơn Dặn Thuốc Điện Tử */}
+          {activeTab === 'medication' && (
+            <MedicationRequestTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 4: UC-045 - Gửi Đơn Dặn Thuốc Điện Tử */}
-      {activeTab === 'medication' && (
-        <MedicationRequestTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
+          {/* Tab 5: UC-041 - Đăng Ký Sinh Trắc Học Khuôn Mặt Bé */}
+          {activeTab === 'face-biometric' && (
+            <StudentFaceBiometricTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+            />
+          )}
 
-      {/* Tab 5: UC-041 - Đăng Ký Sinh Trắc Học Khuôn Mặt Bé */}
-      {activeTab === 'face-biometric' && (
-        <StudentFaceBiometricTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-        />
-      )}
+          {/* Tab 6: UC-042 - Đăng Ký Danh Sách Người Thân Đón Bé */}
+          {activeTab === 'guardians' && (
+            <AuthorizedGuardiansTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+            />
+          )}
 
-      {/* Tab 6: UC-042 - Đăng Ký Danh Sách Người Thân Đón Bé */}
-      {activeTab === 'guardians' && (
-        <AuthorizedGuardiansTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-        />
-      )}
+          {/* Tab 7: UC-047, UC-048 & UC-049 - Xem Bảng Kê Học Phí, Khấu Trừ & Thanh Toán VietQR, Tải Biên Lai */}
+          {activeTab === 'invoice' && (
+            <TuitionInvoicesTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 7: UC-047, UC-048 & UC-049 - Xem Bảng Kê Học Phí, Khấu Trừ & Thanh Toán VietQR, Tải Biên Lai */}
-      {activeTab === 'invoice' && (
-        <TuitionInvoicesTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
+          {/* Tab 8: UC-050 - Nộp Đơn Yêu Cầu Sự Vụ Học Sinh (Giấy xác nhận, đổi tuyến buýt, trích lục...) */}
+          {activeTab === 'petitions' && (
+            <StudentAffairsPetitionTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 8: UC-050 - Nộp Đơn Yêu Cầu Sự Vụ Học Sinh (Giấy xác nhận, đổi tuyến buýt, trích lục...) */}
-      {activeTab === 'petitions' && (
-        <StudentAffairsPetitionTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
+          {/* Tab 9: UC-068 - Khảo Sát Ý Kiến & Đánh Giá Dịch Vụ Mầm Non */}
+          {activeTab === 'survey' && (
+            <ServiceSurveyTab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
 
-      {/* Tab 9: UC-068 - Khảo Sát Ý Kiến & Đánh Giá Dịch Vụ Mầm Non */}
-      {activeTab === 'survey' && (
-        <ServiceSurveyTab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
-      )}
-
-      {/* Tab 10: UC-069 - Quyền Xóa Dữ Liệu Sinh Trắc Học (Điều 16 Nghị định 13/2023/NĐ-CP) */}
-      {activeTab === 'privacy-decree13' && (
-        <BiometricPurgeDecree13Tab
-          studentId={currentStudent?.id || 'STU-001'}
-          studentName={currentStudent?.fullName || 'Nguyễn Minh Khang'}
-          className={currentStudent?.className || 'Mầm 1 (3-4 Tuổi)'}
-        />
+          {/* Tab 10: UC-069 - Quyền Xóa Dữ Liệu Sinh Trắc Học (Điều 16 Nghị định 13/2023/NĐ-CP) */}
+          {activeTab === 'privacy-decree13' && (
+            <BiometricPurgeDecree13Tab
+              studentId={currentStudent?.id || ''}
+              studentName={currentStudent?.fullName || ''}
+              className={currentStudent?.className || ''}
+            />
+          )}
+        </>
       )}
     </div>
   );

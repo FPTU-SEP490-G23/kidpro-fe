@@ -14,6 +14,7 @@ export interface ClassEntity {
   capacity?: number;
   maxCapacity?: number;
   currentCount?: number;
+  status?: 'APPROVED' | 'PENDING' | 'REJECTED';
 }
 
 export interface Student {

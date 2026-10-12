@@ -106,70 +106,7 @@ const DEFAULT_DAY_ACTIVITIES: DayActivities = {
   afternoonRoutine: 'Ôn thơ "Mèo con đi học", vệ sinh cá nhân, nêu gương bé ngoan cuối ngày.',
 };
 
-const INITIAL_MOCK_PLANS: WeeklyLessonPlan[] = [
-  {
-    id: 'lp-01',
-    weekNumber: 8,
-    weekRange: '12/10/2026 - 16/10/2026',
-    academicYear: '2026-2027',
-    classId: 'cls-01',
-    className: 'Mầm 1',
-    ageGroup: 'Mầm (3-4 Tuổi)',
-    themeTopic: 'Thế giới Động vật - Bé yêu thú cưng trong gia đình',
-    teacherId: 'tch-01',
-    teacherName: 'Cô Nguyễn Thị Mai',
-    status: 'APPROVED',
-    objectives: DEFAULT_OBJECTIVES,
-    scheduleMatrix: {
-      monday: DEFAULT_DAY_ACTIVITIES,
-      tuesday: {
-        ...DEFAULT_DAY_ACTIVITIES,
-        focusedLearning: 'Phát triển vận động: Bật xa 35cm qua suối nhỏ.',
-      },
-      wednesday: {
-        ...DEFAULT_DAY_ACTIVITIES,
-        focusedLearning: 'Làm quen văn học: Truyện "Cáo, Thỏ và Gà trống".',
-      },
-      thursday: {
-        ...DEFAULT_DAY_ACTIVITIES,
-        focusedLearning: 'Tạo hình: Nặn thức ăn cho các chú thỏ trắng.',
-      },
-      friday: {
-        ...DEFAULT_DAY_ACTIVITIES,
-        focusedLearning: 'Âm nhạc: Hát và vận động "Gà trống thổi kèn".',
-      },
-    },
-    attachmentUrls: ['https://storage.kidpro.vn/plans/giao-an-tuan-08-mam-1.pdf'],
-    submittedAt: '2026-10-09 15:30',
-    isSubmittedLate: false,
-    reviewedAt: '2026-10-09 16:45',
-    reviewerName: 'Cán bộ Giáo vụ Trần Lan Hương',
-    reviewerFeedback: 'Kế hoạch chi tiết, mục tiêu 5 lĩnh vực rõ ràng và học cụ trực quan đầy đủ.',
-  },
-  {
-    id: 'lp-02',
-    weekNumber: 9,
-    weekRange: '19/10/2026 - 23/10/2026',
-    academicYear: '2026-2027',
-    classId: 'cls-01',
-    className: 'Mầm 1',
-    ageGroup: 'Mầm (3-4 Tuổi)',
-    themeTopic: 'Động vật sống dưới nước - Thế giới đại dương kỳ thú',
-    teacherId: 'tch-01',
-    teacherName: 'Cô Nguyễn Thị Mai',
-    status: 'PENDING_APPROVAL',
-    objectives: DEFAULT_OBJECTIVES,
-    scheduleMatrix: {
-      monday: DEFAULT_DAY_ACTIVITIES,
-      tuesday: DEFAULT_DAY_ACTIVITIES,
-      wednesday: DEFAULT_DAY_ACTIVITIES,
-      thursday: DEFAULT_DAY_ACTIVITIES,
-      friday: DEFAULT_DAY_ACTIVITIES,
-    },
-    submittedAt: '2026-10-10 01:20',
-    isSubmittedLate: false,
-  },
-];
+const INITIAL_MOCK_PLANS: WeeklyLessonPlan[] = [];
 
 export const WeeklyLessonPlanTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -185,7 +122,7 @@ export const WeeklyLessonPlanTab: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
   // Fetch Lesson Plans
-  const { data: lessonPlans = INITIAL_MOCK_PLANS, refetch } = useQuery({
+  const { data: lessonPlans = [], refetch } = useQuery({
     queryKey: ['academic-lesson-plans', selectedWeek, selectedClassId],
     queryFn: async () => {
       try {
@@ -193,9 +130,10 @@ export const WeeklyLessonPlanTab: React.FC = () => {
           weekNumber: selectedWeek,
           classId: selectedClassId,
         });
-        return (res.data && res.data.length > 0) ? res.data : INITIAL_MOCK_PLANS;
+        const raw = Array.isArray(res) ? res : ((res as any)?.data || []);
+        return raw;
       } catch {
-        return INITIAL_MOCK_PLANS;
+        return [];
       }
     },
   });
@@ -472,7 +410,7 @@ export const WeeklyLessonPlanTab: React.FC = () => {
       </div>
 
       {/* Status Overview Card */}
-      {currentPlan && (
+      {currentPlan ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
             <div>
@@ -627,6 +565,12 @@ export const WeeklyLessonPlanTab: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
+          <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+          <div className="text-sm font-bold text-slate-700">Chưa có kế hoạch giáo án cho tuần {selectedWeek}</div>
+          <div className="text-xs text-slate-400 mt-1">Giáo viên có thể nhấn nút &quot;Soạn Thảo / Nộp Giáo Án&quot; ở trên để tạo giáo án mới.</div>
         </div>
       )}
 

@@ -201,11 +201,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
         const res = await studentAnalyticsApi.getStudents({ hasAllergyOnly: true });
         return Array.isArray(res) ? res : ((res as any)?.data || []);
       } catch {
-        return [
-          { id: 's1', fullName: 'Đỗ Hải Đăng', className: 'Mầm 1', allergyInfo: 'Dị ứng Tôm cua, Hải sản nặng' },
-          { id: 's2', fullName: 'Vũ Hoàng Bách', className: 'Nhà trẻ 1', allergyInfo: 'Không dung nạp đường Lactose trong Sữa bò' },
-          { id: 's3', fullName: 'Nguyễn Thảo My', className: 'Chồi 2', allergyInfo: 'Dị ứng Đậu phộng / Lạc (Sốc phản vệ độ 2)' }
-        ];
+        return [];
       }
     }
   });

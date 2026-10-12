@@ -44,6 +44,29 @@ import {
   ChevronDown,
   Sparkles,
   Info,
+  Camera,
+  Clock,
+  Pill,
+  Coins,
+  FileCheck2,
+  QrCode,
+  Banknote,
+  Webhook,
+  Bell,
+  FileQuestion,
+  UserCheck,
+  Star,
+  Lock,
+  CheckCircle2,
+  Boxes,
+  FileSpreadsheet,
+  Archive,
+  Calendar,
+  ArrowRightLeft,
+  Award,
+  Percent,
+  Timer,
+  Moon
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -73,6 +96,29 @@ const ICON_MAP: Record<string, React.ElementType> = {
   UtensilsCrossed,
   User,
   LogOut,
+  Camera,
+  Clock,
+  Pill,
+  Coins,
+  FileCheck2,
+  QrCode,
+  Banknote,
+  Webhook,
+  Bell,
+  FileQuestion,
+  UserCheck,
+  Star,
+  Lock,
+  CheckCircle2,
+  Boxes,
+  FileSpreadsheet,
+  Archive,
+  Calendar,
+  ArrowRightLeft,
+  Award,
+  Percent,
+  Timer,
+  Moon
 };
 
 export const SidebarNavigation: React.FC = () => {
@@ -253,12 +299,35 @@ export const SidebarNavigation: React.FC = () => {
                     <nav className="space-y-1">
                       {group.items.map((item) => {
                         const Icon = ICON_MAP[item.icon] || Info;
-                        const isExactActive = location.pathname === item.path;
-                        const isPrefixActive =
-                          item.path !== '/' &&
-                          location.pathname.startsWith(item.path) &&
-                          item.path !== '/dashboard';
-                        const isActive = isExactActive || isPrefixActive;
+                        const currentFullPath = location.pathname + (location.search || '');
+                        let isActive = false;
+
+                        if (item.path.includes('?')) {
+                          if (currentFullPath === item.path) {
+                            isActive = true;
+                          } else if (!location.search) {
+                            // Mặc định khi vào trang gốc chưa có query string
+                            if (item.path === '/finance?tab=fee-configs' && location.pathname === '/finance') isActive = true;
+                            if (item.path === '/kitchen?tab=portions' && location.pathname === '/kitchen') isActive = true;
+                            if (item.path === '/parent?tab=gate-notifications' && location.pathname === '/parent') isActive = true;
+                            if (item.path === '/teacher/attendance?tab=gate-ai' && location.pathname === '/teacher/attendance') isActive = true;
+                            if (item.path === '/teacher/dismissal?tab=dismissal-pickup' && location.pathname === '/teacher/dismissal') isActive = true;
+                            if (item.path === '/teacher/health?tab=incidents' && location.pathname === '/teacher/health') isActive = true;
+                            if (item.path === '/teacher/activities?tab=lesson_plans' && location.pathname === '/teacher/activities') isActive = true;
+                          }
+                        } else {
+                          const isExactActive = location.pathname === item.path;
+                          const isPrefixActive =
+                            item.path !== '/' &&
+                            location.pathname.startsWith(item.path) &&
+                            item.path !== '/dashboard' &&
+                            item.path !== '/academic';
+                          if (item.path === '/academic/students' && location.pathname === '/academic') {
+                            isActive = true;
+                          } else {
+                            isActive = isExactActive || isPrefixActive;
+                          }
+                        }
 
                         return (
                           <div key={item.id} className="relative group">

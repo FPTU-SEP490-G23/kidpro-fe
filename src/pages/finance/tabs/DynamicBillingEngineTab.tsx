@@ -23,128 +23,6 @@ import {
   PreflightCheckStatus
 } from '../../../types/finance.types';
 
-// Danh sách hóa đơn quyết toán học phí động mẫu chuẩn
-const DEFAULT_DYNAMIC_INVOICES: DynamicInvoice[] = [
-  {
-    id: 'inv-01',
-    invoiceNumber: 'INV-202610-001',
-    studentId: 'stu-01',
-    studentName: 'Trần Gia Bảo',
-    className: 'Mầm 1 (Họa Mi)',
-    billingPeriod: '10-2026',
-    baseTuition: 3200000,
-    serviceFees: 600000, // Tiếng Anh bản ngữ
-    excusedDaysCount: 4, // 4 ngày nghỉ có phép nộp trước 08:30
-    dailyRefundRate: 35000,
-    mealRefundTotal: 140000, // 4 * 35.000 = 140.000đ
-    lateMinutesCount: 45, // Đón muộn 45 phút (khung 30-60 phút)
-    latePickupFeeTotal: 50000,
-    siblingDiscountAmount: 320000, // Giảm 10% con thứ 2
-    otherDiscountAmount: 0,
-    surplusCarriedForward: 0,
-    netPayableAmount: 3390000, // 3.200k + 600k - 140k + 50k - 320k
-    paymentReferenceCode: 'INV202610GIA_BAO',
-    vietQrUrl: 'https://api.vietqr.io/image/970422-0987654321-compact.jpg?amount=3390000&addInfo=INV202610GIA_BAO',
-    status: 'DRAFT',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-01 08:00:00'
-  },
-  {
-    id: 'inv-02',
-    invoiceNumber: 'INV-202610-002',
-    studentId: 'stu-02',
-    studentName: 'Lê Minh Anh',
-    className: 'Nhà trẻ 1 (Gấu Bông)',
-    billingPeriod: '10-2026',
-    baseTuition: 3500000,
-    serviceFees: 0,
-    excusedDaysCount: 2,
-    dailyRefundRate: 35000,
-    mealRefundTotal: 70000,
-    lateMinutesCount: 0,
-    latePickupFeeTotal: 0,
-    siblingDiscountAmount: 0,
-    otherDiscountAmount: 0,
-    surplusCarriedForward: 50000, // Số dư bảo lưu kỳ trước kết chuyển sang
-    netPayableAmount: 3380000, // 3.500k - 70k - 50k
-    paymentReferenceCode: 'INV202610MINH_ANH',
-    vietQrUrl: 'https://api.vietqr.io/image/970422-0987654321-compact.jpg?amount=3380000&addInfo=INV202610MINH_ANH',
-    status: 'DRAFT',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-01 08:00:00'
-  },
-  {
-    id: 'inv-03',
-    invoiceNumber: 'INV-202610-003',
-    studentId: 'stu-03',
-    studentName: 'Nguyễn Thảo An',
-    className: 'Mầm 1 (Họa Mi)',
-    billingPeriod: '10-2026',
-    baseTuition: 3200000,
-    serviceFees: 450000,
-    excusedDaysCount: 1,
-    dailyRefundRate: 35000,
-    mealRefundTotal: 35000,
-    lateMinutesCount: 20,
-    latePickupFeeTotal: 30000,
-    siblingDiscountAmount: 0,
-    otherDiscountAmount: 0,
-    surplusCarriedForward: 0,
-    netPayableAmount: 3645000,
-    paymentReferenceCode: 'INV202610THAO_AN',
-    vietQrUrl: 'https://api.vietqr.io/image/970422-0987654321-compact.jpg?amount=3645000&addInfo=INV202610THAO_AN',
-    status: 'DRAFT',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-01 08:00:00'
-  },
-  {
-    id: 'inv-04',
-    invoiceNumber: 'INV-202610-004',
-    studentId: 'stu-04',
-    studentName: 'Phạm Đăng Khôi',
-    className: 'Nhà trẻ 2 (Thỏ Trắng)',
-    billingPeriod: '10-2026',
-    baseTuition: 3500000,
-    serviceFees: 0,
-    excusedDaysCount: 15, // Bé điều trị y tế nghỉ nhiều ngày
-    dailyRefundRate: 35000,
-    mealRefundTotal: 525000,
-    lateMinutesCount: 0,
-    latePickupFeeTotal: 0,
-    siblingDiscountAmount: 0,
-    otherDiscountAmount: 0,
-    surplusCarriedForward: 0,
-    netPayableAmount: 2975000,
-    paymentReferenceCode: 'INV202610DANG_KHOI',
-    status: 'DRAFT',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-01 08:00:00'
-  },
-  {
-    id: 'inv-05',
-    invoiceNumber: 'INV-202610-005',
-    studentId: 'stu-05',
-    studentName: 'Vũ Hoàng Long',
-    className: 'Lá 1 (Đại Bàng Con)',
-    billingPeriod: '10-2026',
-    baseTuition: 3200000,
-    serviceFees: 1050000, // Tiếng Anh + Bơi lội
-    excusedDaysCount: 0,
-    dailyRefundRate: 35000,
-    mealRefundTotal: 0,
-    lateMinutesCount: 0,
-    latePickupFeeTotal: 0,
-    siblingDiscountAmount: 0,
-    otherDiscountAmount: 0,
-    surplusCarriedForward: 0,
-    netPayableAmount: 4250000,
-    paymentReferenceCode: 'INV202610HOANG_LONG',
-    status: 'DRAFT',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-01 08:00:00'
-  }
-];
-
 export const DynamicBillingEngineTab: React.FC = () => {
   const queryClient = useQueryClient();
 
@@ -160,7 +38,7 @@ export const DynamicBillingEngineTab: React.FC = () => {
   } | null>(null);
 
   // Danh sách hóa đơn quyết toán
-  const [invoices, setInvoices] = useState<DynamicInvoice[]>(DEFAULT_DYNAMIC_INVOICES);
+  const [invoices, setInvoices] = useState<DynamicInvoice[]>([]);
 
   // Tiến trình chạy ngầm Billing Engine
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
@@ -566,7 +444,14 @@ export const DynamicBillingEngineTab: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredInvoices.map((inv) => (
+              {filteredInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
+                    Chưa có hóa đơn nào trong kỳ tính phí này. Nhấn &quot;Chạy Quyết Toán Toàn Trường&quot; để sinh dữ liệu bảng kê.
+                  </td>
+                </tr>
+              ) : (
+                filteredInvoices.map((inv) => (
                 <tr key={inv.id} className="hover:bg-slate-50/70 transition">
                   {/* Mã hóa đơn */}
                   <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
@@ -667,8 +552,9 @@ export const DynamicBillingEngineTab: React.FC = () => {
                       </button>
                     </div>
                   </td>
-                </tr>
-              ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

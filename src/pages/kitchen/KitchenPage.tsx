@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import {
   UtensilsCrossed,
   ShieldAlert,
-  Calendar,
   Thermometer,
   CalendarDays,
-  ClipboardCheck
+  ClipboardCheck,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { MealHeadcountLockDashboardTab } from './tabs/MealHeadcountLockDashboardTab';
 import { AllergyDietaryManagementTab } from './tabs/AllergyDietaryManagementTab';
@@ -14,133 +15,117 @@ import { WeeklyMenuPlanningTab } from './tabs/WeeklyMenuPlanningTab';
 import { FoodRetentionConsumptionTab } from './tabs/FoodRetentionConsumptionTab';
 import { FoodSafetyThreeStepInspectionTab } from './tabs/FoodSafetyThreeStepInspectionTab';
 
+export type KitchenTabKey = 'portions' | 'allergies' | 'menu' | 'retention' | 'three-step-inspection';
+
+interface TabMeta {
+  uc: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+}
+
+const TAB_META: Record<KitchenTabKey, TabMeta> = {
+  portions: {
+    uc: 'UC-030',
+    title: 'Dashboard Khóa Số Suất Ăn 08:30 AM',
+    description: 'Chốt sĩ số bán trú thực tế mỗi sáng từ giáo viên để bộ phận bếp định lượng khẩu phần và xuất kho thực phẩm.',
+    icon: Clock,
+  },
+  allergies: {
+    uc: 'UC-031',
+    title: 'Quản Lý Dị Ứng Thực Phẩm & Khay Ăn Cách Ly',
+    description: 'Bóc tách thực đơn và chế biến khay ăn riêng biệt tuyệt đối an toàn cho trẻ có tiền sử dị ứng thực phẩm nặng.',
+    icon: ShieldAlert,
+  },
+  menu: {
+    uc: 'UC-029',
+    title: 'Thiết Lập Thực Đơn Bán Trú Tuần',
+    description: 'Lập kế hoạch dinh dưỡng cân bằng calo, tỷ lệ đạm - đường - béo cho từng độ tuổi mầm non theo tuần.',
+    icon: UtensilsCrossed,
+  },
+  retention: {
+    uc: 'UC-032',
+    title: 'Tiêu Hao Thực Phẩm & Lưu Mẫu Thức Ăn 24H',
+    description: 'Biên bản tiêu hao nguyên liệu trong ngày và quy trình niêm phong tủ lạnh lưu mẫu thức ăn tối thiểu 24 giờ.',
+    icon: Thermometer,
+  },
+  'three-step-inspection': {
+    uc: 'UC-055',
+    title: 'Sổ Kiểm Thực 3 Bước & Lưu Mẫu (Quyết Định 1246/QĐ-BYT)',
+    description: 'Quy trình kiểm tra an toàn thực phẩm 3 bước của Bộ Y Tế: Trước khi nhập - Trước khi chế biến - Trước khi ăn.',
+    icon: ClipboardCheck,
+  },
+};
+
 export const KitchenPage: React.FC = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [activeTab, setActiveTab] = useState<'portions' | 'allergies' | 'menu' | 'retention' | 'three-step-inspection'>(() => {
+  
+  const resolveTab = (param: string | null): KitchenTabKey => {
+    if (param && param in TAB_META) {
+      return param as KitchenTabKey;
+    }
     if (location.pathname === '/kitchen/menus') return 'menu';
     if (location.pathname === '/kitchen/allergies') return 'allergies';
     if (location.pathname === '/kitchen/safety') return 'three-step-inspection';
-    return 'three-step-inspection';
+    return 'portions';
+  };
+
+  const [activeTab, setActiveTab] = useState<KitchenTabKey>(() => {
+    return resolveTab(searchParams.get('tab'));
   });
 
   useEffect(() => {
-    if (location.pathname === '/kitchen/menus') {
-      setActiveTab('menu');
-    } else if (location.pathname === '/kitchen/allergies') {
-      setActiveTab('allergies');
-    } else if (location.pathname === '/kitchen/safety') {
-      setActiveTab('three-step-inspection');
-    }
-  }, [location.pathname]);
+    setActiveTab(resolveTab(searchParams.get('tab')));
+  }, [location.pathname, searchParams]);
+
+  const currentMeta = TAB_META[activeTab] || TAB_META['portions'];
+  const MetaIcon = currentMeta.icon;
 
   return (
-    <div className="space-y-6">
-      {/* HEADER PHÂN HỆ BÁO BẾP & DINH DƯỠNG */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E4D40] flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-2xl bg-[#275A4E]/10 flex items-center justify-center text-[#275A4E]">
-              <UtensilsCrossed className="h-6 w-6" />
+    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
+      {/* HEADER PHÂN HỆ BÁO BẾP (ĐỘNG THEO USE CASE, HOÀN TOÀN KHÔNG CÓ THANH SCROLL NGANG) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-[#1E4D40] to-[#275A4E] text-white rounded-3xl shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Bếp Bán Trú • {currentMeta.uc}</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
+              Quyết định 1246/QĐ-BYT
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
+              <MetaIcon className="h-5 w-5" />
             </div>
-            <span>Báo Bếp & Quản Lý Dinh Dưỡng Bán Trú</span>
+            <span>{currentMeta.title}</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Đóng băng số liệu 08:30 AM, khay ăn dị ứng cách ly, lập thực đơn tuần & lưu mẫu 24 giờ
+          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-3xl">
+            {currentMeta.description}
           </p>
         </div>
 
-        {/* BỘ CHỌN NGÀY LÀM VIỆC */}
-        <div className="flex items-center gap-3">
+        {/* BỘ CHỌN NGÀY LÀM VIỆC CỦA BẾP */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <div className="relative">
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm text-slate-800 font-bold shadow-xs focus:border-[#275A4E] focus:outline-hidden min-h-[44px]"
+              className="rounded-2xl border border-white/20 bg-white/15 text-white placeholder-emerald-200 px-4 py-2.5 text-xs sm:text-sm font-bold shadow-xs focus:border-[#78C2AD] focus:outline-hidden min-h-[44px] cursor-pointer"
             />
-            <CalendarDays className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-slate-400" />
+            <CalendarDays className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-emerald-200" />
           </div>
         </div>
       </div>
 
-      {/* 4 PHÂN HỆ TABS CHÍNH CỦA BẾP ĂN BÁN TRÚ (UC-030, UC-031, UC-029, UC-032) */}
-      <div className="flex border-b border-slate-200 gap-2 overflow-x-auto no-scrollbar">
-        {/* Tab 1: UC-030 */}
-        <button
-          onClick={() => setActiveTab('portions')}
-          className={`py-3.5 px-5 text-xs sm:text-sm font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'portions'
-              ? 'border-[#275A4E] text-[#275A4E]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <UtensilsCrossed className="h-4 w-4" />
-          <span>UC-030: Khóa Suất Ăn 08:30</span>
-        </button>
-
-        {/* Tab 2: UC-031 */}
-        <button
-          onClick={() => setActiveTab('allergies')}
-          className={`py-3.5 px-5 text-xs sm:text-sm font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'allergies'
-              ? 'border-[#DC2626] text-[#DC2626]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <ShieldAlert className="h-4 w-4" />
-          <span>UC-031: Quản Lý Dị Ứng & Khay Ăn Riêng</span>
-        </button>
-
-        {/* Tab 3: UC-029 */}
-        <button
-          onClick={() => setActiveTab('menu')}
-          className={`py-3.5 px-5 text-xs sm:text-sm font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'menu'
-              ? 'border-[#E5A93C] text-[#E5A93C]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Calendar className="h-4 w-4" />
-          <span>UC-029: Thực Đơn Tuần Bán Trú</span>
-        </button>
-
-        {/* Tab 4: UC-032 */}
-        <button
-          onClick={() => setActiveTab('retention')}
-          className={`py-3.5 px-5 text-xs sm:text-sm font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'retention'
-              ? 'border-[#78C2AD] text-[#1E4D40]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Thermometer className="h-4 w-4" />
-          <span>UC-032: Tiêu Hao & Lưu Mẫu 24H</span>
-        </button>
-
-        {/* Tab 5: UC-055 */}
-        <button
-          onClick={() => setActiveTab('three-step-inspection')}
-          className={`py-3.5 px-5 text-xs sm:text-sm font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            activeTab === 'three-step-inspection'
-              ? 'border-[#275A4E] text-[#275A4E]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <ClipboardCheck className="h-4 w-4" />
-          <span>UC-055: Kiểm Thực 3 Bước & Lưu Mẫu (QĐ 1246/BYT)</span>
-        </button>
-      </div>
-
-      {/* NỘI DUNG TỪNG PHÂN HỆ */}
-      <div>
-        {/* Phân hệ 5: UC-055 - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
-        {activeTab === 'three-step-inspection' && (
-          <FoodSafetyThreeStepInspectionTab initialDate={selectedDate} />
-        )}
-
+      {/* NỘI DUNG TỪNG PHÂN HỆ (RENDER TRỰC TIẾP, KHÔNG CÒN THANH SCROLL NGANG LÀM RỐI MẮT) */}
+      <div className="bg-transparent">
         {/* Phân hệ 1: UC-030 - Theo dõi Dashboard Khóa số Suất ăn 08:30 */}
         {activeTab === 'portions' && (
           <MealHeadcountLockDashboardTab selectedDate={selectedDate} />
@@ -154,6 +139,11 @@ export const KitchenPage: React.FC = () => {
 
         {/* Phân hệ 4: UC-032 - Xuất Báo cáo Tiêu hao Thực phẩm & Lưu mẫu 24h */}
         {activeTab === 'retention' && <FoodRetentionConsumptionTab />}
+
+        {/* Phân hệ 5: UC-055 - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
+        {activeTab === 'three-step-inspection' && (
+          <FoodSafetyThreeStepInspectionTab initialDate={selectedDate} />
+        )}
       </div>
     </div>
   );

@@ -153,105 +153,7 @@ export const healthApi = {
       const resp = await axiosClient.get<BatchStudentHealthEntry[]>(`/health/metrics/class/${classId}/entry-sheet`);
       return resp.data;
     } catch {
-      // Demo students for the class with history
-      const demoEntries: BatchStudentHealthEntry[] = [
-        {
-          studentId: 'STU-001',
-          studentCode: 'KP-2026-081',
-          studentName: 'Nguyễn Minh Khang',
-          avatarUrl: 'https://images.unsplash.com/photo-1595454223600-91fbdd77e231?w=100',
-          birthDate: '2022-05-15',
-          gender: 'MALE',
-          ageMonths: 53,
-          previousHeightCm: 102.5,
-          previousWeightKg: 16.2,
-          previousBmi: 15.42,
-          previousBmiStatus: 'NORMAL',
-          previousMeasuredDate: '2026-05-10',
-          currentHeightCm: 104.5,
-          currentWeightKg: 16.8,
-          bmi: 15.39,
-          bmiStatus: 'NORMAL',
-          notes: 'Thể lực tốt, nhanh nhẹn',
-        },
-        {
-          studentId: 'STU-002',
-          studentCode: 'KP-2026-082',
-          studentName: 'Trần Gia Bảo',
-          avatarUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=100',
-          birthDate: '2022-08-20',
-          gender: 'MALE',
-          ageMonths: 50,
-          previousHeightCm: 99.0,
-          previousWeightKg: 13.0,
-          previousBmi: 13.26,
-          previousBmiStatus: 'UNDERWEIGHT',
-          previousMeasuredDate: '2026-05-10',
-          currentHeightCm: 101.0,
-          currentWeightKg: 13.8,
-          bmi: 13.53,
-          bmiStatus: 'UNDERWEIGHT',
-          notes: 'Ăn ít, cần nhắc nhở uống thêm sữa',
-        },
-        {
-          studentId: 'STU-003',
-          studentCode: 'KP-2026-083',
-          studentName: 'Lê Thùy Chi',
-          avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-          birthDate: '2022-03-10',
-          gender: 'FEMALE',
-          ageMonths: 55,
-          previousHeightCm: 103.0,
-          previousWeightKg: 20.5,
-          previousBmi: 19.32,
-          previousBmiStatus: 'OVERWEIGHT',
-          previousMeasuredDate: '2026-05-10',
-          currentHeightCm: 105.0,
-          currentWeightKg: 21.2,
-          bmi: 19.23,
-          bmiStatus: 'OVERWEIGHT',
-          notes: 'Thích ăn cơm, khuyến khích vận động ngoài trời',
-        },
-        {
-          studentId: 'STU-004',
-          studentCode: 'KP-2026-084',
-          studentName: 'Phạm Hoàng Nam',
-          avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-          birthDate: '2022-01-25',
-          gender: 'MALE',
-          ageMonths: 57,
-          previousHeightCm: 106.0,
-          previousWeightKg: 23.5,
-          previousBmi: 20.91,
-          previousBmiStatus: 'OBESE',
-          previousMeasuredDate: '2026-05-10',
-          currentHeightCm: 107.0,
-          currentWeightKg: 24.0,
-          bmi: 20.96,
-          bmiStatus: 'OBESE',
-          notes: 'Béo phì độ 1, nhà trường và gia đình điều chỉnh chế độ ăn giảm ngọt',
-        },
-        {
-          studentId: 'STU-005',
-          studentCode: 'KP-2026-085',
-          studentName: 'Đặng Ngọc Ánh',
-          avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100',
-          birthDate: '2022-06-12',
-          gender: 'FEMALE',
-          ageMonths: 52,
-          previousHeightCm: 100.5,
-          previousWeightKg: 15.5,
-          previousBmi: 15.35,
-          previousBmiStatus: 'NORMAL',
-          previousMeasuredDate: '2026-05-10',
-          currentHeightCm: 102.5,
-          currentWeightKg: 16.0,
-          bmi: 15.23,
-          bmiStatus: 'NORMAL',
-          notes: 'Phát triển hài hòa theo chuẩn WHO',
-        },
-      ];
-      return demoEntries;
+      return [];
     }
   },
 
@@ -261,13 +163,7 @@ export const healthApi = {
       const resp = await axiosClient.get(`/health/metrics/student/${studentId}/growth-history`);
       return resp.data;
     } catch {
-      // Demo historical growth points from 36 to 54 months
-      return [
-        { ageMonths: 36, heightCm: 96.1, weightKg: 14.3, measuredDate: '2025-05-15', bmi: 15.48, bmiStatus: 'NORMAL' },
-        { ageMonths: 42, heightCm: 99.5, weightKg: 15.2, measuredDate: '2025-11-15', bmi: 15.35, bmiStatus: 'NORMAL' },
-        { ageMonths: 48, heightCm: 102.5, weightKg: 16.2, measuredDate: '2026-05-10', bmi: 15.42, bmiStatus: 'NORMAL' },
-        { ageMonths: 53, heightCm: 104.5, weightKg: 16.8, measuredDate: '2026-10-10', bmi: 15.39, bmiStatus: 'NORMAL' },
-      ];
+      return [];
     }
   },
 
@@ -283,145 +179,14 @@ export const healthApi = {
       const resp = await axiosClient.get<MedicalIncidentRecord[]>('/health/incidents', { params: queryParams });
       return resp.data;
     } catch {
-      const demoIncidents: MedicalIncidentRecord[] = [
-        {
-          id: 'INC-202610-001',
-          incidentCode: 'INC-202610-001',
-          studentId: 'STU-001',
-          studentName: 'Nguyễn Minh Khang',
-          studentCode: 'KP-2026-081',
-          className: 'Mầm 1 (3-4 Tuổi)',
-          avatarUrl: 'https://images.unsplash.com/photo-1595454223600-91fbdd77e231?w=100',
-          category: 'FEVER',
-          categoryLabel: 'Sốt cao tại lớp',
-          temperatureCelsius: 38.8,
-          isHighFever: true,
-          isExtremeFever: false,
-          symptomsDescription: 'Bé mệt mỏi, mắt lờ đờ, trán và lòng bàn tay nóng ran sau giờ ngủ trưa.',
-          firstAidMeasures: ['Chườm ấm vùng trán và nách', 'Uống 150ml nước ấm', 'Nghỉ ngơi tại phòng y tế'],
-          medicationGiven: false,
-          medicalConsentAgreed: false, // Phụ huynh chưa ký cam kết thuốc -> Không uống Paracetamol (MSG-217)
-          actionPlan: 'PARENT_EARLY_PICKUP',
-          actionPlanLabel: 'Liên hệ phụ huynh đón sớm',
-          parentNotified: true,
-          parentNotificationStatus: 'SENT',
-          parentEmergencyPhone: '0912345678',
-          recordedByStaffName: 'Cô Nguyễn Thị Hoa (GVCN)',
-          recordedAt: '2026-10-10T14:15:00+07:00',
-          notes: 'Mẹ bé đã xác nhận đang trên đường đến đón lúc 14:40.',
-          allergyTags: ['peanuts'],
-        },
-        {
-          id: 'INC-202610-002',
-          incidentCode: 'INC-202610-002',
-          studentId: 'STU-002',
-          studentName: 'Trần Gia Bảo',
-          studentCode: 'KP-2026-082',
-          className: 'Mầm 1 (3-4 Tuổi)',
-          avatarUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=100',
-          category: 'SCRATCH_FALL',
-          categoryLabel: 'Trầy xước / Té ngã',
-          temperatureCelsius: 36.8,
-          isHighFever: false,
-          isExtremeFever: false,
-          symptomsDescription: 'Bé vấp ngã khi chạy chơi ngoài sân cát, trầy xước nhẹ đầu gối trái không chảy máu nhiều.',
-          firstAidMeasures: ['Rửa sạch vết thương bằng nước muối sinh lý 0.9%', 'Sát khuẩn Povidine', 'Băng gạc cá nhân Urgo'],
-          medicationGiven: false,
-          medicalConsentAgreed: true,
-          actionPlan: 'RETURN_TO_CLASS',
-          actionPlanLabel: 'Bé ổn định, trở lại lớp học',
-          parentNotified: true,
-          parentNotificationStatus: 'SENT',
-          parentEmergencyPhone: '0988765432',
-          recordedByStaffName: 'Y sĩ Trần Thu Trang',
-          recordedAt: '2026-10-10T09:30:00+07:00',
-          notes: 'Bé đã vui vẻ chơi lại cùng các bạn, không còn đau.',
-        },
-        {
-          id: 'INC-202610-003',
-          incidentCode: 'INC-202610-003',
-          studentId: 'STU-003',
-          studentName: 'Lê Thùy Chi',
-          studentCode: 'KP-2026-083',
-          className: 'Mầm 1 (3-4 Tuổi)',
-          avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-          category: 'ALLERGIC_REACTION',
-          categoryLabel: 'Nghi ngờ dị ứng thức ăn',
-          temperatureCelsius: 37.2,
-          isHighFever: false,
-          isExtremeFever: false,
-          symptomsDescription: 'Bé bị nổi mẩn đỏ quanh viền môi và mu bàn tay sau bữa phụ bánh su kem.',
-          firstAidMeasures: ['Cách ly món ăn nghi ngờ', 'Uống nước lọc ấm', 'Lau mát nhẹ nhàng'],
-          medicationGiven: false,
-          medicalConsentAgreed: true,
-          actionPlan: 'REST_IN_INFIRMARY',
-          actionPlanLabel: 'Nằm theo dõi tại phòng y tế',
-          parentNotified: true,
-          parentNotificationStatus: 'SENT',
-          parentEmergencyPhone: '0903112233',
-          recordedByStaffName: 'Y sĩ Trần Thu Trang',
-          recordedAt: '2026-10-09T15:20:00+07:00',
-          notes: 'Vết mẩn đã lặn sau 30 phút theo dõi.',
-          allergyTags: ['seafood', 'egg'],
-        },
-      ];
-      return demoIncidents;
+      return [];
     }
   },
 
   // Tạo bản ghi sự vụ y tế mới (POST /api/health/incidents)
   createMedicalIncident: async (payload: CreateMedicalIncidentPayload): Promise<MedicalIncidentRecord> => {
-    try {
-      const resp = await axiosClient.post<MedicalIncidentRecord>('/health/incidents', payload);
-      return resp.data;
-    } catch {
-      const categoryLabels: Record<string, string> = {
-        FEVER: 'Sốt cao tại lớp',
-        SCRATCH_FALL: 'Trầy xước / Té ngã',
-        NOSEBLEED: 'Chảy máu cam',
-        VOMITING: 'Nôn trớ / Tiêu hóa',
-        ALLERGIC_REACTION: 'Dị ứng thuốc / Thực phẩm',
-        STOMACH_ACHE: 'Đau bụng',
-        OTHER: 'Sự vụ sức khỏe khác',
-      };
-
-      const actionPlanLabels: Record<string, string> = {
-        RETURN_TO_CLASS: 'Bé ổn định, trở lại lớp học',
-        REST_IN_INFIRMARY: 'Nằm theo dõi tại phòng y tế',
-        PARENT_EARLY_PICKUP: 'Liên hệ phụ huynh đón sớm',
-        HOSPITAL_EMERGENCY_115: 'Cấp cứu khẩn cấp - Chuyển viện 115',
-      };
-
-      const isHigh = payload.temperatureCelsius > 38.5;
-      const isExtreme = payload.temperatureCelsius > 39.5;
-
-      const newRecord: MedicalIncidentRecord = {
-        id: `INC-${Date.now().toString().slice(-6)}`,
-        incidentCode: `INC-${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}-${Math.floor(100 + Math.random() * 900)}`,
-        studentId: payload.studentId,
-        studentName: 'Nguyễn Minh Khang',
-        studentCode: 'KP-2026-081',
-        className: 'Mầm 1 (3-4 Tuổi)',
-        category: payload.category,
-        categoryLabel: categoryLabels[payload.category] || 'Sự vụ y tế',
-        temperatureCelsius: payload.temperatureCelsius,
-        isHighFever: isHigh,
-        isExtremeFever: isExtreme,
-        symptomsDescription: payload.symptomsDescription,
-        firstAidMeasures: payload.firstAidMeasures,
-        medicationGiven: false,
-        medicalConsentAgreed: false,
-        actionPlan: payload.actionPlan,
-        actionPlanLabel: actionPlanLabels[payload.actionPlan] || 'Theo dõi y tế',
-        parentNotified: true,
-        parentNotificationStatus: 'SENT',
-        parentEmergencyPhone: '0912345678',
-        recordedByStaffName: 'Giáo viên & Y tế học đường',
-        recordedAt: new Date().toISOString(),
-        notes: payload.notes,
-      };
-      return newRecord;
-    }
+    const resp = await axiosClient.post<MedicalIncidentRecord>('/health/incidents', payload);
+    return resp.data;
   },
 
   // Cập nhật hướng xử lý sự vụ (PUT /api/health/incidents/{id}/action)

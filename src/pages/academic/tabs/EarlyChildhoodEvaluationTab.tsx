@@ -134,72 +134,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
       }));
       setMatrixStudents(initialList);
     } else {
-      // Dữ liệu mẫu minh họa nếu chưa có học sinh trong database
-      setMatrixStudents([
-        {
-          studentId: 'st-01',
-          studentCode: 'HS-2026-001',
-          studentName: 'Nguyễn Minh Khang',
-          dateOfBirth: '14/03/2023',
-          gender: 'Nam',
-          scores: {
-            physicalScore: 5,
-            physicalStatus: 'PASS',
-            cognitiveScore: 5,
-            cognitiveStatus: 'PASS',
-            languageScore: 5,
-            languageStatus: 'PASS',
-            emotionalScore: 5,
-            emotionalStatus: 'PASS',
-            aestheticScore: 5,
-            aestheticStatus: 'PASS',
-            teacherNotes: 'Bé nhanh nhẹn, tự giác xúc ăn tốt, có năng khiếu vẽ và hát múa.',
-          },
-          isSavedDraft: true,
-        },
-        {
-          studentId: 'st-02',
-          studentCode: 'HS-2026-002',
-          studentName: 'Trần Bảo An',
-          dateOfBirth: '22/07/2023',
-          gender: 'Nữ',
-          scores: {
-            physicalScore: 2,
-            physicalStatus: 'DEVELOPING',
-            cognitiveScore: 2,
-            cognitiveStatus: 'DEVELOPING',
-            languageScore: 2,
-            languageStatus: 'DEVELOPING',
-            emotionalScore: 2,
-            emotionalStatus: 'DEVELOPING',
-            aestheticScore: 5,
-            aestheticStatus: 'PASS',
-            teacherNotes: 'Bé rụt rè, chưa chủ động phát âm rõ ràng, cần quan sát và hỗ trợ thêm.',
-          },
-          isSavedDraft: true,
-        },
-        {
-          studentId: 'st-03',
-          studentCode: 'HS-2026-003',
-          studentName: 'Lê Gia Hưng',
-          dateOfBirth: '05/11/2022',
-          gender: 'Nam',
-          scores: {
-            physicalScore: 5,
-            physicalStatus: 'PASS',
-            cognitiveScore: 5,
-            cognitiveStatus: 'PASS',
-            languageScore: 5,
-            languageStatus: 'PASS',
-            emotionalScore: 2,
-            emotionalStatus: 'DEVELOPING',
-            aestheticScore: 5,
-            aestheticStatus: 'PASS',
-            teacherNotes: 'Thể lực rất tốt, hay tranh giành đồ chơi với bạn trong giờ góc.',
-          },
-          isSavedDraft: false,
-        },
-      ]);
+      setMatrixStudents([]);
     }
   }, [studentsData]);
 

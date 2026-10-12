@@ -24,177 +24,28 @@ import {
   AgingDebtReportItem
 } from '../../../types/finance.types';
 import { formatCurrency } from '../../../utils/formatters';
+import { financeApi } from '../../../api/financeApi';
 
-// Dữ liệu mẫu báo cáo tài chính chuẩn mực VAS
-const INITIAL_REPORT_DATA: FinancialReportData = {
-  periodTitle: 'BÁO CÁO TÀI CHÍNH TỔNG HỢP & PHÂN TÍCH CÔNG NỢ THÁNG 10/2026',
-  generatedAt: '2026-10-10 17:30',
-  generatedBy: 'Kế toán trưởng Phạm Thu Hà (KT-001)',
+// Dữ liệu rỗng khởi tạo báo cáo tài chính chuẩn mực VAS
+const EMPTY_REPORT_DATA: FinancialReportData = {
+  periodTitle: 'BÁO CÁO TÀI CHÍNH TỔNG HỢP & PHÂN TÍCH CÔNG NỢ',
+  generatedAt: '',
+  generatedBy: '',
   kpis: {
-    totalIssuedRevenue: 1285000000,
-    totalCollectedRevenue: 1210000000,
-    collectedViaVietQr: 1150000000,
-    collectedViaCash: 60000000,
-    totalDiscountsAndRefunds: 45000000,
-    totalOutstandingDebt: 30000000,
-    recoveryRatePercentage: 94.2,
-    totalInvoiceCount: 320,
-    paidInvoiceCount: 302,
-    unpaidInvoiceCount: 18,
+    totalIssuedRevenue: 0,
+    totalCollectedRevenue: 0,
+    collectedViaVietQr: 0,
+    collectedViaCash: 0,
+    totalDiscountsAndRefunds: 0,
+    totalOutstandingDebt: 0,
+    recoveryRatePercentage: 0,
+    totalInvoiceCount: 0,
+    paidInvoiceCount: 0,
+    unpaidInvoiceCount: 0,
   },
-  revenueStructure: [
-    { name: 'Học phí cơ bản', value: 706750000, percentage: 55, color: '#275A4E' },
-    { name: 'Tiền ăn bán trú', value: 282700000, percentage: 22, color: '#1E4D40' },
-    { name: 'Cơ sở vật chất', value: 154200000, percentage: 12, color: '#E5A93C' },
-    { name: 'Năng khiếu & CLB', value: 89950000, percentage: 7, color: '#78C2AD' },
-    { name: 'Trông muộn ngoài giờ', value: 51400000, percentage: 4, color: '#F97316' },
-  ],
-  agingDebtReport: [
-    { bucketName: 'Nợ trong hạn', amount: 12000000, invoiceCount: 7, color: '#78C2AD' },
-    { bucketName: 'Quá hạn 1-30 ngày', amount: 11500000, invoiceCount: 6, color: '#E5A93C' },
-    { bucketName: 'Quá hạn 31-60 ngày', amount: 4500000, invoiceCount: 3, color: '#F97316' },
-    { bucketName: 'Quá hạn >90 ngày (Khó đòi)', amount: 2000000, invoiceCount: 2, color: '#DC2626' },
-  ],
-  classSummaries: [
-    {
-      classId: 'CLS-M1',
-      className: 'Lớp Mầm 1 (24-36 tháng)',
-      gradeLevel: 'Khối Mầm',
-      totalStudents: 25,
-      totalIssued: 102500000,
-      totalCollected: 98650000,
-      unpaidCount: 1,
-      remainingDebt: 3850000,
-      recoveryRate: 96.2,
-      debtors: [
-        {
-          studentId: 'STU-101',
-          studentCode: 'KP-2611',
-          studentName: 'Nguyễn Tuấn Kiệt',
-          parentName: 'Nguyễn Văn Tuấn',
-          parentPhone: '0903123456',
-          overdueDays: 2,
-          debtAmount: 3850000,
-          invoiceNumber: 'HD-2026-10-001',
-        },
-      ],
-    },
-    {
-      classId: 'CLS-M2',
-      className: 'Lớp Mầm 2 (24-36 tháng)',
-      gradeLevel: 'Khối Mầm',
-      totalStudents: 24,
-      totalIssued: 98400000,
-      totalCollected: 94450000,
-      unpaidCount: 1,
-      remainingDebt: 3950000,
-      recoveryRate: 95.9,
-      debtors: [
-        {
-          studentId: 'STU-104',
-          studentCode: 'KP-2614',
-          studentName: 'Bùi Hải Yến',
-          parentName: 'Bùi Văn Hùng',
-          parentPhone: '0977112233',
-          overdueDays: 8,
-          debtAmount: 3950000,
-          invoiceNumber: 'HD-2026-10-004',
-        },
-      ],
-    },
-    {
-      classId: 'CLS-C1',
-      className: 'Lớp Chồi 1 (3-4 tuổi)',
-      gradeLevel: 'Khối Chồi',
-      totalStudents: 28,
-      totalIssued: 117600000,
-      totalCollected: 113400000,
-      unpaidCount: 1,
-      remainingDebt: 4200000,
-      recoveryRate: 96.4,
-      debtors: [
-        {
-          studentId: 'STU-102',
-          studentCode: 'KP-2612',
-          studentName: 'Đặng Ngọc Ánh',
-          parentName: 'Trịnh Thị Lan',
-          parentPhone: '0912345678',
-          overdueDays: 3,
-          debtAmount: 4200000,
-          invoiceNumber: 'HD-2026-10-002',
-        },
-      ],
-    },
-    {
-      classId: 'CLS-C2',
-      className: 'Lớp Chồi 2 (3-4 tuổi)',
-      gradeLevel: 'Khối Chồi',
-      totalStudents: 27,
-      totalIssued: 113400000,
-      totalCollected: 108300000,
-      unpaidCount: 1,
-      remainingDebt: 5100000,
-      recoveryRate: 95.5,
-      debtors: [
-        {
-          studentId: 'STU-105',
-          studentCode: 'KP-2615',
-          studentName: 'Trương Hoàng Nam',
-          parentName: 'Trương Quốc Bảo',
-          parentPhone: '0909998877',
-          overdueDays: 14,
-          debtAmount: 5100000,
-          invoiceNumber: 'HD-2026-10-005',
-        },
-      ],
-    },
-    {
-      classId: 'CLS-L1',
-      className: 'Lớp Lá 1 (4-5 tuổi)',
-      gradeLevel: 'Khối Lá',
-      totalStudents: 30,
-      totalIssued: 126000000,
-      totalCollected: 121200000,
-      unpaidCount: 1,
-      remainingDebt: 4800000,
-      recoveryRate: 96.1,
-      debtors: [
-        {
-          studentId: 'STU-106',
-          studentCode: 'KP-2616',
-          studentName: 'Lâm Khánh Vy',
-          parentName: 'Lâm Đình Trọng',
-          parentPhone: '0903889900',
-          overdueDays: 6,
-          debtAmount: 4800000,
-          invoiceNumber: 'HD-2026-10-006',
-        },
-      ],
-    },
-    {
-      classId: 'CLS-L2',
-      className: 'Lớp Lá 2 (4-5 tuổi)',
-      gradeLevel: 'Khối Lá',
-      totalStudents: 29,
-      totalIssued: 121800000,
-      totalCollected: 117300000,
-      unpaidCount: 1,
-      remainingDebt: 4500000,
-      recoveryRate: 96.3,
-      debtors: [
-        {
-          studentId: 'STU-103',
-          studentCode: 'KP-2613',
-          studentName: 'Phan Minh Khang',
-          parentName: 'Phan Quốc Việt',
-          parentPhone: '0988776655',
-          overdueDays: 7,
-          debtAmount: 4500000,
-          invoiceNumber: 'HD-2026-10-003',
-        },
-      ],
-    },
-  ],
+  revenueStructure: [],
+  agingDebtReport: [],
+  classSummaries: [],
 };
 
 export const FinancialReportsTab: React.FC = () => {
@@ -209,7 +60,7 @@ export const FinancialReportsTab: React.FC = () => {
   const [paymentChannel, setPaymentChannel] = useState<'ALL' | 'VIETQR' | 'CASH' | 'POS'>('ALL');
 
   // Report Data
-  const [reportData, setReportData] = useState<FinancialReportData>(INITIAL_REPORT_DATA);
+  const [reportData, setReportData] = useState<FinancialReportData>(EMPTY_REPORT_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Modals & Interactive View
@@ -230,7 +81,7 @@ export const FinancialReportsTab: React.FC = () => {
   };
 
   // 1. Validation & Tổng Hợp Số Liệu Tài Chính
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     // RBAC Check (MSG-304)
     if (!['KE_TOAN', 'BGH', 'ADMIN'].includes(currentRole)) {
       showToast('error', 'MSG-304: Chức năng xuất báo cáo tài chính chỉ dành riêng cho bộ phận kế toán có thẩm quyền.');
@@ -244,15 +95,36 @@ export const FinancialReportsTab: React.FC = () => {
     }
 
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const res: any = await financeApi.getFinancialSummaryReport({
+        periodType: filterPeriodType,
+        periodValue: startDate.slice(0, 7),
+        startDate,
+        endDate,
+        paymentChannel,
+        classId: selectedClassId !== 'ALL' ? selectedClassId : undefined,
+      });
+      if (res && (res.kpis || res.data?.kpis)) {
+        setReportData(res.data || res);
+        showToast('success', 'Đã tổng hợp thành công số liệu tài chính và phân loại tuổi nợ.');
+      } else {
+        setReportData({
+          ...EMPTY_REPORT_DATA,
+          periodTitle: `BÁO CÁO TÀI CHÍNH TỔNG HỢP (${startDate} ĐẾN ${endDate})`,
+          generatedAt: new Date().toLocaleString('vi-VN'),
+        });
+        showToast('warning', 'Không tìm thấy dữ liệu phát sinh trong khoảng thời gian đã chọn.');
+      }
+    } catch {
       setReportData({
-        ...INITIAL_REPORT_DATA,
+        ...EMPTY_REPORT_DATA,
         periodTitle: `BÁO CÁO TÀI CHÍNH TỔNG HỢP (${startDate} ĐẾN ${endDate})`,
         generatedAt: new Date().toLocaleString('vi-VN'),
       });
-      showToast('success', 'Đã tổng hợp thành công số liệu tài chính và phân loại tuổi nợ.');
-    }, 600);
+      showToast('warning', 'Chưa có dữ liệu tài chính phát sinh trong khoảng thời gian này.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // 2. Xuất Báo Cáo Excel (.xlsx) Chuẩn Mực VAS
@@ -601,6 +473,11 @@ export const FinancialReportsTab: React.FC = () => {
             )}
           </div>
 
+          {reportData.revenueStructure.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              Chưa có dữ liệu cơ cấu nguồn thu trong kỳ báo cáo.
+            </div>
+          ) : (
           <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
             {/* SVG Donut Chart */}
             <div className="relative w-44 h-44 shrink-0">
@@ -662,6 +539,7 @@ export const FinancialReportsTab: React.FC = () => {
               ))}
             </div>
           </div>
+          )}
         </div>
 
         {/* BIỂU ĐỒ 2: AGING DEBT BAR CHART (PHÂN LOẠI TUỔI NỢ) */}
@@ -689,6 +567,11 @@ export const FinancialReportsTab: React.FC = () => {
           </div>
 
           {/* SVG Bar Chart */}
+          {reportData.agingDebtReport.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              Chưa có dữ liệu phân loại tuổi nợ trong kỳ báo cáo.
+            </div>
+          ) : (
           <div className="space-y-3 pt-2">
             {reportData.agingDebtReport.map((bar, idx) => {
               const maxAmount = 15000000;
@@ -726,6 +609,7 @@ export const FinancialReportsTab: React.FC = () => {
               );
             })}
           </div>
+          )}
 
           <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between font-semibold">
             <span>Tổng số hóa đơn quá hạn cần thu hồi:</span>
@@ -766,7 +650,14 @@ export const FinancialReportsTab: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {displayedClasses.map((item) => (
+              {displayedClasses.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                    Không có dữ liệu công nợ lớp học trong kỳ báo cáo đã chọn.
+                  </td>
+                </tr>
+              ) : (
+                displayedClasses.map((item) => (
                 <tr key={item.classId} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-4 px-4 font-bold text-slate-900">{item.className}</td>
                   <td className="py-4 px-4 text-center text-slate-500">{item.gradeLevel}</td>
@@ -805,7 +696,8 @@ export const FinancialReportsTab: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
             <tfoot className="bg-slate-50/90 font-black text-slate-900 text-xs sm:text-sm border-t-2 border-slate-200">
               <tr>

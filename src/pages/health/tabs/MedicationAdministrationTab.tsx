@@ -22,68 +22,7 @@ import { academicApi } from '../../../api/academicApi';
 import { MedicationRecord, MedicationStatus } from '../../../types/health.types';
 import { Student, ClassEntity } from '../../../types/classroom.types';
 
-// Mock initial data if backend has no records yet
-const INITIAL_MEDICATIONS: MedicationRecord[] = [
-  {
-    id: 'med-01',
-    studentId: 'stu-01',
-    studentName: 'Trần Gia Bảo',
-    studentCode: 'KID-2024-001',
-    className: 'Mầm 1',
-    avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-    medicationName: 'Siro ho Prospan',
-    dosage: '5ml sau ăn trưa',
-    administrationTime: '14:00',
-    notes: 'Bé ho nhiều khi ngủ dậy. Cho uống thêm 1 ngụm nước ấm sau khi uống siro.',
-    storageInstructions: 'Để ngăn mát tủ lạnh y tế lớp (2 - 8°C)',
-    prescriptionPhotoUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80',
-    proofPhotoUrl: '',
-    status: 'RECEIVED_WAITING',
-    isAntibioticOrPrescription: false,
-    maxDosesPerDay: 2,
-    dosesAdministeredToday: 0
-  },
-  {
-    id: 'med-02',
-    studentId: 'stu-02',
-    studentName: 'Lê Minh Anh',
-    studentCode: 'KID-2024-002',
-    className: 'Nhà trẻ 1',
-    avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&auto=format&fit=crop&q=80',
-    medicationName: 'Men vi sinh BioGaia Protectis',
-    dosage: '5 giọt hòa cùng 1 thìa nước lọc',
-    administrationTime: '14:00',
-    notes: 'Không pha với nước sôi trên 40°C.',
-    storageInstructions: 'Nhiệt độ phòng mát (< 25°C), tránh ánh nắng trực tiếp',
-    prescriptionPhotoUrl: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800&auto=format&fit=crop&q=80',
-    proofPhotoUrl: '',
-    status: 'PENDING_RECEIPT',
-    isAntibioticOrPrescription: false,
-    maxDosesPerDay: 1,
-    dosesAdministeredToday: 0
-  },
-  {
-    id: 'med-03',
-    studentId: 'stu-03',
-    studentName: 'Phạm Hoàng Nam',
-    studentCode: 'KID-2024-003',
-    className: 'Chồi 2',
-    avatarUrl: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=200&auto=format&fit=crop&q=80',
-    medicationName: 'Kháng sinh Augmentin 250mg',
-    dosage: '1 gói pha 15ml nước',
-    administrationTime: '11:30',
-    notes: 'Viêm họng cấp, uống ngay sau bữa trưa. Có toa khám Bệnh viện Nhi Đồng 2.',
-    storageInstructions: 'Để tủ thuốc y tế lớp',
-    prescriptionPhotoUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80',
-    proofPhotoUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600&auto=format&fit=crop&q=80',
-    administeredAt: '2026-10-09 11:35:12',
-    witnessTeacherName: 'Cô Nguyễn Mai Hương',
-    status: 'ADMINISTERED',
-    isAntibioticOrPrescription: true,
-    maxDosesPerDay: 2,
-    dosesAdministeredToday: 1
-  }
-];
+const INITIAL_MEDICATIONS: MedicationRecord[] = [];
 
 export const MedicationAdministrationTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -1050,9 +989,7 @@ export const MedicationAdministrationTab: React.FC = () => {
                   required
                   className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:border-[#275A4E]"
                 >
-                  <option value="stu-01">Trần Gia Bảo - Lớp Mầm 1</option>
-                  <option value="stu-02">Lê Minh Anh - Lớp Nhà trẻ 1</option>
-                  <option value="stu-03">Phạm Hoàng Nam - Lớp Chồi 2</option>
+
                   {students.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.fullName} - {s.className || 'Lớp học'}

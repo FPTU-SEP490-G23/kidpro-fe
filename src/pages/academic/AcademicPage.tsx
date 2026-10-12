@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
 import {
@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   Archive,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import AcademicYearsPage from './years/AcademicYearsPage';
 import { StudentAdmissionTab } from './tabs/StudentAdmissionTab';
@@ -40,6 +41,7 @@ export type AcademicTabKey =
   | 'classroom_equipment'
   | 'allergies'
   | 'timetable'
+  | 'conflicts'
   | 'classes'
   | 'students'
   | 'transfers'
@@ -50,102 +52,123 @@ export type AcademicTabKey =
   | 'quality_surveys'
   | 'academic_years';
 
-interface AcademicTabConfig {
-  id: AcademicTabKey;
-  label: string;
+interface TabMeta {
+  uc: string;
+  title: string;
+  description: string;
   icon: React.ElementType;
-  roles?: UserRole[];
+  badge?: string;
   specialColor?: 'allergy' | 'gold';
 }
 
-const allAcademicTabs: AcademicTabConfig[] = [
-  {
-    id: 'lesson_plans',
-    label: 'Soạn Giáo Án (UC-054)',
-    icon: BookOpen,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+const TAB_META: Record<AcademicTabKey, TabMeta> = {
+  students: {
+    uc: 'UC-015',
+    title: 'Tiếp Nhận Học Sinh & Phân Lớp',
+    description: 'Quy trình tiếp nhận hồ sơ nhập học của trẻ, kiểm tra độ tuổi và phân bổ vào danh sách khối lớp.',
+    icon: UserPlus,
+    badge: 'Hồ Sơ Mầm Non',
   },
-  {
-    id: 'evaluations',
-    label: 'Đánh Giá 5 Trục TT28 (UC-061)',
-    icon: Award,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+  classes: {
+    uc: 'UC-016',
+    title: 'Phân Công Giáo Viên Phụ Trách & Quản Lý Lớp',
+    description: 'Thiết lập danh sách cơ cấu lớp học theo khối tuổi, phân công giáo viên chủ nhiệm và giáo viên hỗ trợ.',
+    icon: Users,
+    badge: 'Đội Ngũ Sư Phạm',
   },
-  {
-    id: 'classroom_equipment',
-    label: 'Kiểm Kê Thiết Bị Lớp (UC-063)',
-    icon: Boxes,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+  timetable: {
+    uc: 'UC-017',
+    title: 'Xếp & Ban Hành Thời Khóa Biểu Tuần',
+    description: 'Thiết lập khung giờ học tập, sinh hoạt, vận động thể chất và ngoại khóa cho từng lớp theo tuần.',
+    icon: Calendar,
+    badge: 'Khung Giảng Dạy',
   },
-  {
-    id: 'allergies',
-    label: 'Trung Tâm Dị Ứng (UC-053)',
+  conflicts: {
+    uc: 'UC-018',
+    title: 'Kiểm Tra Xung Đột Lịch Dạy & Phòng Học',
+    description: 'Hệ thống tự động phát hiện xung đột lịch dạy của giáo viên bộ môn và chống trùng lặp phòng chức năng.',
+    icon: CalendarDays,
+    badge: 'Thuật Toán Tự Động',
+  },
+  transfers: {
+    uc: 'UC-019',
+    title: 'Xử Lý Đơn Chuyển Lớp & Bảo Lưu Học Phí',
+    description: 'Tiếp nhận đơn nguyện vọng của phụ huynh, thẩm định điều kiện sĩ số lớp tiếp nhận và duyệt thủ tục bảo lưu.',
+    icon: ArrowRightLeft,
+    badge: 'Biến Động Học Sinh',
+  },
+  guardians: {
+    uc: 'UC-020',
+    title: 'Thẩm Định Người Đón Ủy Quyền',
+    description: 'Thẩm định hồ sơ, giấy tờ định danh và phê duyệt danh sách người thân được phụ huynh ủy quyền đón trẻ.',
+    icon: ShieldCheck,
+    badge: 'An Toàn Đón Trả',
+  },
+  allergies: {
+    uc: 'UC-053',
+    title: 'Cảnh Báo Dị Ứng Toàn Hệ Thống (Allergy Command Center)',
+    description: 'Bóc tách cảnh báo đỏ bắt buộc đối với học sinh có tiền sử dị ứng thực phẩm nặng tới điểm danh, lớp học và bếp bán trú.',
     icon: ShieldAlert,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+    badge: 'Cảnh Báo Đỏ Bắt Buộc',
     specialColor: 'allergy',
   },
-  {
-    id: 'timetable',
-    label: 'Thời khóa biểu (UC-017 & UC-018)',
-    icon: Calendar,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    id: 'classes',
-    label: 'Danh sách Lớp học (UC-016)',
-    icon: Users,
-    roles: ['GIAO_VIEN', 'GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    id: 'students',
-    label: 'Tiếp nhận Học sinh (UC-015)',
-    icon: UserPlus,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    id: 'transfers',
-    label: 'Đơn xin chuyển lớp (UC-019)',
-    icon: ArrowRightLeft,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    id: 'guardians',
-    label: 'Người đón Ủy quyền (UC-020)',
-    icon: ShieldCheck,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    id: 'lesson_plan_approvals',
-    label: 'Phê Duyệt Giáo Án (UC-062)',
+  lesson_plan_approvals: {
+    uc: 'UC-062',
+    title: 'Phê Duyệt Kế Hoạch Giáo Án Tuần',
+    description: 'Tổ chuyên môn và cán bộ giáo vụ kiểm duyệt nội dung giáo án giảng dạy tuần do các giáo viên chủ nhiệm đệ trình.',
     icon: CheckCircle2,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+    badge: 'Kiểm Duyệt Chuyên Môn',
   },
-  {
-    id: 'moet_attendance',
-    label: 'Sổ Điểm Danh MoET (UC-064)',
+  classroom_equipment: {
+    uc: 'UC-063',
+    title: 'Quản Lý Đồ Dùng & Thiết Bị Lớp Học',
+    description: 'Kiểm kê trang thiết bị mầm non, đồ chơi giáo dục và theo dõi tình trạng cấp phát đồ dùng các phòng học.',
+    icon: Boxes,
+    badge: 'Cơ Sở Vật Chất',
+  },
+  moet_attendance: {
+    uc: 'UC-064',
+    title: 'Xuất Sổ Điểm Danh Mẫu Chuẩn MoET',
+    description: 'Tổng hợp ngày đi học, vắng có phép, vắng không phép theo biểu mẫu quy chuẩn của Bộ Giáo dục & Đào tạo.',
     icon: FileSpreadsheet,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+    badge: 'Mẫu Sổ Bộ GD&ĐT',
   },
-  {
-    id: 'year_archival',
-    label: 'Khóa Sổ Niên Khóa (UC-065)',
+  year_archival: {
+    uc: 'UC-065',
+    title: 'Khóa Sổ & Lưu Trữ Dữ Liệu Học Bạ Niên Khóa',
+    description: 'Đóng sổ dữ liệu năm học cũ, kết chuyển học bạ điện tử vào kho lưu trữ số và sẵn sàng khởi tạo năm học mới.',
     icon: Archive,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+    badge: 'Lưu Trữ Dữ Liệu',
   },
-  {
-    id: 'quality_surveys',
-    label: 'Khảo Sát Chất Lượng (UC-068)',
+  lesson_plans: {
+    uc: 'UC-054',
+    title: 'Soạn & Gửi Phê Duyệt Kế Hoạch Giáo Án',
+    description: 'Giáo viên chủ nhiệm soạn thảo giáo án theo chủ đề tuần và gửi trình duyệt lên ban chuyên môn giáo vụ.',
+    icon: BookOpen,
+    badge: 'Chuyên Môn Lớp',
+  },
+  evaluations: {
+    uc: 'UC-061',
+    title: 'Đánh Giá 5 Trục Phát Triển Trẻ (Thông Tư 28 & 51/BGDĐT)',
+    description: 'Đánh giá định kỳ thể chất, nhận thức, ngôn ngữ, tình cảm - kỹ năng xã hội và thẩm mỹ của từng trẻ.',
+    icon: Award,
+    badge: 'Chuẩn TT 28/51',
+  },
+  quality_surveys: {
+    uc: 'UC-068',
+    title: 'Khảo Sát Chất Lượng Dịch Vụ',
+    description: 'Tổng hợp ý kiến phản hồi và mức độ hài lòng của phụ huynh học sinh đối với các hoạt động trường lớp.',
     icon: Star,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
+    badge: 'Khảo Sát Đánh Giá',
   },
-  {
-    id: 'academic_years',
-    label: 'Kế hoạch Năm học (UC-009)',
+  academic_years: {
+    uc: 'UC-009',
+    title: 'Kế Hoạch Năm Học & Tuyển Sinh',
+    description: 'Kế hoạch học kỳ và tuyển sinh các khối lớp.',
     icon: CalendarDays,
-    roles: ['GIAO_VU', 'BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN'],
-    specialColor: 'gold',
+    badge: 'Kế Hoạch Năm Học',
   },
-];
+};
 
 const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
   if (role === 'GIAO_VIEN') return 'lesson_plans';
@@ -156,94 +179,98 @@ const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
 export const AcademicPage: React.FC = () => {
   const { role } = useAuth();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const permittedTabs = allAcademicTabs.filter((tab) => {
-    if (!tab.roles) return true;
-    if (!role) return true;
-    return tab.roles.includes(role);
-  });
+  // If user is BGH, redirect to BGH's dedicated academic planning page (UC-009)
+  if (role === 'BGH') {
+    return <Navigate to="/bgh/academic-planning" replace />;
+  }
 
-  const [activeTab, setActiveTab] = useState<AcademicTabKey>(() => {
+  const resolveTab = (param: string | null): AcademicTabKey => {
+    if (param) {
+      if (param === 'students') return 'students';
+      if (param === 'classes') return 'classes';
+      if (param === 'timetable' || param === 'timetables') return 'timetable';
+      if (param === 'conflicts' || param === 'timetable-conflicts') return 'conflicts';
+      if (param === 'transfers') return 'transfers';
+      if (param === 'guardians' || param === 'safety-guardians') return 'guardians';
+      if (param === 'allergies') return 'allergies';
+      if (param === 'lesson_plan_approvals' || param === 'lesson-plan-approvals') return 'lesson_plan_approvals';
+      if (param === 'classroom_equipment' || param === 'equipment') return 'classroom_equipment';
+      if (param === 'moet_attendance' || param === 'moet-reports' || param === 'reports') return 'moet_attendance';
+      if (param === 'year_archival' || param === 'year-archival') return 'year_archival';
+      if (param === 'lesson_plans' || param === 'lesson-plans') return 'lesson_plans';
+      if (param === 'evaluations') return 'evaluations';
+      if (param === 'quality_surveys') return 'quality_surveys';
+      if (param === 'academic_years') return 'academic_years';
+    }
     if (location.pathname === '/academic/students') return 'students';
     if (location.pathname === '/academic/classes') return 'classes';
     if (location.pathname === '/academic/timetables') return 'timetable';
-    if (location.pathname === '/academic/safety-guardians') return 'guardians';
-    if (location.pathname === '/academic/reports') return 'moet_attendance';
+    if (location.pathname === '/academic/timetable-conflicts') return 'conflicts';
+    if (location.pathname === '/academic/transfers') return 'transfers';
+    if (location.pathname === '/academic/guardians' || location.pathname === '/academic/safety-guardians') return 'guardians';
+    if (location.pathname === '/academic/allergies') return 'allergies';
+    if (location.pathname === '/academic/lesson-plan-approvals') return 'lesson_plan_approvals';
+    if (location.pathname === '/academic/equipment') return 'classroom_equipment';
+    if (location.pathname === '/academic/moet-reports' || location.pathname === '/academic/reports') return 'moet_attendance';
+    if (location.pathname === '/academic/year-archival') return 'year_archival';
     if (location.pathname === '/teacher/activities') return 'lesson_plans';
     return getDefaultTabForRole(role);
+  };
+
+  const [activeTab, setActiveTab] = useState<AcademicTabKey>(() => {
+    return resolveTab(searchParams.get('tab'));
   });
 
-  // Đồng bộ tab khi đường dẫn thay đổi
   useEffect(() => {
-    if (location.pathname === '/academic/students') setActiveTab('students');
-    else if (location.pathname === '/academic/classes') setActiveTab('classes');
-    else if (location.pathname === '/academic/timetables') setActiveTab('timetable');
-    else if (location.pathname === '/academic/safety-guardians') setActiveTab('guardians');
-    else if (location.pathname === '/academic/reports') setActiveTab('moet_attendance');
-    else if (location.pathname === '/teacher/activities') setActiveTab('lesson_plans');
-  }, [location.pathname]);
+    setActiveTab(resolveTab(searchParams.get('tab')));
+  }, [location.pathname, searchParams, role]);
 
-  // Tự động đồng bộ tab hợp lệ khi thay đổi vai trò trải nghiệm
-  useEffect(() => {
-    const isCurrentTabValid = permittedTabs.some((t) => t.id === activeTab);
-    if (!isCurrentTabValid && permittedTabs.length > 0) {
-      setActiveTab(permittedTabs[0].id);
-    }
-  }, [role, permittedTabs, activeTab]);
+  const currentMeta = TAB_META[activeTab] || TAB_META['students'];
+  const MetaIcon = currentMeta.icon;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1E4D40] flex items-center gap-2">
-            <GraduationCap className="h-7 w-7 text-[#275A4E]" />
-            <span>Học vụ & Quản lý Lớp học</span>
+    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
+      {/* HEADER PHÂN HỆ HỌC VỤ (ĐỘNG THEO USE CASE, HOÀN TOÀN KHÔNG CÓ THANH SCROLL NGANG) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-[#1E4D40] to-[#275A4E] text-white rounded-3xl shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                currentMeta.specialColor === 'allergy'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-[#E5A93C] text-slate-950'
+              } shadow-xs`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>
+                {role === 'GIAO_VIEN' ? 'Giáo Viên' : 'Giáo Vụ'} • {currentMeta.uc}
+              </span>
+            </span>
+            {currentMeta.badge && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
+                {currentMeta.badge}
+              </span>
+            )}
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
+              <MetaIcon className="h-5 w-5" />
+            </div>
+            <span>{currentMeta.title}</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Quản lý tiếp nhận học sinh, cơ cấu lớp học, thời khóa biểu, cảnh báo dị ứng và kế hoạch giáo án tuần
+          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-3xl">
+            {currentMeta.description}
           </p>
         </div>
       </div>
 
-      {/* Thanh Taskbar / Tabs phân hệ Học vụ được cá nhân hóa theo vai trò */}
-      <div className="flex border-b border-slate-200 overflow-x-auto hide-scrollbar gap-1 bg-white/50 p-1 rounded-xl">
-        {permittedTabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-
-          let colorClasses = '';
-          if (tab.specialColor === 'allergy') {
-            colorClasses = isActive
-              ? 'border-rose-600 text-rose-700 bg-rose-50/60 font-bold'
-              : 'border-transparent text-rose-600/80 hover:text-rose-700 hover:bg-rose-50/30';
-          } else if (tab.specialColor === 'gold') {
-            colorClasses = isActive
-              ? 'border-[#E5A93C] text-[#B87A14] bg-[#E5A93C]/10 font-bold'
-              : 'border-transparent text-[#B87A14]/80 hover:text-[#B87A14] hover:bg-[#E5A93C]/5';
-          } else {
-            colorClasses = isActive
-              ? 'border-[#275A4E] text-[#275A4E] bg-emerald-50/50 font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50';
-          }
-
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-3 px-4 text-xs sm:text-sm border-b-2 rounded-t-lg transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[44px] ${colorClasses}`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-
-      <div className="pt-2">
+      {/* NỘI DUNG TỪNG PHÂN HỆ HỌC VỤ (RENDER TRỰC TIẾP, KHÔNG CÒN THANH SCROLL NGANG LÀM RỐI MẮT) */}
+      <div className="bg-transparent">
         {activeTab === 'students' && <StudentAdmissionTab />}
         {activeTab === 'classes' && <ClassManagementTab />}
-        {activeTab === 'timetable' && <TimetableManagementTab />}
+        {(activeTab === 'timetable' || activeTab === 'conflicts') && <TimetableManagementTab />}
         {activeTab === 'transfers' && <ClassTransferTab />}
         {activeTab === 'guardians' && <GuardianVerificationTab />}
         {activeTab === 'allergies' && <AllergyCommandCenterTab />}
@@ -267,3 +294,4 @@ export const AcademicPage: React.FC = () => {
 };
 
 export default AcademicPage;
+

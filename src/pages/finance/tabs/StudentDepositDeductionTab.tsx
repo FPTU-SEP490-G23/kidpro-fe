@@ -20,113 +20,7 @@ import { StudentEnrollmentDeposit, FirstMonthInvoiceBreakdown } from '../../../t
 import { useApplyDepositDeduction } from '../../../hooks/useApplyDepositDeduction';
 import { formatCurrency } from '../../../utils/formatters';
 
-// Dữ liệu mẫu khởi tạo chuẩn nghiệp vụ mẫu giáo mầm non
-const INITIAL_DEPOSITS: StudentEnrollmentDeposit[] = [
-  {
-    id: 'DEP-001',
-    studentId: 'STU-2026-001',
-    studentCode: 'KP-2601',
-    studentName: 'Nguyễn Minh Khang',
-    className: 'Mầm 1 (24-36 tháng)',
-    academicYear: '2026-2027',
-    depositAmount: 2000000,
-    deductedAmount: 0,
-    remainingBalance: 2000000,
-    receiptNumber: 'DEP2026-001',
-    paidDate: '2026-08-15',
-    status: 'ACTIVE_UNCLAIMED',
-    campusId: 'CAMPUS-CENTRAL',
-    campusName: 'Cơ sở 1 - Trung Tâm (Quận 1)',
-    notes: 'Đặt cọc giữ chỗ năm học 2026-2027. Đã thu qua VietQR'
-  },
-  {
-    id: 'DEP-002',
-    studentId: 'STU-2026-002',
-    studentCode: 'KP-2602',
-    studentName: 'Trần Gia Hân',
-    className: 'Mầm 1 (24-36 tháng)',
-    academicYear: '2026-2027',
-    depositAmount: 3000000,
-    deductedAmount: 0,
-    remainingBalance: 3000000,
-    receiptNumber: 'DEP2026-002',
-    paidDate: '2026-08-18',
-    status: 'ACTIVE_UNCLAIMED',
-    campusId: 'CAMPUS-CENTRAL',
-    campusName: 'Cơ sở 1 - Trung Tâm (Quận 1)',
-    notes: 'Tiền cọc học phí kèm phí cơ sở vật chất (3.000.000 VNĐ - Cao hơn học phí tháng)'
-  },
-  {
-    id: 'DEP-003',
-    studentId: 'STU-2026-003',
-    studentCode: 'KP-2603',
-    studentName: 'Lê Hoàng Long',
-    className: 'Chồi 2 (3-4 tuổi)',
-    academicYear: '2026-2027',
-    depositAmount: 2000000,
-    deductedAmount: 2000000,
-    remainingBalance: 0,
-    receiptNumber: 'DEP2026-003',
-    paidDate: '2026-08-01',
-    status: 'FULLY_DEDUCTED',
-    linkedInvoiceId: 'INV-202609-003',
-    linkedInvoiceNumber: 'HD-2026-09-014',
-    campusId: 'CAMPUS-CENTRAL',
-    campusName: 'Cơ sở 1 - Trung Tâm (Quận 1)',
-    notes: 'Đã tự động khấu trừ vào hóa đơn tháng 09/2026'
-  },
-  {
-    id: 'DEP-004',
-    studentId: 'STU-2026-004',
-    studentCode: 'KP-2604',
-    studentName: 'Phạm Bảo Vy',
-    className: 'Lá 1 (4-5 tuổi)',
-    academicYear: '2026-2027',
-    depositAmount: 2000000,
-    deductedAmount: 0,
-    remainingBalance: 0,
-    receiptNumber: 'DEP2026-004',
-    paidDate: '2026-07-20',
-    status: 'REFUNDED',
-    campusId: 'CAMPUS-CENTRAL',
-    campusName: 'Cơ sở 1 - Trung Tâm (Quận 1)',
-    notes: 'Phụ huynh chuyển công tác ra Hà Nội. Đã hoàn trả tiền cọc ngày 10/08/2026'
-  },
-  {
-    id: 'DEP-005',
-    studentId: 'STU-2026-005',
-    studentCode: 'KP-2605',
-    studentName: 'Vũ Đức Anh',
-    className: 'Mầm 2 (24-36 tháng)',
-    academicYear: '2026-2027',
-    depositAmount: 2000000,
-    deductedAmount: 0,
-    remainingBalance: 2000000,
-    receiptNumber: 'DEP2026-005',
-    paidDate: '2026-08-25',
-    status: 'ACTIVE_UNCLAIMED',
-    campusId: 'CAMPUS-EAST', // Khác cơ sở (Cơ sở 2 Đông Sài Gòn) -> BR-076
-    campusName: 'Cơ sở 2 - Thảo Điền (TP. Thủ Đức)',
-    notes: 'Đăng ký tại cơ sở 2'
-  },
-  {
-    id: 'DEP-006',
-    studentId: 'STU-2026-006',
-    studentCode: 'KP-2606',
-    studentName: 'Hoàng Thùy Dương',
-    className: 'Mầm 1 (24-36 tháng)',
-    academicYear: '2026-2027',
-    depositAmount: 1500000,
-    deductedAmount: 0,
-    remainingBalance: 1500000,
-    receiptNumber: '', // Chưa có phiếu thu hợp lệ -> MSG-250
-    paidDate: '2026-08-28',
-    status: 'ACTIVE_UNCLAIMED',
-    campusId: 'CAMPUS-CENTRAL',
-    campusName: 'Cơ sở 1 - Trung Tâm (Quận 1)',
-    notes: 'Đang chờ kế toán xác nhận ủy nhiệm chi ngân hàng'
-  }
-];
+const INITIAL_DEPOSITS: StudentEnrollmentDeposit[] = [];
 
 export const StudentDepositDeductionTab: React.FC = () => {
   // Current logged in campus (BR-076 Tenant Isolation)
@@ -142,14 +36,14 @@ export const StudentDepositDeductionTab: React.FC = () => {
   const [isAutoEngineRunning, setIsAutoEngineRunning] = useState(false);
 
   // TanStack Query for deposits
-  const { data: depositsData } = useQuery({
+  const { data: depositsData = [] } = useQuery({
     queryKey: ['enrollment-deposits'],
     queryFn: async () => {
       try {
         const res = await financeApi.getStudentEnrollmentDeposits();
-        return res.data && res.data.length > 0 ? res.data : INITIAL_DEPOSITS;
+        return res.data && res.data.length > 0 ? res.data : [];
       } catch {
-        return INITIAL_DEPOSITS;
+        return [];
       }
     },
     initialData: INITIAL_DEPOSITS

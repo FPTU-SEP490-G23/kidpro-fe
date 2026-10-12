@@ -108,59 +108,7 @@ const getInitialStoredSamples = (): FoodSampleRetention[] => {
 };
 
 // Dữ liệu định mức nguyên liệu tiêu hao chuẩn cho bếp ăn
-const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [
-  {
-    id: 'ing-01',
-    ingredientName: 'Thịt heo nạc thăn sạch',
-    category: 'MEAT',
-    unit: 'kg',
-    quotaPerPortionGrams: 85, // 85g/suất
-    standardPlannedQtyKg: 16.06, // 189 suất * 85g = 16.065 kg
-    actualConsumedQtyKg: 16.2,
-    variancePercentage: 0.8,
-  },
-  {
-    id: 'ing-02',
-    ingredientName: 'Gạo tám thơm ST25',
-    category: 'GRAIN',
-    unit: 'kg',
-    quotaPerPortionGrams: 90,
-    standardPlannedQtyKg: 17.01,
-    actualConsumedQtyKg: 17.0,
-    variancePercentage: -0.1,
-  },
-  {
-    id: 'ing-03',
-    ingredientName: 'Bí đỏ hồ lô tươi',
-    category: 'VEGETABLE',
-    unit: 'kg',
-    quotaPerPortionGrams: 60,
-    standardPlannedQtyKg: 11.34,
-    actualConsumedQtyKg: 11.5,
-    variancePercentage: 1.4,
-  },
-  {
-    id: 'ing-04',
-    ingredientName: 'Sườn non heo sơ chế',
-    category: 'MEAT',
-    unit: 'kg',
-    quotaPerPortionGrams: 40,
-    standardPlannedQtyKg: 7.56,
-    actualConsumedQtyKg: 9.5, // Chênh lệch 25.6% -> Cảnh báo MSG-134
-    variancePercentage: 25.7,
-    varianceExplanation: 'Học sinh khối Lá ăn thêm bữa trưa và một số trẻ bổ sung năng lượng thể chất sau giờ bơi lội.'
-  },
-  {
-    id: 'ing-05',
-    ingredientName: 'Dầu ăn đậu nành Tường An',
-    category: 'SPICE',
-    unit: 'lít',
-    quotaPerPortionGrams: 10,
-    standardPlannedQtyKg: 1.89,
-    actualConsumedQtyKg: 1.9,
-    variancePercentage: 0.5,
-  }
-];
+const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [];
 
 export const FoodRetentionConsumptionTab: React.FC = () => {
   const { user } = useAuth();
@@ -184,15 +132,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0); // Bắt buộc 2°C - 8°C (BR-043)
-  const [samplesToSave, setSamplesToSave] = useState<
-    { dishName: string; weightGrams: number; sealCode: string }[]
-  >([
-    { dishName: 'Cơm tám thơm dẻo', weightGrams: 150, sealCode: `NP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01` },
-    { dishName: 'Thịt heo rim nước dừa tươi', weightGrams: 120, sealCode: `NP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-02` },
-    { dishName: 'Bắp cải thảo xào cà rốt', weightGrams: 110, sealCode: `NP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-03` },
-    { dishName: 'Canh bí đỏ hầm sườn non', weightGrams: 180, sealCode: `NP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-04` },
-    { dishName: 'Dưa hấu tươi tráng miệng', weightGrams: 100, sealCode: `NP-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-05` }
-  ]);
+  const [samplesToSave, setSamplesToSave] = useState<{ dishName: string; weightGrams: number; sealCode: string }[]>([]);
 
   // Danh sách các hũ mẫu đang lưu trong tủ
   const [storedSamples, setStoredSamples] = useState<FoodSampleRetention[]>(getInitialStoredSamples());
@@ -761,7 +701,14 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {storedSamples.map((sample) => {
+                  {storedSamples.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        Chưa có mẫu thức ăn nào đang lưu trong tủ bảo quản.
+                      </td>
+                    </tr>
+                  ) : (
+                    storedSamples.map((sample) => {
                     const countdown = formatCountdown(sample.timerExpiresAt);
                     const isDisposed = sample.status === 'DISPOSED';
                     const isReady = sample.status === 'READY_FOR_DISPOSAL' || countdown.isDone;
@@ -862,7 +809,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>
@@ -925,7 +872,14 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {consumptionItems.map((item) => {
+                  {consumptionItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        Chưa có dữ liệu tiêu hao nguyên liệu trong kỳ báo cáo.
+                      </td>
+                    </tr>
+                  ) : (
+                    consumptionItems.map((item) => {
                     const isHigh = Math.abs(item.variancePercentage) > 20;
 
                     return (
@@ -991,7 +945,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>

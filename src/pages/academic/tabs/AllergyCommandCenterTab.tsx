@@ -70,65 +70,7 @@ const allergyFormSchema = z
 type AllergyFormData = z.infer<typeof allergyFormSchema>;
 
 // Mock Initial Profiles
-const MOCK_ALLERGY_PROFILES: StudentAllergyProfile[] = [
-  {
-    id: 'alg-01',
-    studentId: 'stu-01',
-    studentName: 'Trần Gia Bảo',
-    studentCode: 'KID-2024-001',
-    className: 'Mầm 1',
-    avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-    category: 'FOOD',
-    allergyTags: ['peanuts', 'lạc', 'hạt điều'],
-    severity: 'SEVERE_ANAPHYLAXIS',
-    firstAidProtocol: 'Tiêm bắp ngay EpiPen 0.15mg vào mặt ngoài đùi, cho bé nằm ngửa nâng cao chân và gọi ngay cấp cứu 115.',
-    medicationLocation: 'Hộp y tế cấp cứu đỏ - Ngăn 1 tủ thuốc y tế trung tâm',
-    doctorCertificateUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80',
-    isActive: true,
-    parentPhone: '0912345678',
-    activatedAt: '2026-09-05',
-    lastReviewedAt: '2026-10-01',
-    notes: 'Bé từng bị sưng phù thanh quản năm 2 tuổi sau khi ăn kẹo bơ đậu phộng.',
-  },
-  {
-    id: 'alg-02',
-    studentId: 'stu-02',
-    studentName: 'Lê Minh Anh',
-    studentCode: 'KID-2024-002',
-    className: 'Nhà trẻ 1',
-    avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&auto=format&fit=crop&q=80',
-    category: 'FOOD',
-    allergyTags: ['seafood', 'tôm', 'cua'],
-    severity: 'MILD_MODERATE',
-    firstAidProtocol: 'Rửa sạch khoang miệng, theo dõi mề đay, uống 1 gói dung dịch kháng histamin nếu nổi mẩn nhiều.',
-    medicationLocation: 'Ngăn thuốc lớp Nhà trẻ 1',
-    doctorCertificateUrl: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800&auto=format&fit=crop&q=80',
-    isActive: true,
-    parentPhone: '0987654321',
-    activatedAt: '2026-09-10',
-    lastReviewedAt: '2026-10-02',
-    notes: 'Bếp cần nấu riêng cháo thịt nạc những ngày thực đơn toàn trường ăn cháo tôm/chả cua.',
-  },
-  {
-    id: 'alg-03',
-    studentId: 'stu-04',
-    studentName: 'Phạm Hoàng Yến',
-    studentCode: 'KID-2024-004',
-    className: 'Lá 1',
-    avatarUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=200&auto=format&fit=crop&q=80',
-    category: 'MEDICATION',
-    allergyTags: ['penicillin', 'amoxicillin'],
-    severity: 'SEVERE_ANAPHYLAXIS',
-    firstAidProtocol: 'Tuyệt đối không cấp thuốc nhóm beta-lactam. Nếu nghi nhiễm khuẩn cần chuyển viện nhi đồng.',
-    medicationLocation: 'Sổ bệnh án điện tử học đường',
-    doctorCertificateUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80',
-    isActive: true,
-    parentPhone: '0934567890',
-    activatedAt: '2026-08-20',
-    lastReviewedAt: '2026-09-15',
-    notes: 'Bệnh viện Nhi Đồng 1 xác nhận tiền sử sốc phản vệ độ 2.',
-  },
-];
+const MOCK_ALLERGY_PROFILES: StudentAllergyProfile[] = [];
 
 export const AllergyCommandCenterTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -150,9 +92,9 @@ export const AllergyCommandCenterTab: React.FC = () => {
           category: categoryFilter !== 'ALL' ? categoryFilter : undefined,
           severity: severityFilter !== 'ALL' ? severityFilter : undefined,
         });
-        return (res.data && res.data.length > 0) ? res.data : MOCK_ALLERGY_PROFILES;
+        return res.data || [];
       } catch {
-        return MOCK_ALLERGY_PROFILES;
+        return [];
       }
     },
   });
@@ -165,13 +107,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
         const res = await academicApi.getStudents();
         return res.data || [];
       } catch {
-        return [
-          { id: 'stu-01', fullName: 'Trần Gia Bảo', className: 'Mầm 1' },
-          { id: 'stu-02', fullName: 'Lê Minh Anh', className: 'Nhà trẻ 1' },
-          { id: 'stu-03', fullName: 'Nguyễn Đăng Khoa', className: 'Chồi 2' },
-          { id: 'stu-04', fullName: 'Phạm Hoàng Yến', className: 'Lá 1' },
-          { id: 'stu-05', fullName: 'Vũ Hoàng Quân', className: 'Mầm 2' },
-        ];
+        return [];
       }
     },
   });

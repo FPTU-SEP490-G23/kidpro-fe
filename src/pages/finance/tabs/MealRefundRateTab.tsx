@@ -19,26 +19,7 @@ import { formatCurrency } from '../../../utils/formatters';
 import { FeeConfig, MealRefundAuditLog } from '../../../types/finance.types';
 
 // Lịch sử ban hành chính sách hoàn tiền ăn
-const INITIAL_AUDIT_LOGS: MealRefundAuditLog[] = [
-  {
-    id: 'log-01',
-    changedAt: '2026-08-25 14:30:00',
-    changedBy: 'Bùi Thị Lan (Kế toán trưởng)',
-    oldRate: 30000,
-    newRate: 35000,
-    effectivePeriod: 'Kỳ Tháng 09/2026',
-    reason: 'Điều chỉnh theo biến động giá nguyên liệu thực phẩm và chỉ số dinh dưỡng đầu năm học mới.'
-  },
-  {
-    id: 'log-02',
-    changedAt: '2026-01-15 09:15:00',
-    changedBy: 'Bùi Thị Lan (Kế toán trưởng)',
-    oldRate: 28000,
-    newRate: 30000,
-    effectivePeriod: 'Kỳ Tháng 02/2026',
-    reason: 'Nâng định mức suất ăn bổ sung sữa hạt và hoa quả tráng miệng chuẩn Bộ Y tế.'
-  }
-];
+const INITIAL_AUDIT_LOGS: MealRefundAuditLog[] = [];
 
 export const MealRefundRateTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -295,7 +276,7 @@ export const MealRefundRateTab: React.FC = () => {
                 <input
                   type="number"
                   step="1000"
-                  min="1"
+                  min="0"
                   max={maxAllowableRate}
                   required
                   value={inputRate}
@@ -503,30 +484,38 @@ export const MealRefundRateTab: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {auditLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/50">
-                  <td className="py-3 px-3 font-mono font-bold text-slate-600">
-                    {log.changedAt}
-                  </td>
-                  <td className="py-3 px-3 font-semibold text-slate-800">
-                    {log.changedBy}
-                  </td>
-                  <td className="py-3 px-3 text-center font-mono text-slate-500">
-                    {formatCurrency(log.oldRate)}
-                  </td>
-                  <td className="py-3 px-3 text-center font-mono font-bold text-[#275A4E]">
-                    {formatCurrency(log.newRate)}
-                  </td>
-                  <td className="py-3 px-3 text-center font-medium text-slate-700">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
-                      {log.effectivePeriod}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-xs text-slate-600">
-                    {log.reason}
+              {auditLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                    Chưa có lịch sử điều chỉnh chính sách hoàn tiền ăn nào
                   </td>
                 </tr>
-              ))}
+              ) : (
+                auditLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-slate-50/50">
+                    <td className="py-3 px-3 font-mono font-bold text-slate-600">
+                      {log.changedAt}
+                    </td>
+                    <td className="py-3 px-3 font-semibold text-slate-800">
+                      {log.changedBy}
+                    </td>
+                    <td className="py-3 px-3 text-center font-mono text-slate-500">
+                      {formatCurrency(log.oldRate)}
+                    </td>
+                    <td className="py-3 px-3 text-center font-mono font-bold text-[#275A4E]">
+                      {formatCurrency(log.newRate)}
+                    </td>
+                    <td className="py-3 px-3 text-center font-medium text-slate-700">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                        {log.effectivePeriod}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-xs text-slate-600">
+                      {log.reason}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

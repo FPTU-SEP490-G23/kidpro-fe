@@ -85,53 +85,7 @@ const FIRST_AID_OPTIONS = [
   },
 ];
 
-// Mock Students with Medical Consent & Allergy
-const MOCK_STUDENTS = [
-  {
-    id: 'stu-01',
-    fullName: 'Trần Gia Bảo',
-    studentCode: 'KID-2024-001',
-    className: 'Mầm 1',
-    parentName: 'Trần Văn Hoàng (Bố)',
-    parentEmergencyPhone: '0912345678',
-    medicalConsentAgreed: true,
-    allergyTags: ['peanuts', 'penicillin'],
-    avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'stu-02',
-    fullName: 'Lê Minh Anh',
-    studentCode: 'KID-2024-002',
-    className: 'Nhà trẻ 1',
-    parentName: 'Phạm Thu Trang (Mẹ)',
-    parentEmergencyPhone: '0987654321',
-    medicalConsentAgreed: false, // Từ chối cam kết dùng thuốc!
-    allergyTags: ['seafood', 'shrimp'],
-    avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'stu-03',
-    fullName: 'Nguyễn Đăng Khoa',
-    studentCode: 'KID-2024-003',
-    className: 'Chồi 2',
-    parentName: 'Nguyễn Văn Nam (Bố)',
-    parentEmergencyPhone: '0903334455',
-    medicalConsentAgreed: true,
-    allergyTags: [],
-    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'stu-04',
-    fullName: 'Phạm Hoàng Yến',
-    studentCode: 'KID-2024-004',
-    className: 'Lá 1',
-    parentName: 'Đặng Mai Lan (Mẹ)',
-    parentEmergencyPhone: '0934567890',
-    medicalConsentAgreed: true,
-    allergyTags: ['cow_milk'],
-    avatarUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=200&auto=format&fit=crop&q=80',
-  },
-];
+const MOCK_STUDENTS: any[] = [];
 
 export const MedicalIncidentsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -153,103 +107,21 @@ export const MedicalIncidentsTab: React.FC = () => {
         });
         return (res as unknown as MedicalIncidentRecord[]) || [];
       } catch {
-        // Fallback demo records if backend endpoint returns empty
-        return [
-          {
-            id: 'inc-01',
-            incidentCode: 'INC-202610-001',
-            studentId: 'stu-01',
-            studentName: 'Trần Gia Bảo',
-            studentCode: 'KID-2024-001',
-            className: 'Mầm 1',
-            avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-            category: 'FEVER' as MedicalIncidentCategory,
-            categoryLabel: 'Sốt cao co giật nhẹ',
-            temperatureCelsius: 39.6,
-            isHighFever: true,
-            isExtremeFever: true,
-            symptomsDescription: 'Bé mệt mỏi, mắt lờ đờ, trán và nách rất nóng. Nhiệt kế đo 39.6°C lúc 09:30.',
-            firstAidMeasures: ['Chườm mát / lau ấm trán, nách và bẹn hạ sốt', 'Nằm nghỉ ngơi cố định tại giường phòng y tế', 'Uống thuốc hạ sốt Paracetamol (10-15mg/kg)'],
-            medicationGiven: true,
-            medicalConsentAgreed: true,
-            actionPlan: 'PARENT_EARLY_PICKUP' as IncidentActionPlan,
-            actionPlanLabel: 'Liên hệ phụ huynh đón sớm đi khám',
-            parentNotified: true,
-            parentNotificationStatus: 'SENT' as const,
-            parentEmergencyPhone: '0912345678',
-            recordedByStaffName: 'Y tá Nguyễn Thị Hoa',
-            recordedAt: '2026-10-10 09:35',
-            notes: 'Mẹ đã nghe máy và đang trên đường đến trường đón bé lúc 10:00.',
-            allergyTags: ['peanuts', 'penicillin'],
-          },
-          {
-            id: 'inc-02',
-            incidentCode: 'INC-202610-002',
-            studentId: 'stu-02',
-            studentName: 'Lê Minh Anh',
-            studentCode: 'KID-2024-002',
-            className: 'Nhà trẻ 1',
-            avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&auto=format&fit=crop&q=80',
-            category: 'SCRATCH_FALL' as MedicalIncidentCategory,
-            categoryLabel: 'Trầy xước gối do vấp ngã',
-            temperatureCelsius: 36.8,
-            isHighFever: false,
-            isExtremeFever: false,
-            symptomsDescription: 'Bé bị trượt chân tại sân chơi cỏ nhân tạo lúc 08:45, trầy xước nhẹ đầu gối phải, không sưng phù.',
-            firstAidMeasures: ['Sát trùng vết thương bằng nước muối sinh lý NaCl 0.9%', 'Nằm nghỉ ngơi cố định tại giường phòng y tế'],
-            medicationGiven: false,
-            medicalConsentAgreed: false,
-            actionPlan: 'RETURN_TO_CLASS' as IncidentActionPlan,
-            actionPlanLabel: 'Bé ổn định, trở lại lớp học',
-            parentNotified: true,
-            parentNotificationStatus: 'SENT' as const,
-            parentEmergencyPhone: '0987654321',
-            recordedByStaffName: 'Cô Lê Thanh Mai',
-            recordedAt: '2026-10-10 08:50',
-            notes: 'Vết xước khô ráo, bé đã vui vẻ quay trở lại lớp tham gia hoạt động góc.',
-            allergyTags: ['seafood', 'shrimp'],
-          },
-          {
-            id: 'inc-03',
-            incidentCode: 'INC-202610-003',
-            studentId: 'stu-04',
-            studentName: 'Phạm Hoàng Yến',
-            studentCode: 'KID-2024-004',
-            className: 'Lá 1',
-            avatarUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=200&auto=format&fit=crop&q=80',
-            category: 'NOSEBLEED' as MedicalIncidentCategory,
-            categoryLabel: 'Chảy máu cam thời tiết',
-            temperatureCelsius: 37.0,
-            isHighFever: false,
-            isExtremeFever: false,
-            symptomsDescription: 'Bé chảy máu cánh mũi trái trong giờ ngủ trưa, không có va chạm cơ học.',
-            firstAidMeasures: ['Băng ép vô trùng / kẹp cánh mũi cầm máu cam', 'Nằm nghỉ ngơi cố định tại giường phòng y tế', 'Uống nước ấm / Oresol bù điện giải từng ngụm nhỏ'],
-            medicationGiven: false,
-            medicalConsentAgreed: true,
-            actionPlan: 'REST_IN_INFIRMARY' as IncidentActionPlan,
-            actionPlanLabel: 'Nằm theo dõi tại phòng y tế',
-            parentNotified: true,
-            parentNotificationStatus: 'SENT' as const,
-            parentEmergencyPhone: '0934567890',
-            recordedByStaffName: 'Y tá Nguyễn Thị Hoa',
-            recordedAt: '2026-10-10 12:40',
-            notes: 'Máu đã ngừng chảy sau 7 phút kẹp cánh mũi. Bé đang nằm nghỉ uống sữa hạt.',
-            allergyTags: ['cow_milk'],
-          },
-        ];
+        return [];
       }
     },
   });
 
   // Query Students List
-  const { data: studentsList = MOCK_STUDENTS } = useQuery({
+  const { data: studentsList = [] } = useQuery({
     queryKey: ['academic-students-list'],
     queryFn: async () => {
       try {
         const res = await academicApi.getStudents();
-        return (res.data && res.data.length > 0) ? res.data : MOCK_STUDENTS;
+        const list = Array.isArray(res) ? res : ((res as any)?.data || []);
+        return list;
       } catch {
-        return MOCK_STUDENTS;
+        return [];
       }
     },
   });

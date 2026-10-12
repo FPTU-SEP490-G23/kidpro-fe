@@ -119,60 +119,7 @@ export const LatePickupTrackingTab: React.FC = () => {
   };
 
   // Late pickup students state list
-  const [lateStudents, setLateStudents] = useState<LatePickupStudent[]>([
-    {
-      id: 'late-01',
-      studentId: 'stu-01',
-      studentName: 'Trần Gia Bảo',
-      studentCode: 'HS-1001',
-      className: 'Mầm 1',
-      avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
-      parentName: 'Trần Quốc Tuấn',
-      parentPhone: '0903 456 789',
-      emergencyContact: '0912 345 678 (Bà nội)',
-      checkInTime: '07:35',
-      scheduledCutoffTime: '17:30',
-      lateMinutes: 45,
-      calculatedFee: 90000,
-      isFeeWaived: false,
-      status: 'WAITING',
-      allergies: 'Dị ứng phấn hoa nhẹ'
-    },
-    {
-      id: 'late-02',
-      studentId: 'stu-02',
-      studentName: 'Lê Minh Anh',
-      studentCode: 'HS-1002',
-      className: 'Nhà trẻ 1',
-      avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&auto=format&fit=crop&q=80',
-      parentName: 'Lê Văn Khang',
-      parentPhone: '0988 765 432',
-      emergencyContact: '0909 888 777 (Dì ruột)',
-      checkInTime: '07:42',
-      scheduledCutoffTime: '17:30',
-      lateMinutes: 25,
-      calculatedFee: 60000,
-      isFeeWaived: false,
-      status: 'WAITING'
-    },
-    {
-      id: 'late-03',
-      studentId: 'stu-03',
-      studentName: 'Phạm Hải Đăng',
-      studentCode: 'HS-1003',
-      className: 'Chồi 2',
-      avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80',
-      parentName: 'Phạm Quang Minh',
-      parentPhone: '0934 112 233',
-      emergencyContact: '0945 999 000 (Bác ruột)',
-      checkInTime: '07:50',
-      scheduledCutoffTime: '17:30',
-      lateMinutes: 15,
-      calculatedFee: 30000,
-      isFeeWaived: false,
-      status: 'WAITING'
-    }
-  ]);
+  const [lateStudents, setLateStudents] = useState<LatePickupStudent[]>([]);
 
   // Sync late minutes dynamically
   useEffect(() => {
@@ -450,8 +397,15 @@ export const LatePickupTrackingTab: React.FC = () => {
           <span>Danh Sách Học Sinh Phòng Trông Muộn Sau 17:30</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredLateStudents.map((item) => (
+        {filteredLateStudents.length === 0 ? (
+          <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 text-slate-500">
+            <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <div className="text-sm font-bold text-slate-700">Không có học sinh nào trông muộn</div>
+            <div className="text-xs text-slate-400 mt-1">Tất cả các bé đã được phụ huynh đón đúng giờ hoặc chưa có dữ liệu.</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredLateStudents.map((item) => (
             <div
               key={item.id}
               className={`p-5 rounded-3xl border transition shadow-xs flex flex-col justify-between space-y-4 ${
@@ -574,7 +528,8 @@ export const LatePickupTrackingTab: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL: LATE DISMISSAL RECEIPT & OVERTIME BILLING (MODAL BIÊN NHẬN ĐIỆN TỬ) */}

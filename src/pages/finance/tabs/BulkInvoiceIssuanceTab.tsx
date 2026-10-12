@@ -58,109 +58,13 @@ export const BulkInvoiceIssuanceTab: React.FC = () => {
   };
 
   // Tải danh sách hóa đơn của kỳ tính phí
-  const { data: invoicesData, isLoading, refetch, isFetching } = useQuery({
+  const { data: invoicesData = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ['dynamic-invoices', selectedPeriod],
     queryFn: async () => {
       try {
-        await financeApi.getFeeConfigs();
-        // Fallback danh sách hóa đơn nháp mẫu
-        const dummyList: DynamicInvoice[] = [
-          {
-            id: 'INV-001',
-            invoiceNumber: 'INV-202610-001',
-            studentId: 'STU-001',
-            studentName: 'Nguyễn Minh Khang',
-            className: 'Mầm 1 (3-4 Tuổi)',
-            billingPeriod: '10-2026',
-            baseTuition: 3000000,
-            serviceFees: 500000,
-            excusedDaysCount: 3,
-            dailyRefundRate: 35000,
-            mealRefundTotal: 105000,
-            lateMinutesCount: 40,
-            latePickupFeeTotal: 50000,
-            siblingDiscountAmount: 300000,
-            otherDiscountAmount: 0,
-            surplusCarriedForward: 0,
-            netPayableAmount: 3145000,
-            paymentReferenceCode: 'INV202610A7B9C1',
-            status: 'DRAFT',
-            dueDate: '2026-11-15',
-            createdAt: '2026-10-25T08:00:00Z',
-          },
-          {
-            id: 'INV-002',
-            invoiceNumber: 'INV-202610-002',
-            studentId: 'STU-002',
-            studentName: 'Trần Gia Linh',
-            className: 'Chồi 2 (4-5 Tuổi)',
-            billingPeriod: '10-2026',
-            baseTuition: 3200000,
-            serviceFees: 450000,
-            excusedDaysCount: 2,
-            dailyRefundRate: 35000,
-            mealRefundTotal: 70000,
-            lateMinutesCount: 0,
-            latePickupFeeTotal: 0,
-            siblingDiscountAmount: 0,
-            otherDiscountAmount: 0,
-            surplusCarriedForward: 0,
-            netPayableAmount: 3580000,
-            paymentReferenceCode: 'INV202610C3D8E2',
-            status: 'DRAFT',
-            dueDate: '2026-11-15',
-            createdAt: '2026-10-25T08:00:00Z',
-          },
-          {
-            id: 'INV-003',
-            invoiceNumber: 'INV-202610-003',
-            studentId: 'STU-003',
-            studentName: 'Lê Hoàng Bách',
-            className: 'Lá 1 (5-6 Tuổi)',
-            billingPeriod: '10-2026',
-            baseTuition: 3500000,
-            serviceFees: 600000,
-            excusedDaysCount: 1,
-            dailyRefundRate: 35000,
-            mealRefundTotal: 35000,
-            lateMinutesCount: 90,
-            latePickupFeeTotal: 100000,
-            siblingDiscountAmount: 0,
-            otherDiscountAmount: 150000,
-            surplusCarriedForward: 0,
-            netPayableAmount: 4015000,
-            paymentReferenceCode: 'INV202610F5G6H7',
-            status: 'DRAFT',
-            dueDate: '2026-11-15',
-            createdAt: '2026-10-25T08:00:00Z',
-          },
-          {
-            id: 'INV-004',
-            invoiceNumber: 'INV-202610-004',
-            studentId: 'STU-004',
-            studentName: 'Phạm Quỳnh Anh',
-            className: 'Mầm 1 (3-4 Tuổi)',
-            billingPeriod: '10-2026',
-            baseTuition: 3000000,
-            serviceFees: 500000,
-            excusedDaysCount: 0,
-            dailyRefundRate: 35000,
-            mealRefundTotal: 0,
-            lateMinutesCount: 15,
-            latePickupFeeTotal: 0,
-            siblingDiscountAmount: 0,
-            otherDiscountAmount: 0,
-            surplusCarriedForward: 0,
-            netPayableAmount: 3500000,
-            paymentReferenceCode: 'INV202610K1L2M3',
-            status: 'ISSUED',
-            dueDate: '2026-11-15',
-            createdAt: '2026-10-25T08:00:00Z',
-          },
-        ];
-        return dummyList;
+        const resp = await financeApi.getOverdueInvoices();
+        return (resp.data || []) as unknown as DynamicInvoice[];
       } catch {
-        showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
         return [];
       }
     },

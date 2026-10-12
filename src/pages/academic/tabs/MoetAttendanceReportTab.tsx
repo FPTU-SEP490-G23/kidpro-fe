@@ -95,52 +95,8 @@ export const MoetAttendanceReportTab: React.FC = () => {
     const workingDays = getWorkingDaysInMonth(selectedMonth, selectedYear);
     const selectedClass = classesData.find((c) => c.id === selectedClassId);
 
-    // Dữ liệu học sinh giả lập hoặc từ database
-    const studentsToUse =
-      studentsData.length > 0
-        ? studentsData
-        : [
-            {
-              id: 'st-01',
-              fullName: 'Nguyễn Minh Khang',
-              status: 'ACTIVE' as const,
-              dateOfBirth: '14/03/2023',
-              gender: 'Nam',
-              enrollmentDate: '2026-09-01',
-            },
-            {
-              id: 'st-02',
-              fullName: 'Trần Bảo An',
-              status: 'ACTIVE' as const,
-              dateOfBirth: '22/07/2023',
-              gender: 'Nữ',
-              enrollmentDate: '2026-09-01',
-            },
-            {
-              id: 'st-03',
-              fullName: 'Lê Gia Hưng',
-              status: 'ACTIVE' as const,
-              dateOfBirth: '05/11/2022',
-              gender: 'Nam',
-              enrollmentDate: '2026-09-01',
-            },
-            {
-              id: 'st-04',
-              fullName: 'Phạm Hoàng Yến',
-              status: 'ACTIVE' as const,
-              dateOfBirth: '18/02/2023',
-              gender: 'Nữ',
-              enrollmentDate: '2026-10-12', // Trẻ nhập học giữa tháng (MSG testing '/')
-            },
-            {
-              id: 'st-05',
-              fullName: 'Vũ Đăng Khoa',
-              status: 'ACTIVE' as const,
-              dateOfBirth: '30/08/2022',
-              gender: 'Nam',
-              enrollmentDate: '2026-09-01',
-            },
-          ];
+    // Dữ liệu học sinh từ database
+    const studentsToUse = studentsData;
 
     // Mô phỏng tạo ma trận pivot ngày công chuẩn Bộ GD&ĐT
     const matrixRows: MoetStudentAttendanceRow[] = studentsToUse.map((stu, sIdx) => {
@@ -549,7 +505,14 @@ export const MoetAttendanceReportTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {reportData.students.map((student, idx) => (
+                {reportData.students.length === 0 ? (
+                  <tr>
+                    <td colSpan={reportData.workingDays.length + 7} className="py-8 text-center text-slate-400">
+                      Không có học sinh nào trong lớp để lập sổ điểm danh.
+                    </td>
+                  </tr>
+                ) : (
+                  reportData.students.map((student, idx) => (
                   <tr key={student.studentId} className="hover:bg-slate-50/70 transition-colors">
                     {/* STT sticky */}
                     <td className="py-2.5 px-2 text-center font-bold text-slate-500 border-r border-slate-200 sticky left-0 bg-white">
@@ -609,8 +572,9 @@ export const MoetAttendanceReportTab: React.FC = () => {
                       {student.attendanceRate}%
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                ))
+              )}
+            </tbody>
             </table>
           </div>
 

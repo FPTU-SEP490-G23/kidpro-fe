@@ -17,6 +17,7 @@ import {
   FileCheck2
 } from 'lucide-react';
 import financeApi from '../../../api/financeApi';
+import { academicApi } from '../../../api/academicApi';
 import {
   DynamicInvoice,
   CashPaymentReceipt,
@@ -39,15 +40,7 @@ export const CashCollectionTab: React.FC = () => {
     parentPhone: string;
     prepaidCredit: number;
     avatarUrl?: string;
-  } | null>({
-    id: 'STU-001',
-    name: 'Nguyễn Minh Khang',
-    code: 'KP-2026-081',
-    className: 'Mầm 1 (3-4 Tuổi)',
-    parentName: 'Nguyễn Văn Hùng',
-    parentPhone: '0912 345 678',
-    prepaidCredit: 0,
-  });
+  } | null>(null);
 
   // Hóa đơn đang chọn để gạch nợ
   const [selectedInvoice, setSelectedInvoice] = useState<DynamicInvoice | null>(null);
@@ -78,80 +71,50 @@ export const CashCollectionTab: React.FC = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
   };
 
-  // Mock danh sách học sinh để tìm kiếm nhanh
-  const mockStudents = useMemo(() => [
-    {
-      id: 'STU-001',
-      name: 'Nguyễn Minh Khang',
-      code: 'KP-2026-081',
-      className: 'Mầm 1 (3-4 Tuổi)',
-      parentName: 'Nguyễn Văn Hùng',
-      parentPhone: '0912 345 678',
-      prepaidCredit: 0,
+  // Danh sách học sinh để tìm kiếm
+  const { data: studentsList = [] } = useQuery({
+    queryKey: ['academic-students-for-cash-collection'],
+    queryFn: async () => {
+      try {
+        const resp = await academicApi.getStudents();
+        const data = resp.data || [];
+        return data.map((s: any) => ({
+          id: s.id,
+          name: s.fullName || s.name || 'Học sinh',
+          code: s.studentCode || s.code || s.id,
+          className: s.className || 'Chưa xếp lớp',
+          parentName: s.parentName || 'Phụ huynh',
+          parentPhone: s.parentPhone || '',
+          prepaidCredit: 0,
+        }));
+      } catch {
+        return [];
+      }
     },
-    {
-      id: 'STU-002',
-      name: 'Trần Gia Linh',
-      code: 'KP-2026-082',
-      className: 'Chồi 2 (4-5 Tuổi)',
-      parentName: 'Trần Thị Mai',
-      parentPhone: '0988 765 432',
-      prepaidCredit: 50000,
-    },
-    {
-      id: 'STU-003',
-      name: 'Lê Hoàng Bách',
-      code: 'KP-2026-083',
-      className: 'Lá 1 (5-6 Tuổi)',
-      parentName: 'Lê Tuấn Tú',
-      parentPhone: '0903 112 233',
-      prepaidCredit: 0,
-    },
-  ], []);
+  });
 
   // Tìm kiếm học sinh tự động
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return mockStudents.filter(
-      (s) =>
+    return studentsList.filter(
+      (s: any) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.parentPhone.includes(searchQuery)
+        (s.parentPhone && s.parentPhone.includes(searchQuery))
     );
-  }, [searchQuery, mockStudents]);
+  }, [searchQuery, studentsList]);
 
   // Tải danh sách hóa đơn mở của học sinh đang chọn
   const { data: studentInvoices, isLoading: isLoadingInvoices, refetch: refetchInvoices } = useQuery({
     queryKey: ['student-open-invoices', selectedStudent?.id],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      // Mock danh sách hóa đơn chưa thanh toán
-      const invoices: DynamicInvoice[] = [
-        {
-          id: `INV-${selectedStudent.id}-102026`,
-          invoiceNumber: `INV-202610-${selectedStudent.code.slice(-3)}`,
-          studentId: selectedStudent.id,
-          studentName: selectedStudent.name,
-          className: selectedStudent.className,
-          billingPeriod: '10-2026',
-          baseTuition: 3000000,
-          serviceFees: 500000,
-          excusedDaysCount: 2,
-          dailyRefundRate: 35000,
-          mealRefundTotal: 70000,
-          lateMinutesCount: 0,
-          latePickupFeeTotal: 0,
-          siblingDiscountAmount: 0,
-          otherDiscountAmount: 0,
-          surplusCarriedForward: 0,
-          netPayableAmount: 3430000,
-          paymentReferenceCode: `INV202610${selectedStudent.code.replace(/[^a-zA-Z0-9]/g, '').slice(-6)}`,
-          status: 'ISSUED',
-          dueDate: '2026-11-15',
-          createdAt: '2026-10-25T08:00:00Z',
-        },
-      ];
-      return invoices;
+      try {
+        const resp = await financeApi.getOverdueInvoices({ search: selectedStudent.name });
+        return (resp.data || []) as unknown as DynamicInvoice[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!selectedStudent,
   });
@@ -373,7 +336,7 @@ export const CashCollectionTab: React.FC = () => {
             {/* Dropdown kết quả tìm kiếm nếu có */}
             {searchResults.length > 0 && (
               <div className="p-2 rounded-2xl bg-slate-50 border border-slate-200 divide-y divide-slate-100 max-h-48 overflow-y-auto">
-                {searchResults.map((s) => (
+                {searchResults.map((s: any) => (
                   <button
                     key={s.id}
                     onClick={() => {

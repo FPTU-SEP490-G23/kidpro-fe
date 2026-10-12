@@ -48,6 +48,13 @@ export const academicApi = {
   deleteClass: (id: string) => {
     return axiosClient.delete(`/classes/${id}`);
   },
+  // UC-010: Phê duyệt Cơ cấu Lớp học (BGH)
+  approveClass: (id: string, status?: string) => {
+    return axiosClient.put<ClassEntity>(`/classes/${id}/approve`, { status: status || 'APPROVED' });
+  },
+  approveAllClasses: (academicYearId?: string) => {
+    return axiosClient.put<ClassEntity[]>('/classes/approve-all', null, { params: academicYearId ? { academicYearId } : {} });
+  },
   getActiveTeachers: () => {
     return axiosClient.get<any[]>('/admin/users', { params: { role: 'GIAO_VIEN', status: 'ACTIVE' } });
   },

@@ -23,50 +23,7 @@ import { academicApi } from '../../../api/academicApi';
 import { ClassroomJournalPost } from '../../../types/health.types';
 import { ClassEntity, Student } from '../../../types/classroom.types';
 
-// Mock initial timeline posts
-const INITIAL_JOURNAL_POSTS: ClassroomJournalPost[] = [
-  {
-    id: 'post-01',
-    classId: 'c2',
-    className: 'Mầm 1',
-    title: 'Tiết học Vẽ Sáng tạo: Sắc Màu Mùa Thu',
-    content: 'Hôm nay các bạn nhỏ lớp Mầm 1 đã có một buổi học vẽ bằng vân tay vô cùng hào hứng! Các bé được tự tay pha màu nước, in dấu tay tạo thành tán cây mùa thu rực rỡ và phát biểu cảm nghĩ về bức tranh của mình.',
-    date: '2026-10-09',
-    photoUrl: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop&q=80',
-    mediaUrls: [
-      'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1560421683-680b9c814e52?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?w=800&auto=format&fit=crop&q=80'
-    ],
-    taggedStudentIds: ['stu-01', 'stu-02'],
-    taggedStudentNames: ['Trần Gia Bảo', 'Lê Minh Anh'],
-    teacherName: 'Cô Nguyễn Mai Hương',
-    teacherAvatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
-    createdAt: 'Hôm nay lúc 10:15',
-    isDeleted: false
-  },
-  {
-    id: 'post-02',
-    classId: 'c1',
-    className: 'Nhà trẻ 1',
-    title: 'Vận Động Thể Chất Buổi Sáng: Vượt Chướng Ngại Vật',
-    content: 'Các bé Nhà trẻ 1 tham gia chuỗi hoạt động rèn luyện vận động thô tại sân cỏ nhân tạo: bò qua đường hầm vải, bật nhảy qua gối mềm và xếp tháp khối hình cùng cô giáo. Bé nào cũng tràn đầy năng lượng và ăn trưa rất ngon miệng.',
-    date: '2026-10-09',
-    photoUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800&auto=format&fit=crop&q=80',
-    mediaUrls: [
-      'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop&q=80'
-    ],
-    taggedStudentIds: [],
-    taggedStudentNames: ['Toàn bộ lớp Nhà trẻ 1'],
-    teacherName: 'Cô Trần Thảo Vy',
-    teacherAvatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
-    createdAt: 'Hôm nay lúc 09:30',
-    isDeleted: false
-  }
-];
+const INITIAL_JOURNAL_POSTS: ClassroomJournalPost[] = [];
 
 export const ClassroomJournalTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -151,32 +108,13 @@ export const ClassroomJournalTab: React.FC = () => {
         const res = await academicApi.getStudents();
         return Array.isArray(res) ? res : ((res as any)?.data || []);
       } catch {
-        return [
-          {
-            id: 'stu-01',
-            fullName: 'Trần Gia Bảo',
-            className: 'Mầm 1',
-            photoOptOut: false
-          },
-          {
-            id: 'stu-02',
-            fullName: 'Lê Minh Anh',
-            className: 'Mầm 1',
-            photoOptOut: true // Decree 13 Flag
-          },
-          {
-            id: 'stu-03',
-            fullName: 'Phạm Hoàng Nam',
-            className: 'Chồi 2',
-            photoOptOut: false
-          }
-        ] as any[];
+        return [];
       }
     }
   });
 
   // 3. Fetch Journal Posts Feed
-  const { data: journalPosts = INITIAL_JOURNAL_POSTS } = useQuery<ClassroomJournalPost[]>({
+  const { data: journalPosts = [] } = useQuery<ClassroomJournalPost[]>({
     queryKey: ['journal-posts', selectedClassId],
     queryFn: async () => {
       try {

@@ -97,11 +97,7 @@ export const GateAiAttendanceTab: React.FC = () => {
         } catch {
           // ignore error
         }
-        return [
-          { id: 'stu-01', fullName: 'Trần Gia Bảo', className: 'Mầm 1', studentCode: 'HS-1001', status: 'ACTIVE' },
-          { id: 'stu-02', fullName: 'Lê Bảo An', className: 'Mầm 1', studentCode: 'HS-1002', status: 'ACTIVE' },
-          { id: 'stu-03', fullName: 'Nguyễn Tuấn Kiệt', className: 'Mầm 1', studentCode: 'HS-1003', status: 'ACTIVE' },
-        ];
+        return [];
       }
     }
   });
@@ -132,32 +128,7 @@ export const GateAiAttendanceTab: React.FC = () => {
   });
 
   // 3. Recent Face Logs Feed
-  const [localLogs, setLocalLogs] = useState<FaceLog[]>([
-    {
-      id: 'log-01',
-      studentId: 'stu-01',
-      studentName: 'Trần Gia Bảo',
-      className: 'Mầm 1',
-      isMatch: true,
-      confidenceScore: 0.94,
-      photoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&auto=format&fit=crop&q=80',
-      capturedAt: '07:42:15',
-      eventType: 'CHECK_IN',
-      gateName: 'Cổng Chính 01'
-    },
-    {
-      id: 'log-02',
-      studentId: 'stu-02',
-      studentName: 'Lê Minh Anh',
-      className: 'Nhà trẻ 1',
-      isMatch: true,
-      confidenceScore: 0.88,
-      photoUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&auto=format&fit=crop&q=80',
-      capturedAt: '07:45:30',
-      eventType: 'CHECK_IN',
-      gateName: 'Cổng Chính 01'
-    }
-  ]);
+  const [localLogs, setLocalLogs] = useState<FaceLog[]>([]);
 
   // 4. Fetch Unresolved Alerts (Strangers / failed matches)
   const { data: unresolvedAlerts = [] } = useQuery<FaceLog[]>({
@@ -224,7 +195,7 @@ export const GateAiAttendanceTab: React.FC = () => {
       // Random or selected student
       const student = forcedStudent || (students.length > 0 ? students[Math.floor(Math.random() * students.length)] : {
         id: 'stu-sample',
-        fullName: 'Nguyễn Tuấn Kiệt',
+        fullName: 'Học sinh',
         className: 'Mầm 1',
         status: 'ACTIVE' as any
       });
@@ -580,7 +551,10 @@ export const GateAiAttendanceTab: React.FC = () => {
               </div>
 
               <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
-                {localLogs.map((log) => (
+                {localLogs.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-400">Chưa có lượt quét nào tại cổng hôm nay</div>
+                ) : (
+                  localLogs.map((log) => (
                   <div key={log.id} className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/70 transition flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-200 shrink-0">
@@ -603,7 +577,8 @@ export const GateAiAttendanceTab: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                ))}
+                ))
+                )}
               </div>
             </div>
           </div>

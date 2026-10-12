@@ -22,99 +22,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { DietaryAllergyItem } from '../../../types/kitchen.types';
 
 // Dữ liệu mẫu chuẩn đối chiếu xung đột dị ứng hôm nay
-const DEFAULT_DIETARY_ITEMS: DietaryAllergyItem[] = [
-  {
-    id: 'diet-01',
-    studentId: 'stu-minh-01',
-    studentName: 'Trần Bình Minh',
-    classId: 'cls-choi1',
-    className: 'Chồi 1 (Sơn Ca)',
-    roomNumber: 'Phòng B201',
-    allergyTags: ['Tôm / Cua / Hải sản vỏ cứng'],
-    severity: 'ANAPHYLAXIS', // Cấp độ sốc phản vệ -> Viền đỏ nhấp nháy MSG-128
-    todayConflictedDishes: ['Chả tôm hấp ngũ sắc', 'Canh cua mồng tơi'],
-    safeSubstituteDish: 'Thịt heo nạc thăn rim nấm đông cô + Canh bí đỏ thịt băm',
-    preparationStatus: 'PENDING',
-    isolatedAreaConfirmed: false,
-    labelPrinted: false,
-    isPresentToday: true,
-    parentNotes: 'Bé từng bị sốc nổi mẩn đỏ khó thở khi ăn tôm ở nhà lúc 2 tuổi.'
-  },
-  {
-    id: 'diet-02',
-    studentId: 'stu-an-02',
-    studentName: 'Nguyễn Thảo An',
-    classId: 'cls-mam1',
-    className: 'Mầm 1 (Họa Mi)',
-    roomNumber: 'Phòng A102',
-    allergyTags: ['Đậu phộng / Lạc'],
-    severity: 'ANAPHYLAXIS', // Đậu phộng nguy cơ cao
-    todayConflictedDishes: ['Nộm bắp cải rắc lạc rang'],
-    safeSubstituteDish: 'Nộm bắp cải cà rốt mè rang hữu cơ',
-    preparationStatus: 'PREPARED',
-    preparedAt: '09:45:00',
-    preparedBy: 'Bếp phó Hoàng Oanh',
-    isolatedAreaConfirmed: true,
-    labelPrinted: true,
-    labelPrintedAt: '09:48:00',
-    isPresentToday: true,
-    parentNotes: 'Tuyệt đối kiêng dầu đậu phộng hoặc sốt đậu phộng.'
-  },
-  {
-    id: 'diet-03',
-    studentId: 'stu-khoi-03',
-    studentName: 'Phạm Đăng Khôi',
-    classId: 'cls-nt1',
-    className: 'Nhà trẻ 1 (Gấu Bông)',
-    roomNumber: 'Phòng N01',
-    allergyTags: ['Đạm sữa bò (Cow milk protein)'],
-    severity: 'HIGH',
-    todayConflictedDishes: ['Súp bí đỏ kem sữa'],
-    safeSubstituteDish: 'Cháo sườn heo củ sen búp (Không cho sữa tươi hay phô mai)',
-    preparationStatus: 'PREPARED',
-    preparedAt: '09:30:00',
-    preparedBy: 'Bếp trưởng Thanh Vân',
-    isolatedAreaConfirmed: true,
-    labelPrinted: true,
-    labelPrintedAt: '09:32:00',
-    isPresentToday: true,
-    parentNotes: 'Bé đổi sang sữa hạt yến mạch do mẹ mang theo gửi cô giáo.'
-  },
-  {
-    id: 'diet-04',
-    studentId: 'stu-vy-04',
-    studentName: 'Lê Hoàng Khánh Vy',
-    classId: 'cls-choi1',
-    className: 'Chồi 1 (Sơn Ca)',
-    roomNumber: 'Phòng B201',
-    allergyTags: ['Trứng gà'],
-    severity: 'MEDIUM',
-    todayConflictedDishes: ['Trứng cuộn rau củ'],
-    safeSubstituteDish: 'Đậu hũ non sốt cà chua thịt băm',
-    preparationStatus: 'PENDING',
-    isolatedAreaConfirmed: false,
-    labelPrinted: false,
-    isPresentToday: true,
-    parentNotes: 'Ăn được thịt gà, chỉ kiêng lòng đỏ và lòng trắng trứng gà.'
-  },
-  {
-    id: 'diet-05',
-    studentId: 'stu-long-05',
-    studentName: 'Vũ Hoàng Long',
-    classId: 'cls-la1',
-    className: 'Lá 1 (Đại Bàng Con)',
-    roomNumber: 'Phòng C301',
-    allergyTags: ['Gluten / Bột mì'],
-    severity: 'HIGH',
-    todayConflictedDishes: ['Bánh canh bột mì bữa xế'],
-    safeSubstituteDish: 'Chè sen long nhãn bột sắn dây tinh khiết',
-    preparationStatus: 'PENDING',
-    isolatedAreaConfirmed: false,
-    labelPrinted: false,
-    isPresentToday: true,
-    parentNotes: 'Bé có tiền sử bệnh Celiac dị ứng gluten.'
-  }
-];
+const DEFAULT_DIETARY_ITEMS: DietaryAllergyItem[] = [];
 
 export const AllergyDietaryManagementTab: React.FC = () => {
   const { role, user } = useAuth();
@@ -136,7 +44,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   } | null>(null);
 
   // State cục bộ lưu danh sách trẻ dị ứng
-  const [items, setItems] = useState<DietaryAllergyItem[]>(DEFAULT_DIETARY_ITEMS);
+  const [items, setItems] = useState<DietaryAllergyItem[]>([]);
 
   // Modal in nhãn định danh dán khay ăn (MSG-129)
   const [printLabelModalItem, setPrintLabelModalItem] = useState<DietaryAllergyItem | null>(null);
@@ -157,7 +65,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
         return res;
       } catch (err: any) {
         console.warn('API /api/academic/students/by-allergy fallback:', err.message);
-        return DEFAULT_DIETARY_ITEMS;
+        return [];
       }
     }
   });

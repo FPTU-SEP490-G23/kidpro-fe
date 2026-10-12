@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import {
@@ -27,142 +27,124 @@ type AttendanceTabType =
   | 'late-pickup'
   | 'leave-requests';
 
+interface TabMeta {
+  uc: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  badge?: string;
+  specialColor?: 'alert';
+}
+
+const TAB_META: Record<AttendanceTabType, TabMeta> = {
+  'gate-ai': {
+    uc: 'UC-021',
+    title: 'Điểm Danh AI Trạm Cổng (Face Biometric)',
+    description: 'Nhận diện tự động học sinh và phụ huynh khi qua cổng trường, kích hoạt viền xanh Mint Green (< 2s) và gửi thông báo tức thì.',
+    icon: Camera,
+    badge: 'AI Vision v2.4',
+  },
+  'manual-tablet': {
+    uc: 'UC-022',
+    title: 'Điểm Danh Thủ Công Dự Phòng Trên Tablet',
+    description: 'Dành cho giáo viên chủ nhiệm tại lớp: điểm danh có mặt/vắng mặt, ghi chú lý do và đồng bộ tức thời tới báo bếp lúc 08:30.',
+    icon: ClipboardCheck,
+    badge: 'Chuyên Cần Lớp',
+  },
+  'dismissal-pickup': {
+    uc: 'UC-023',
+    title: 'Xác Thực Người Đón Tan Trường AI (Smart Dismissal)',
+    description: 'Xác thực danh tính người đón trẻ bằng camera AI đối chiếu hồ sơ người giám hộ hoặc mã QR ủy quyền hợp lệ.',
+    icon: ShieldCheck,
+    badge: 'Đón Trả An Toàn',
+  },
+  'stranger-security': {
+    uc: 'UC-024',
+    title: 'Quy Trình Xử Lý Cảnh Báo Người Lạ Tại Cổng',
+    description: 'Kích hoạt còi báo động bảo vệ, chụp ảnh lưu vết và yêu cầu xuất trình CCCD đối với đối tượng lạ mặt chưa đăng ký ủy quyền.',
+    icon: ShieldAlert,
+    badge: 'An Ninh Báo Động',
+    specialColor: 'alert',
+  },
+  'late-pickup': {
+    uc: 'UC-025',
+    title: 'Ghi Nhận Mốc Giờ Trẻ Đón Muộn & Tính Phụ Phí',
+    description: 'Tự động tính thời gian đón muộn sau 17:30, áp dụng khung lũy tiến theo chính sách tài chính và gửi thông báo tới phụ huynh.',
+    icon: Clock,
+    badge: 'Phụ Phí Ngoài Giờ',
+  },
+  'leave-requests': {
+    uc: 'UC-026',
+    title: 'Tiếp Nhận & Duyệt Đơn Xin Nghỉ Học',
+    description: 'Giáo viên chủ nhiệm xét duyệt đơn xin nghỉ học của phụ huynh, tự động cập nhật trạng thái điểm danh và báo bếp hoàn tiền ăn.',
+    icon: FileText,
+    badge: 'Xét Duyệt Nghỉ Học',
+  },
+};
+
 export const AttendancePage: React.FC = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { role } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<AttendanceTabType>(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab') as AttendanceTabType | null;
-    if (tabParam) return tabParam;
+  const resolveTab = (param: string | null): AttendanceTabType => {
+    if (param && param in TAB_META) {
+      return param as AttendanceTabType;
+    }
     if (location.pathname === '/teacher/dismissal') return 'dismissal-pickup';
-    // For GIAO_VIEN, the classroom attendance tab UC-022 is the primary view
     if (location.pathname === '/teacher/attendance' || role === 'GIAO_VIEN') return 'manual-tablet';
     return 'gate-ai';
+  };
+
+  const [activeTab, setActiveTab] = useState<AttendanceTabType>(() => {
+    return resolveTab(searchParams.get('tab'));
   });
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab') as AttendanceTabType | null;
-    if (tabParam) {
-      setActiveTab(tabParam);
-    } else if (location.pathname === '/teacher/dismissal') {
-      setActiveTab('dismissal-pickup');
-    } else if (location.pathname === '/teacher/attendance') {
-      setActiveTab('manual-tablet');
-    } else if (location.pathname === '/attendance') {
-      setActiveTab(role === 'GIAO_VIEN' ? 'manual-tablet' : 'gate-ai');
-    }
-  }, [location.pathname, location.search, role]);
+    setActiveTab(resolveTab(searchParams.get('tab')));
+  }, [location.pathname, searchParams, role]);
+
+  const currentMeta = TAB_META[activeTab] || TAB_META['gate-ai'];
+  const MetaIcon = currentMeta.icon;
 
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-10">
-      {/* Page Title & Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1E4D40] flex items-center gap-2.5">
-            <Users className="h-7 w-7 text-[#275A4E]" />
-            <span>Quản Lý Điểm Danh &amp; Đón Trả Trẻ Thông Minh</span>
+    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
+      {/* HEADER PHÂN HỆ ĐIỂM DANH (ĐỘNG THEO USE CASE, HOÀN TOÀN KHÔNG CÓ THANH SCROLL NGANG) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-[#1E4D40] to-[#275A4E] text-white rounded-3xl shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                currentMeta.specialColor === 'alert'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-[#E5A93C] text-slate-950'
+              } shadow-xs`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Điểm Danh & Đón Trả • {currentMeta.uc}</span>
+            </span>
+            {currentMeta.badge && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
+                {currentMeta.badge}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-emerald-100 border border-white/15">
+              Bếp Ăn Chốt 08:30
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
+              <MetaIcon className="h-5 w-5" />
+            </div>
+            <span>{currentMeta.title}</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Hệ sinh thái điểm danh AI trạm cổng, dự phòng tablet, an ninh người lạ, đón muộn và xét duyệt nghỉ học
+          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-3xl">
+            {currentMeta.description}
           </p>
         </div>
-
-        {/* System Badges */}
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#78C2AD]/15 text-[#1E4D40] border border-[#78C2AD]/40">
-            <Sparkles className="w-3.5 h-3.5 text-[#275A4E]" />
-            <span>AI Face Biometric v2.4</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
-            <span>Bếp Ăn Chốt 08:30</span>
-          </span>
-        </div>
       </div>
 
-      {/* Modern Tabs Navigation Bar (Scrollable for tablet & desktop) */}
-      <div className="flex border-b border-slate-200 overflow-x-auto hide-scrollbar bg-white rounded-2xl p-1.5 shadow-xs border gap-1">
-        {/* TAB 1: GATE AI ATTENDANCE (UC-021) */}
-        <button
-          onClick={() => setActiveTab('gate-ai')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'gate-ai'
-              ? 'bg-[#275A4E] text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Camera className={`h-4 w-4 ${activeTab === 'gate-ai' ? 'text-[#78C2AD]' : 'text-slate-500'}`} />
-          <span>Camera Cổng (UC-021)</span>
-        </button>
-
-        {/* TAB 2: FALLBACK MANUAL ATTENDANCE ON TABLET (UC-022) */}
-        <button
-          onClick={() => setActiveTab('manual-tablet')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'manual-tablet'
-              ? 'bg-[#275A4E] text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <ClipboardCheck className={`h-4 w-4 ${activeTab === 'manual-tablet' ? 'text-[#78C2AD]' : 'text-slate-500'}`} />
-          <span>Điểm Danh Tablet (UC-022)</span>
-        </button>
-
-        {/* TAB 3: DISMISSAL AI PICKUP VERIFICATION (UC-023) */}
-        <button
-          onClick={() => setActiveTab('dismissal-pickup')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'dismissal-pickup'
-              ? 'bg-[#275A4E] text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <ShieldCheck className={`h-4 w-4 ${activeTab === 'dismissal-pickup' ? 'text-[#78C2AD]' : 'text-slate-500'}`} />
-          <span>Trả Trẻ Tan Trường (UC-023)</span>
-        </button>
-
-        {/* TAB 4: STRANGER ALERT SECURITY PROTOCOL (UC-024) */}
-        <button
-          onClick={() => setActiveTab('stranger-security')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'stranger-security'
-              ? 'bg-rose-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50'
-          }`}
-        >
-          <ShieldAlert className={`h-4 w-4 ${activeTab === 'stranger-security' ? 'text-amber-200' : 'text-rose-500'}`} />
-          <span>Cảnh Báo Người Lạ (UC-024)</span>
-        </button>
-
-        {/* TAB 5: LATE PICKUP TRACKING & OVERTIME BILLING (UC-025) */}
-        <button
-          onClick={() => setActiveTab('late-pickup')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'late-pickup'
-              ? 'bg-[#275A4E] text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Clock className={`h-4 w-4 ${activeTab === 'late-pickup' ? 'text-[#78C2AD]' : 'text-slate-500'}`} />
-          <span>Trẻ Đón Muộn (UC-025)</span>
-        </button>
-
-        {/* TAB 6: LEAVE REQUEST REVIEW & ABSENCE APPROVAL (UC-026) */}
-        <button
-          onClick={() => setActiveTab('leave-requests')}
-          className={`py-3 px-4 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[48px] ${
-            activeTab === 'leave-requests'
-              ? 'bg-[#275A4E] text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <FileText className={`h-4 w-4 ${activeTab === 'leave-requests' ? 'text-[#78C2AD]' : 'text-slate-500'}`} />
-          <span>Duyệt Nghỉ Học (UC-026)</span>
-        </button>
-      </div>
-
-      {/* Tab Panels */}
+      {/* Tab Panels (Render trực tiếp không còn thanh scroll ngang làm rối mắt) */}
       <div className="transition-all">
         <ErrorBoundary
           fallbackTitle="Đã xảy ra sự cố tại phân hệ Điểm danh"
@@ -181,3 +163,4 @@ export const AttendancePage: React.FC = () => {
 };
 
 export default AttendancePage;
+

@@ -33,92 +33,14 @@ const MSG_235 = 'Yêu cầu kiểm thực kép: Ban Giám Hiệu bắt buộc ph
 const createInitialInspectionLog = (date: string): ThreeStepFoodSafetyInspectionLog => ({
   id: `INSP-${date}`,
   inspectionDate: date,
-  step1Completed: true,
+  step1Completed: false,
   step1Time: '06:30 AM',
-  step1ChefSignature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-  rawMaterials: [
-    {
-      id: 'raw-01',
-      ingredientName: 'Thịt heo nạc đùi CP tươi',
-      quantityKg: 28.5,
-      supplierName: 'Công ty Cổ phần Chăn nuôi C.P. Việt Nam',
-      invoiceNumber: 'CP-202610-8891',
-      sensoryEvaluation: 'PASSED',
-      deliveryTemperatureCelsius: 3.5,
-      isFrozenOrChilled: true,
-      isRejected: false,
-    },
-    {
-      id: 'raw-02',
-      ingredientName: 'Cá hồi Na Uy fillet tươi',
-      quantityKg: 14.0,
-      supplierName: 'Hải Sản Sạch Biển Xanh',
-      invoiceNumber: 'HD-99212',
-      sensoryEvaluation: 'PASSED',
-      deliveryTemperatureCelsius: 2.0,
-      isFrozenOrChilled: true,
-      isRejected: false,
-    },
-    {
-      id: 'raw-03',
-      ingredientName: 'Bí đỏ hồ lô & Rau ngót sạch',
-      quantityKg: 18.0,
-      supplierName: 'Hợp Tác Xã Nông Sản Sạch Đà Lạt',
-      invoiceNumber: 'DL-55210',
-      sensoryEvaluation: 'PASSED',
-      deliveryTemperatureCelsius: 18.0,
-      isFrozenOrChilled: false,
-      isRejected: false,
-    },
-    {
-      id: 'raw-04',
-      ingredientName: 'Gạo ST25 Ông Cua (Túi 25kg)',
-      quantityKg: 50.0,
-      supplierName: 'Đại lý Lương Thực Miền Nam',
-      invoiceNumber: 'LT-10928',
-      sensoryEvaluation: 'PASSED',
-      deliveryTemperatureCelsius: 24.0,
-      isFrozenOrChilled: false,
-      isRejected: false,
-    },
-  ],
+  step1ChefSignature: undefined,
+  rawMaterials: [],
   step2Completed: false,
   step2Time: '10:30 AM',
   step2ChefSignature: undefined,
-  cookingTemperatures: [
-    {
-      id: 'cook-01',
-      dishName: 'Cá hồi áp chảo sốt bơ tỏi',
-      coreTemperatureCelsius: 82.5,
-      cookingMethod: 'Áp chảo / Nướng',
-      isHygieneStandardPassed: true,
-      notes: 'Thịt cá chín đều, không có mùi lạ, tâm món đạt > 75°C',
-    },
-    {
-      id: 'cook-02',
-      dishName: 'Thịt heo rim trứng cút',
-      coreTemperatureCelsius: 88.0,
-      cookingMethod: 'Kho kỹ',
-      isHygieneStandardPassed: true,
-      notes: 'Đun sôi kỹ trên 25 phút',
-    },
-    {
-      id: 'cook-03',
-      dishName: 'Canh bí đỏ hầm sườn nạc',
-      coreTemperatureCelsius: 96.0,
-      cookingMethod: 'Nấu sôi',
-      isHygieneStandardPassed: true,
-      notes: 'Sôi bùng, vớt bọt sạch sẽ',
-    },
-    {
-      id: 'cook-04',
-      dishName: 'Cơm trắng gạo dẻo ST25',
-      coreTemperatureCelsius: 98.0,
-      cookingMethod: 'Nấu tủ hấp hơi',
-      isHygieneStandardPassed: true,
-      notes: 'Cơm chín ráo, thơm dẻo',
-    },
-  ],
+  cookingTemperatures: [],
   hygieneChecklist: {
     protectiveClothing: true,
     separateCuttingBoards: true,
@@ -128,48 +50,7 @@ const createInitialInspectionLog = (date: string): ThreeStepFoodSafetyInspection
   step3Time: '11:15 AM',
   step3ChefSignature: undefined,
   step3PrincipalSignature: undefined,
-  retentionSamples: [
-    {
-      id: 'ret-01',
-      dishName: 'Cá hồi áp chảo sốt bơ tỏi',
-      sampleWeightGrams: 120,
-      sealCode: 'NP-20261010-01',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-      sensoryEvaluation: 'PASSED',
-      tastedBy: 'Bếp trưởng Nguyễn Văn Tuấn',
-    },
-    {
-      id: 'ret-02',
-      dishName: 'Thịt heo rim trứng cút',
-      sampleWeightGrams: 130,
-      sealCode: 'NP-20261010-02',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500',
-      sensoryEvaluation: 'PASSED',
-      tastedBy: 'Bếp trưởng Nguyễn Văn Tuấn',
-    },
-    {
-      id: 'ret-03',
-      dishName: 'Canh bí đỏ sườn nạc',
-      sampleWeightGrams: 160,
-      sealCode: 'NP-20261010-03',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500',
-      sensoryEvaluation: 'PASSED',
-      tastedBy: 'Bếp trưởng Nguyễn Văn Tuấn',
-    },
-    {
-      id: 'ret-04',
-      dishName: 'Cơm trắng ST25',
-      sampleWeightGrams: 150,
-      sealCode: 'NP-20261010-04',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=500',
-      sensoryEvaluation: 'PASSED',
-      tastedBy: 'Bếp trưởng Nguyễn Văn Tuấn',
-    },
-  ],
+  retentionSamples: [],
   overallStatus: 'IN_PROGRESS',
   rejectionIncidentReported: false,
 });
@@ -578,7 +459,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {localLog.rawMaterials.map((item) => (
+                  {localLog.rawMaterials.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        Chưa có lô nguyên liệu nào được nhập trong ngày hôm nay.
+                      </td>
+                    </tr>
+                  ) : (
+                    localLog.rawMaterials.map((item) => (
                     <tr
                       key={item.id}
                       className={`hover:bg-slate-50 transition ${item.isRejected ? 'bg-rose-50/60' : ''}`}
@@ -630,7 +518,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                         )}
                       </td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>
@@ -759,7 +647,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {localLog.cookingTemperatures.map((dish, idx) => {
+                    {localLog.cookingTemperatures.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                          Chưa có dữ liệu đo nhiệt độ món ăn nào.
+                        </td>
+                      </tr>
+                    ) : (
+                      localLog.cookingTemperatures.map((dish, idx) => {
                       const isHotEnough = dish.coreTemperatureCelsius > 75;
 
                       return (
@@ -797,7 +692,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                           <td className="py-3 px-3 text-slate-500">{dish.notes}</td>
                         </tr>
                       );
-                    })}
+                    }))}
                   </tbody>
                 </table>
               </div>
@@ -858,7 +753,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {localLog.retentionSamples.map((sample, idx) => {
+                  {localLog.retentionSamples.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        Chưa có mẫu lưu thực phẩm nào được ghi nhận.
+                      </td>
+                    </tr>
+                  ) : (
+                    localLog.retentionSamples.map((sample, idx) => {
                     const isWeightValid = sample.sampleWeightGrams >= 100;
                     const isTempValid = sample.storageTemperatureCelsius >= 2 && sample.storageTemperatureCelsius <= 8;
 
@@ -927,7 +829,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>

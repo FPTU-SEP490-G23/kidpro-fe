@@ -112,57 +112,7 @@ export const ClassTransferTab: React.FC = () => {
         console.warn('Supabase query error:', dbErr);
       }
 
-      // Initial Demo Data if database is freshly initialized
-      return [
-        {
-          id: 'TR-2026-001',
-          studentId: 'stu-01',
-          studentName: 'Trần Gia Bảo',
-          studentDob: '2023-04-12',
-          studentAgeGroup: 'Mầm (3-4 tuổi)',
-          fromClassId: classes[0]?.id || 'cls-01',
-          fromClassName: classes[0]?.name || 'Mầm 1',
-          toClassId: classes[1]?.id || 'cls-02',
-          toClassName: classes[1]?.name || 'Mầm 2',
-          requestType: 'TRANSFER',
-          reason: 'Gia đình chuyển nhà sang gần cơ sở mới, muốn chuyển bé sang lớp Mầm 2 để tiện đưa đón cùng anh trai.',
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          hasTuitionDebt: false
-        },
-        {
-          id: 'TR-2026-002',
-          studentId: 'stu-02',
-          studentName: 'Lê Minh Anh',
-          studentDob: '2024-02-18',
-          studentAgeGroup: 'Nhà trẻ (18-36 tháng)',
-          fromClassId: classes[1]?.id || 'cls-02',
-          fromClassName: 'Nhà trẻ 1',
-          toClassId: classes[2]?.id || 'cls-03',
-          toClassName: 'Chồi 1',
-          requestType: 'TRANSFER',
-          reason: 'Phụ huynh mong muốn cho con học vượt lên khối Chồi do bé biết nói sớm.',
-          status: 'PENDING',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          hasTuitionDebt: false
-        },
-        {
-          id: 'TR-2026-003',
-          studentId: 'stu-03',
-          studentName: 'Nguyễn Hoàng Phúc',
-          studentDob: '2022-09-05',
-          studentAgeGroup: 'Chồi (4-5 tuổi)',
-          fromClassId: classes[2]?.id || 'cls-03',
-          fromClassName: 'Chồi 1',
-          toClassId: classes[0]?.id || 'cls-01',
-          toClassName: 'Chồi 2',
-          requestType: 'TRANSFER',
-          reason: 'Bé bị ốm phải điều trị dài ngày, gia đình xin bảo lưu học phần 3 tháng.',
-          status: 'PENDING',
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
-          hasTuitionDebt: true // Có nợ học phí để kiểm thử MSG-080
-        }
-      ];
+      return [];
     }
   });
 
@@ -194,7 +144,6 @@ export const ClassTransferTab: React.FC = () => {
   const isAgeGroupMismatched = useMemo(() => {
     if (!selectedRequest || !targetClass) return false;
     // Kiểm tra tương thích khối tuổi
-    if (selectedRequest.studentName === 'Lê Minh Anh') return true; // Trẻ nhà trẻ xin lên khối Chồi
     if (selectedRequest.studentAgeGroup && targetClass.ageGroup) {
       if (selectedRequest.studentAgeGroup.includes('Nhà trẻ') && targetClass.ageGroup !== 'NURSERY') return true;
       if (selectedRequest.studentAgeGroup.includes('Lá') && targetClass.ageGroup !== 'PRE_K') return true;

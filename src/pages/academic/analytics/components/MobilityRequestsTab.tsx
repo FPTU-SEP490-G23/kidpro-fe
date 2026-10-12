@@ -77,8 +77,10 @@ export const MobilityRequestsTab: React.FC<MobilityRequestsTabProps> = ({
 
                 return (
                   <tr key={item.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
-                      {item.id}
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700" title={item.id}>
+                      {item.id.includes('-') && item.id.length > 20
+                        ? `YC-${item.id.replace(/-/g, '').slice(0, 6).toUpperCase()}`
+                        : item.id}
                     </td>
 
                     <td className="py-3.5 px-4 font-bold text-slate-800 text-sm">

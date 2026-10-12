@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { calculateBmi, getBmiStatus, getBmiBadge, getBmiStatusBadgeColor, formatDate } from '../../utils/formatters';
 import healthApi from '../../api/healthApi';
 import { supabase } from '../../config/supabase';
@@ -67,15 +68,93 @@ interface JournalPostItem {
   date: string;
 }
 
+type HealthTabType = 'incidents' | 'medication' | 'journal' | 'metrics' | 'care' | 'evaluations';
+
+interface HealthTabMeta {
+  uc: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  badge?: string;
+  specialColor?: 'alert';
+}
+
+const HEALTH_TAB_META: Record<HealthTabType, HealthTabMeta> = {
+  incidents: {
+    uc: 'UC-052',
+    title: 'Sự Vụ Y Tế Học Đường & Sơ Cứu Ban Đầu',
+    description: 'Quy trình tiếp nhận, sơ cấp cứu và lập biên bản sự vụ y tế học đường (sốt cao, dị ứng, trầy xước), đồng bộ thông báo khẩn cấp tới phụ huynh.',
+    icon: HeartPulse,
+    badge: 'An Toàn Sơ Cứu',
+    specialColor: 'alert',
+  },
+  medication: {
+    uc: 'UC-027',
+    title: 'Cho Trẻ Uống Thuốc & Chụp Ảnh Xác Thực (14:00)',
+    description: 'Giáo viên thực hiện cho uống thuốc đúng liều lượng theo đơn phụ huynh gửi, chụp ảnh xác thực thời gian thực và gửi báo cáo về phụ huynh.',
+    icon: Pill,
+    badge: 'Y Tế Học Đường',
+  },
+  journal: {
+    uc: 'UC-028',
+    title: 'Nhật Ký & Album Ảnh Hoạt Động Lớp Học',
+    description: 'Đăng tải hình ảnh học tập, vui chơi, trải nghiệm dã ngoại của cả lớp hoặc từng nhóm trẻ vào sổ liên lạc điện tử của phụ huynh.',
+    icon: Camera,
+    badge: 'Nhật Ký Học Đường',
+  },
+  metrics: {
+    uc: 'UC-051',
+    title: 'Ghi Nhận Chỉ Số Thể Trạng Định Kỳ (WHO BMI)',
+    description: 'Đo lường định kỳ chiều cao, cân nặng, tự động tính toán chỉ số BMI theo biểu đồ phát triển tiêu chuẩn của Tổ chức Y Tế Thế Giới (WHO).',
+    icon: Scale,
+    badge: 'Chuẩn WHO',
+  },
+  care: {
+    uc: 'Chăm Sóc',
+    title: 'Sổ Theo Dõi Sinh Hoạt, Ăn Uống & Giấc Ngủ Trưa',
+    description: 'Ghi nhận mức độ tiêu thụ suất ăn từng bữa (hết suất/nửa suất/bỏ bữa) và chất lượng giấc ngủ trưa bán trú của từng bé.',
+    icon: Moon,
+    badge: 'Chăm Sóc Bán Trú',
+  },
+  evaluations: {
+    uc: 'UC-061',
+    title: 'Đánh Giá Phát Triển Mầm Non (Thông Tư 28 & 51/BGDĐT)',
+    description: 'Đánh giá định kỳ 5 lĩnh vực phát triển GD mầm non: Thể chất, Nhận thức, Ngôn ngữ, Tình cảm - KN xã hội, Thẩm mỹ.',
+    icon: Award,
+    badge: 'Chuẩn TT 28/51',
+  },
+};
+
 export const HealthPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'incidents' | 'medication' | 'journal' | 'metrics' | 'care' | 'evaluations'>('incidents');
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+
+  const resolveTab = (param: string | null): HealthTabType => {
+    if (param === 'medications' || param === 'medication') return 'medication';
+    if (param === 'journals' || param === 'journal') return 'journal';
+    if (param === 'metrics') return 'metrics';
+    if (param === 'care') return 'care';
+    if (param === 'evaluations') return 'evaluations';
+    return 'incidents';
+  };
+
+  const [activeTab, setActiveTab] = useState<HealthTabType>(() => {
+    return resolveTab(searchParams.get('tab'));
+  });
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(resolveTab(tabParam));
+    }
+  }, [searchParams, location.search]);
   const [healthRecords, setHealthRecords] = useState<StudentHealthRow[]>([]);
   const [availableStudents, setAvailableStudents] = useState<StudentOption[]>([]);
   const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([]);
   const [evaluations, setEvaluations] = useState<DevelopmentEvaluation[]>([]);
   const [napRecords, setNapRecords] = useState<NapRecord[]>([]);
   const [mealRecords, setMealRecords] = useState<MealRecord[]>([]);
-  const [journalPosts, setJournalPosts] = useState<JournalPostItem[]>([]);
+  const [_journalPosts, setJournalPosts] = useState<JournalPostItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [apiFeedback, setApiFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -1139,24 +1218,46 @@ export const HealthPage: React.FC = () => {
     AESTHETIC: '5. Thẩm mỹ (Âm nhạc & Tạo hình)',
   };
 
+  const currentHealthMeta = HEALTH_TAB_META[activeTab] || HEALTH_TAB_META['incidents'];
+  const HealthMetaIcon = currentHealthMeta.icon;
+
   return (
-    <div className="space-y-6">
-      {/* Header trang */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
-            <HeartPulse className="h-7 w-7 text-rose-500" />
-            <span>Sức khỏe Trẻ & Chăm sóc Bán trú</span>
+    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
+      {/* HEADER PHÂN HỆ Y TẾ & CHĂM SÓC (ĐỘNG THEO USE CASE, HOÀN TOÀN KHÔNG CÓ THANH SCROLL NGANG) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-[#1E4D40] to-[#275A4E] text-white rounded-3xl shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                currentHealthMeta.specialColor === 'alert'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-[#E5A93C] text-slate-950'
+              } shadow-xs`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Y Tế & Lớp Học • {currentHealthMeta.uc}</span>
+            </span>
+            {currentHealthMeta.badge && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
+                {currentHealthMeta.badge}
+              </span>
+            )}
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
+              <HealthMetaIcon className="h-5 w-5" />
+            </div>
+            <span>{currentHealthMeta.title}</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Theo dõi chỉ số BMI WHO, đánh giá 5 lĩnh vực (TT51), nhật ký ngủ & ăn và hoạt động lớp học
+          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-3xl">
+            {currentHealthMeta.description}
           </p>
         </div>
 
         <button
           onClick={loadHealthData}
           disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition shadow-xs"
+          className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2.5 text-xs font-bold backdrop-blur-md hover:bg-white/25 transition text-white border border-white/20 self-start sm:self-auto cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Làm mới</span>
@@ -1180,81 +1281,6 @@ export const HealthPage: React.FC = () => {
           <span>{apiFeedback.text}</span>
         </div>
       )}
-
-      {/* Tabs chuyển đổi */}
-      <div className="flex border-b border-slate-200 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('incidents')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'incidents'
-              ? 'border-rose-600 text-rose-700 bg-rose-50/40'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <HeartPulse className="h-4 w-4 text-rose-600" />
-          <span>Sự Vụ Y Tế & Sơ Cứu (UC-052)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('medication')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'medication'
-              ? 'border-[#275A4E] text-[#275A4E]'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Pill className="h-4 w-4" />
-          <span>Uống Thuốc & Chụp Ảnh (14:00)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('journal')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'journal'
-              ? 'border-[#275A4E] text-[#275A4E]'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Camera className="h-4 w-4" />
-          <span>Nhật Ký & Album Lớp ({journalPosts.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('metrics')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'metrics'
-              ? 'border-rose-500 text-rose-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Scale className="h-4 w-4" />
-          <span>Chỉ số Thể trạng (WHO BMI) ({healthRecords.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('care')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'care'
-              ? 'border-amber-600 text-amber-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Moon className="h-4 w-4" />
-          <span>Nhật ký Ăn & Ngủ Trưa</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('evaluations')}
-          className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
-            activeTab === 'evaluations'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <Award className="h-4 w-4" />
-          <span>Đánh giá Phát triển ({evaluations.length})</span>
-        </button>
-      </div>
 
       {/* ================= TAB: SỰ VỤ Y TẾ & SƠ CẤU (UC-052) ================= */}
       {activeTab === 'incidents' && <MedicalIncidentsTab />}

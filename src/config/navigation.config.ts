@@ -7,7 +7,7 @@ export interface NavItem {
   icon: string; // Tên icon Lucide
   badgeKey?: 'unresolvedAlerts' | 'pendingMeals' | 'overdueInvoices' | 'pendingDisputes' | 'unreadLeaves';
   roles: Array<'SUPER_ADMIN' | 'BGH' | 'GIAO_VU' | 'GIAO_VIEN' | 'KE_TOAN' | 'BEP' | 'PHU_HUYNH' | 'SYSTEM_ADMIN'>;
-  useCases: string[]; // Danh sách mã UC (ví dụ: ['UC-021', 'UC-022'])
+  useCases: string[]; // Danh sách mã UC (ví dụ: ['UC-010'])
   children?: NavItem[];
 }
 
@@ -26,20 +26,21 @@ export interface NavigationBadges {
 }
 
 /**
- * MA TRẬN PHÂN CHIA MENU THEO TỪNG VAI TRÒ (RBAC)
- * Bao phủ toàn bộ 69 Use Cases của Hệ sinh thái Mầm non KIDPRO
+ * MA TRẬN PHÂN CHIA MENU THEO TỪNG VAI TRÒ (RBAC) CHUẨN XÁC 100%
+ * Quy chuẩn phân định rành mạch toàn bộ 69 Use Cases của Hệ sinh thái Mầm non KIDPRO
  */
 export const NAVIGATION_GROUPS: NavGroup[] = [
   // ==========================================
-  // NHÓM 1: QUẢN TRỊ NỀN TẢNG (SUPER_ADMIN / SYSTEM_ADMIN)
+  // NHÓM 2: QUẢN TRỊ VIÊN NỀN TẢNG (SUPER_ADMIN / SYSTEM_ADMIN)
+  // Các Use Cases: UC-005, UC-006, UC-007, UC-008
   // ==========================================
   {
-    groupTitle: 'Hạ tầng & Nền tảng Đa trường',
+    groupTitle: 'Hạ Tầng & Nền Tảng Đa Trường',
     roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
     items: [
       {
         id: 'admin-schools',
-        title: 'Quản Trị Trường Học (Tenants)',
+        title: '[UC-005] Quản Trị Trường Học (Tenants)',
         path: '/admin/schools',
         icon: 'Building2',
         roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
@@ -47,7 +48,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       },
       {
         id: 'admin-rbac',
-        title: 'Kiểm Soát Truy Cập & RBAC',
+        title: '[UC-006] Phân Quyền Vai Trò RBAC',
         path: '/admin/users-rbac',
         icon: 'ShieldCheck',
         roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
@@ -55,7 +56,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       },
       {
         id: 'admin-integrations',
-        title: 'Tích Hợp Dịch Vụ Ngoại Vi',
+        title: '[UC-007] Tích Hợp Dịch Vụ Ngoại Vi',
         path: '/admin/integrations',
         icon: 'Cable',
         roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
@@ -63,33 +64,26 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       },
       {
         id: 'admin-health',
-        title: 'Giám Sát Sức Khỏe & Uptime',
+        title: '[UC-008] Giám Sát Sức Khỏe & Uptime',
         path: '/admin/system-health',
         icon: 'Activity',
         roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
         useCases: ['UC-008'],
       },
-      {
-        id: 'admin-audit',
-        title: 'Nhật Ký Kiểm Toán Toàn Nền Tảng',
-        path: '/admin/audit-logs',
-        icon: 'ScrollText',
-        roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
-        useCases: ['UC-014'],
-      },
     ],
   },
 
   // ==========================================
-  // NHÓM 2: LÃNH ĐẠO & ĐIỀU HÀNH (BGH)
+  // NHÓM 3: HIỆU TRƯỞNG TRƯỜNG HỌC (BGH)
+  // Các Use Cases: UC-012, UC-009, UC-010, UC-011, UC-013, UC-014, UC-067
   // ==========================================
   {
     groupTitle: 'Ban Giám Hiệu & Điều Hành',
     roles: ['BGH'],
     items: [
       {
-        id: 'bgh-executive',
-        title: 'Tổng Quan Điều Hành Toàn Trường',
+        id: 'bgh-dashboard',
+        title: '[UC-012] Dashboard Điều Hành Toàn Trường',
         path: '/dashboard/executive',
         icon: 'LayoutDashboard',
         badgeKey: 'unresolvedAlerts',
@@ -97,267 +91,556 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         useCases: ['UC-012'],
       },
       {
-        id: 'bgh-academic-planning',
-        title: 'Kế Hoạch Đào Tạo & Cơ Cấu',
+        id: 'bgh-academic-year',
+        title: '[UC-009] Kế Hoạch Năm Học & Tuyển Sinh',
         path: '/bgh/academic-planning',
         icon: 'CalendarDays',
         roles: ['BGH'],
-        useCases: ['UC-009', 'UC-010', 'UC-019'],
+        useCases: ['UC-009'],
       },
       {
-        id: 'bgh-finance-policies',
-        title: 'Quản Trị Tài Chính & Biểu Phí',
-        path: '/bgh/finance-policies',
+        id: 'bgh-class-approval',
+        title: '[UC-010] Phê Duyệt Cấu Trúc Lớp Học Mới',
+        path: '/bgh/class-approvals',
+        icon: 'School',
+        roles: ['BGH'],
+        useCases: ['UC-010'],
+      },
+      {
+        id: 'bgh-fee-approval',
+        title: '[UC-011] Phê Duyệt Chính Sách Biểu Phí',
+        path: '/bgh/fee-policy-approval',
         icon: 'Receipt',
-        badgeKey: 'pendingDisputes',
         roles: ['BGH'],
-        useCases: ['UC-011', 'UC-037', 'UC-059', 'UC-060'],
+        useCases: ['UC-011'],
       },
       {
-        id: 'bgh-safety-reports',
-        title: 'An Toàn & Báo Cáo Chuyên Môn',
-        path: '/bgh/safety-reports',
-        icon: 'ShieldAlert',
-        badgeKey: 'unresolvedAlerts',
+        id: 'bgh-mobility',
+        title: '[UC-013] Báo Cáo Biến Động Học Sinh',
+        path: '/bgh/student-analytics',
+        icon: 'BarChart3',
         roles: ['BGH'],
-        useCases: ['UC-024', 'UC-032', 'UC-055', 'UC-013', 'UC-014'],
+        useCases: ['UC-013'],
+      },
+      {
+        id: 'bgh-security-audit',
+        title: '[UC-014] Tra Cứu Nhật Ký An Ninh',
+        path: '/bgh/security-audit',
+        icon: 'ScrollText',
+        roles: ['BGH'],
+        useCases: ['UC-014'],
       },
       {
         id: 'bgh-announcements',
-        title: 'Truyền Thông & Khảo Sát',
+        title: '[UC-067] Bản Tin & Thông Báo Toàn Trường',
         path: '/bgh/announcements',
         icon: 'Megaphone',
         roles: ['BGH'],
-        useCases: ['UC-067', 'UC-068'],
+        useCases: ['UC-067'],
       },
     ],
   },
 
   // ==========================================
-  // NHÓM 3: HỌC VỤ & NHÂN SỰ LỚP (GIAO_VU)
+  // NHÓM 4: CÁN BỘ GIÁO VỤ (GIAO_VU)
+  // Các Use Cases: UC-015, UC-016, UC-017, UC-018, UC-019, UC-020, UC-053, UC-062, UC-063, UC-064, UC-065
   // ==========================================
   {
-    groupTitle: 'Học Vụ & Hồ Sơ Học Sinh',
+    groupTitle: 'Học Vụ & Hồ Sơ Lớp Học',
     roles: ['GIAO_VU'],
     items: [
       {
         id: 'gv-students',
-        title: 'Hồ Sơ Học Sinh & Phân Lớp',
+        title: '[UC-015] Tiếp Nhận Học Sinh & Phân Lớp',
         path: '/academic/students',
         icon: 'Baby',
         roles: ['GIAO_VU'],
-        useCases: ['UC-015', 'UC-053', 'UC-019'],
+        useCases: ['UC-015'],
       },
       {
         id: 'gv-classes',
-        title: 'Cơ Cấu Lớp & Nhân Sự',
+        title: '[UC-016] Phân Công GV Phụ Trách Lớp',
         path: '/academic/classes',
         icon: 'School',
         roles: ['GIAO_VU'],
-        useCases: ['UC-010', 'UC-016', 'UC-063'],
+        useCases: ['UC-016'],
       },
       {
         id: 'gv-timetables',
-        title: 'Thời Khóa Biểu & Lịch Học',
+        title: '[UC-017] Xếp & Ban Hành TKB Tuần',
         path: '/academic/timetables',
         icon: 'CalendarClock',
         roles: ['GIAO_VU'],
-        useCases: ['UC-017', 'UC-018', 'UC-062'],
+        useCases: ['UC-017'],
+      },
+      {
+        id: 'gv-conflicts',
+        title: '[UC-018] Kiểm Tra Xung Đột Lịch Dạy',
+        path: '/academic/timetable-conflicts',
+        icon: 'Calendar',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-018'],
+      },
+      {
+        id: 'gv-transfers',
+        title: '[UC-019] Xử Lý Đơn Chuyển Lớp & Bảo Lưu',
+        path: '/academic/transfers',
+        icon: 'ArrowRightLeft',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-019'],
       },
       {
         id: 'gv-guardians',
-        title: 'Thẩm Định An Toàn & Đón Trẻ',
-        path: '/academic/safety-guardians',
+        title: '[UC-020] Thẩm Định Người Đón Ủy Quyền',
+        path: '/academic/guardians',
         icon: 'ShieldCheck',
         roles: ['GIAO_VU'],
-        useCases: ['UC-020', 'UC-050'],
+        useCases: ['UC-020'],
       },
       {
-        id: 'gv-reports',
-        title: 'Báo Cáo Sổ Sách & Lưu Trữ',
-        path: '/academic/reports',
-        icon: 'FileText',
+        id: 'gv-allergies',
+        title: '[UC-053] Cảnh Báo Dị Ứng Toàn Hệ Thống',
+        path: '/academic/allergies',
+        icon: 'ShieldAlert',
         roles: ['GIAO_VU'],
-        useCases: ['UC-064', 'UC-065'],
+        useCases: ['UC-053'],
+      },
+      {
+        id: 'gv-lesson-approvals',
+        title: '[UC-062] Phê Duyệt Kế Hoạch Giáo Án',
+        path: '/academic/lesson-plan-approvals',
+        icon: 'CheckCircle2',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-062'],
+      },
+      {
+        id: 'gv-equipment',
+        title: '[UC-063] Quản Lý Đồ Dùng & Thiết Bị Lớp',
+        path: '/academic/equipment',
+        icon: 'Boxes',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-063'],
+      },
+      {
+        id: 'gv-moet-report',
+        title: '[UC-064] Xuất Sổ Điểm Danh Mẫu MoET',
+        path: '/academic/moet-reports',
+        icon: 'FileSpreadsheet',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-064'],
+      },
+      {
+        id: 'gv-year-archival',
+        title: '[UC-065] Lưu Trữ Dữ Liệu Học Bạ Niên Khóa',
+        path: '/academic/year-archival',
+        icon: 'Archive',
+        roles: ['GIAO_VU'],
+        useCases: ['UC-065'],
       },
     ],
   },
 
   // ==========================================
-  // NHÓM 4: GIÁO VIÊN CHỦ NHIỆM & BỘ MÔN (GIAO_VIEN)
+  // NHÓM 5: GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN)
+  // Các Use Cases: UC-021, UC-022, UC-023, UC-024, UC-025, UC-026, UC-027, UC-028, UC-051, UC-052, UC-054, UC-061
   // ==========================================
   {
-    groupTitle: 'Vận Hành Lớp Học & Chăm Sóc Trẻ',
+    groupTitle: 'Điểm Danh & Đón Trả Trẻ',
     roles: ['GIAO_VIEN'],
     items: [
       {
-        id: 'tch-attendance',
-        title: 'Điểm Danh & Chuyên Cần Lớp',
-        path: '/teacher/attendance',
-        icon: 'ClipboardCheck',
-        badgeKey: 'unreadLeaves',
+        id: 'tch-gate-ai',
+        title: '[UC-021] Điểm Danh AI Trạm Cổng',
+        path: '/teacher/attendance?tab=gate-ai',
+        icon: 'Camera',
         roles: ['GIAO_VIEN'],
-        useCases: ['UC-021', 'UC-022', 'UC-026'],
+        useCases: ['UC-021'],
       },
       {
-        id: 'tch-dismissal',
-        title: 'An Toàn Đón Trả Tan Trường',
-        path: '/teacher/dismissal',
+        id: 'tch-manual-att',
+        title: '[UC-022] Điểm Danh Thủ Công Tablet',
+        path: '/teacher/attendance?tab=manual-tablet',
+        icon: 'ClipboardCheck',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-022'],
+      },
+      {
+        id: 'tch-pickup',
+        title: '[UC-023] Xác Thực Người Đón Tan Trường AI',
+        path: '/teacher/dismissal?tab=dismissal-pickup',
         icon: 'DoorOpen',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-023'],
+      },
+      {
+        id: 'tch-stranger',
+        title: '[UC-024] Cảnh Báo Người Lạ Tại Cổng',
+        path: '/teacher/dismissal?tab=stranger-security',
+        icon: 'ShieldAlert',
         badgeKey: 'unresolvedAlerts',
         roles: ['GIAO_VIEN'],
-        useCases: ['UC-023', 'UC-043', 'UC-024', 'UC-025'],
+        useCases: ['UC-024'],
       },
       {
-        id: 'tch-health',
-        title: 'Y Tế & Sức Khỏe Của Trẻ',
-        path: '/teacher/health',
-        icon: 'HeartPulse',
+        id: 'tch-late-pickup',
+        title: '[UC-025] Mốc Giờ Trẻ Đón Muộn',
+        path: '/teacher/dismissal?tab=late-pickup',
+        icon: 'Clock',
         roles: ['GIAO_VIEN'],
-        useCases: ['UC-027', 'UC-051', 'UC-052', 'UC-053'],
+        useCases: ['UC-025'],
       },
       {
-        id: 'tch-activities',
-        title: 'Chuyên Môn & Hoạt Động Lớp',
-        path: '/teacher/activities',
-        icon: 'BookOpen',
+        id: 'tch-leaves',
+        title: '[UC-026] Duyệt Đơn Xin Nghỉ Học',
+        path: '/teacher/dismissal?tab=leave-requests',
+        icon: 'FileText',
+        badgeKey: 'unreadLeaves',
         roles: ['GIAO_VIEN'],
-        useCases: ['UC-028', 'UC-054', 'UC-061', 'UC-063'],
-      },
-      {
-        id: 'tch-comms',
-        title: 'Kênh Tương Tác & Bản Tin',
-        path: '/teacher/communication',
-        icon: 'MessageSquare',
-        roles: ['GIAO_VIEN'],
-        useCases: ['UC-066', 'UC-067'],
+        useCases: ['UC-026'],
       },
     ],
   },
-
-  // ==========================================
-  // NHÓM 5: KẾ TOÁN TRƯỜNG HỌC (KE_TOAN)
-  // ==========================================
   {
-    groupTitle: 'Tài Chính & Học Phí Bán Trú',
-    roles: ['KE_TOAN'],
+    groupTitle: 'Y Tế, Nhật Ký & Chuyên Môn Lớp',
+    roles: ['GIAO_VIEN'],
     items: [
       {
-        id: 'fin-configs',
-        title: 'Cấu Hình Chính Sách Học Phí',
-        path: '/finance/configs',
-        icon: 'Calculator',
-        roles: ['KE_TOAN'],
-        useCases: ['UC-033', 'UC-025', 'UC-034'],
+        id: 'tch-meds',
+        title: '[UC-027] Cho Uống Thuốc & Chụp Ảnh',
+        path: '/teacher/health?tab=medications',
+        icon: 'Pill',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-027'],
       },
       {
-        id: 'fin-billing',
-        title: 'Động Cơ Quyết Toán Học Phí',
-        path: '/finance/billing-engine',
-        icon: 'Cpu',
-        roles: ['KE_TOAN'],
-        useCases: ['UC-035', 'UC-036', 'UC-056', 'UC-037'],
+        id: 'tch-journal',
+        title: '[UC-028] Nhật Ký & Ảnh Hoạt Động Lớp',
+        path: '/teacher/health?tab=journals',
+        icon: 'BookOpen',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-028'],
       },
       {
-        id: 'fin-payments',
-        title: 'Thu Ngân, Gạch Nợ & Khiếu Nại',
-        path: '/finance/payments',
-        icon: 'CreditCard',
-        badgeKey: 'pendingDisputes',
-        roles: ['KE_TOAN'],
-        useCases: ['UC-038', 'UC-039', 'UC-059'],
+        id: 'tch-bmi',
+        title: '[UC-051] Ghi Nhận Chiều Cao, Cân Nặng',
+        path: '/teacher/health?tab=metrics',
+        icon: 'HeartPulse',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-051'],
       },
       {
-        id: 'fin-reports',
-        title: 'Báo Cáo & Quản Trị Công Nợ',
-        path: '/finance/reports',
-        icon: 'BarChart3',
-        badgeKey: 'overdueInvoices',
-        roles: ['KE_TOAN'],
-        useCases: ['UC-057', 'UC-060'],
+        id: 'tch-medical-incidents',
+        title: '[UC-052] Sự Vụ Y Tế Học Đường',
+        path: '/teacher/health?tab=incidents',
+        icon: 'ShieldAlert',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-052'],
+      },
+      {
+        id: 'tch-care',
+        title: 'Sổ Theo Dõi Ăn & Ngủ Trưa',
+        path: '/teacher/health?tab=care',
+        icon: 'Moon',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-028'],
+      },
+      {
+        id: 'tch-lesson-plans',
+        title: '[UC-054] Soạn & Gửi Phê Duyệt Giáo Án',
+        path: '/teacher/activities?tab=lesson_plans',
+        icon: 'FileText',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-054'],
+      },
+      {
+        id: 'tch-evaluations',
+        title: '[UC-061] Đánh Giá 5 Trục Phát Triển',
+        path: '/teacher/activities?tab=evaluations',
+        icon: 'Award',
+        roles: ['GIAO_VIEN'],
+        useCases: ['UC-061'],
       },
     ],
   },
 
   // ==========================================
-  // NHÓM 6: BẾP ĂN BÁN TRÚ & DINH DƯỠNG (BEP)
+  // NHÓM 6: NHÂN VIÊN BẾP BÁN TRÚ (BEP)
+  // Các Use Cases: UC-029, UC-030, UC-031, UC-032, UC-055
   // ==========================================
   {
-    groupTitle: 'Bếp Bán Trú & An Toàn Thực Phẩm',
+    groupTitle: 'Bếp Bán Trú & Vệ Sinh ATTP',
     roles: ['BEP'],
     items: [
       {
         id: 'kt-menus',
-        title: 'Quản Trị Thực Đơn & Suất Ăn',
-        path: '/kitchen/menus',
+        title: '[UC-029] Thực Đơn Bán Trú Tuần',
+        path: '/kitchen?tab=menu',
         icon: 'UtensilsCrossed',
+        roles: ['BEP'],
+        useCases: ['UC-029'],
+      },
+      {
+        id: 'kt-portions',
+        title: '[UC-030] Dashboard Khóa Số Suất Ăn 08:30',
+        path: '/kitchen?tab=portions',
+        icon: 'Clock',
         badgeKey: 'pendingMeals',
         roles: ['BEP'],
-        useCases: ['UC-029', 'UC-030'],
+        useCases: ['UC-030'],
       },
       {
         id: 'kt-allergies',
-        title: 'Chế Độ Ăn Riêng & Dị Ứng',
-        path: '/kitchen/allergies',
+        title: '[UC-031] Dị Ứng Thực Phẩm & Suất Riêng',
+        path: '/kitchen?tab=allergies',
         icon: 'ShieldAlert',
         roles: ['BEP'],
         useCases: ['UC-031'],
       },
       {
-        id: 'kt-safety',
-        title: 'An Toàn Vệ Sinh & Kiểm Thực',
-        path: '/kitchen/safety',
+        id: 'kt-retention',
+        title: '[UC-032] Tiêu Hao Thực Phẩm & Lưu Mẫu',
+        path: '/kitchen?tab=retention',
         icon: 'FileText',
         roles: ['BEP'],
-        useCases: ['UC-055', 'UC-032'],
+        useCases: ['UC-032'],
+      },
+      {
+        id: 'kt-inspection',
+        title: '[UC-055] Sổ Kiểm Thực 3 Bước & Mẫu Thức Ăn',
+        path: '/kitchen?tab=three-step-inspection',
+        icon: 'CheckCircle2',
+        roles: ['BEP'],
+        useCases: ['UC-055'],
       },
     ],
   },
 
   // ==========================================
-  // NHÓM 7: PHỤ HUYNH HỌC SINH (PHU_HUYNH)
+  // NHÓM 7: KẾ TOÁN TRƯỜNG HỌC (KE_TOAN)
+  // Các Use Cases: UC-033, UC-034, UC-035, UC-036, UC-037, UC-038, UC-039, UC-056, UC-057, UC-059, UC-060
+  // Bao gồm đầy đủ các trang cấu hình: Danh mục thu, Miễn giảm, Phạt đón muộn, Hoàn tiền ăn
+  // ==========================================
+  {
+    groupTitle: 'Biểu Phí & Quyết Toán Học Phí',
+    roles: ['KE_TOAN'],
+    items: [
+      {
+        id: 'fin-configs',
+        title: '[UC-033] Cấu Hình Danh Mục Khoản Thu',
+        path: '/finance?tab=fee-configs',
+        icon: 'Calculator',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-033'],
+      },
+      {
+        id: 'fin-discounts',
+        title: '[UC-033] Chính Sách Giảm Trừ & Học Bổng',
+        path: '/finance?tab=discounts',
+        icon: 'Percent',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-033'],
+      },
+      {
+        id: 'fin-late-pickup',
+        title: '[UC-033] Biểu Phí Phạt Đón Muộn',
+        path: '/finance?tab=late-pickup',
+        icon: 'Timer',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-033'],
+      },
+      {
+        id: 'fin-refund-rate',
+        title: '[UC-034] Đơn Giá Hoàn Tiền Ăn Nghỉ Phép',
+        path: '/finance?tab=meal-refund',
+        icon: 'Coins',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-034'],
+      },
+      {
+        id: 'fin-billing',
+        title: '[UC-035] Động Cơ Quyết Toán Học Phí',
+        path: '/finance?tab=billing-engine',
+        icon: 'Cpu',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-035'],
+      },
+      {
+        id: 'fin-refund-audit',
+        title: '[UC-036] Kiểm Toán & Hoàn Tiền Ăn Tự Động',
+        path: '/finance?tab=meal-refund-audit',
+        icon: 'FileCheck2',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-036'],
+      },
+      {
+        id: 'fin-bulk-issuance',
+        title: '[UC-037] Duyệt & Phát Hành Bảng Kê VietQR',
+        path: '/finance?tab=bulk-issuance',
+        icon: 'QrCode',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-037'],
+      },
+      {
+        id: 'fin-deposit',
+        title: '[UC-056] Khấu Trừ Tiền Cọc Nhập Học',
+        path: '/finance?tab=deposit-deduction',
+        icon: 'Coins',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-056'],
+      },
+    ],
+  },
+  {
+    groupTitle: 'Thu Ngân, Đối Soát & Báo Cáo',
+    roles: ['KE_TOAN'],
+    items: [
+      {
+        id: 'fin-cash',
+        title: '[UC-038] Gạch Nợ Thủ Công & Tiền Mặt',
+        path: '/finance?tab=cash-collection',
+        icon: 'Banknote',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-038'],
+      },
+      {
+        id: 'fin-webhook',
+        title: '[UC-039] Đối Soát Webhook VietQR PayOS',
+        path: '/finance?tab=webhook-reconcile',
+        icon: 'Webhook',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-039'],
+      },
+      {
+        id: 'fin-reminders',
+        title: '[UC-057] Tự Động Nhắc Nợ Quá Hạn',
+        path: '/finance?tab=overdue-reminders',
+        icon: 'Bell',
+        badgeKey: 'overdueInvoices',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-057'],
+      },
+      {
+        id: 'fin-disputes',
+        title: '[UC-059] Xử Lý Khiếu Nại Tiền Học',
+        path: '/finance?tab=disputes-mgmt',
+        icon: 'FileQuestion',
+        badgeKey: 'pendingDisputes',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-059'],
+      },
+      {
+        id: 'fin-reports',
+        title: '[UC-060] Bảng Tổng Hợp Thu Chi & Công Nợ (VAS)',
+        path: '/finance?tab=financial-reports',
+        icon: 'BarChart3',
+        roles: ['KE_TOAN'],
+        useCases: ['UC-060'],
+      },
+    ],
+  },
+
+  // ==========================================
+  // NHÓM 8: PHỤ HUYNH HỌC SINH (PHU_HUYNH)
+  // Các Use Cases: UC-041, UC-042, UC-043, UC-044, UC-045, UC-046, UC-047, UC-048, UC-049, UC-050, UC-058, UC-066, UC-068, UC-069
   // ==========================================
   {
     groupTitle: 'Cổng Phụ Huynh & Sổ Liên Lạc',
     roles: ['PHU_HUYNH'],
     items: [
       {
-        id: 'pr-children',
-        title: 'Hồ Sơ & An Toàn Của Con',
-        path: '/parent/children',
-        icon: 'Baby',
+        id: 'pr-face',
+        title: '[UC-041] Đăng Ký Khuôn Mặt Của Bé',
+        path: '/parent?tab=face-biometric',
+        icon: 'UserCheck',
         roles: ['PHU_HUYNH'],
-        useCases: ['UC-041', 'UC-042', 'UC-043', 'UC-069'],
+        useCases: ['UC-041'],
       },
       {
-        id: 'pr-daily-care',
-        title: 'Nhật Ký & Chăm Sóc Hàng Ngày',
-        path: '/parent/daily-care',
-        icon: 'HeartPulse',
+        id: 'pr-guardians',
+        title: '[UC-042] Danh Sách Người Thân Đón Bé',
+        path: '/parent?tab=guardians',
+        icon: 'ShieldCheck',
         roles: ['PHU_HUYNH'],
-        useCases: ['UC-046', 'UC-044', 'UC-045', 'UC-028', 'UC-051', 'UC-029', 'UC-031'],
+        useCases: ['UC-042'],
       },
       {
-        id: 'pr-tuition',
-        title: 'Học Phí & Giao Dịch VietQR',
-        path: '/parent/tuition',
+        id: 'pr-emergency-pickup',
+        title: '[UC-043] Ủy Quyền Đón Hộ Đột Xuất',
+        path: '/parent?tab=emergency-pickup',
+        icon: 'DoorOpen',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-043'],
+      },
+      {
+        id: 'pr-leave',
+        title: '[UC-044] Nộp Đơn Xin Nghỉ Học Trực Tuyến',
+        path: '/parent?tab=leave',
+        icon: 'FileText',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-044'],
+      },
+      {
+        id: 'pr-meds',
+        title: '[UC-045] Gửi Đơn Dặn Thuốc Điện Tử',
+        path: '/parent?tab=medication',
+        icon: 'Pill',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-045'],
+      },
+      {
+        id: 'pr-gate-timeline',
+        title: '[UC-046] Thông Báo Đón Trả Kèm Ảnh',
+        path: '/parent?tab=gate-notifications',
+        icon: 'Camera',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-046'],
+      },
+      {
+        id: 'pr-invoice',
+        title: '[UC-047/048/049] Bảng Kê & Nộp Học Phí VietQR',
+        path: '/parent?tab=invoice',
         icon: 'Receipt',
         roles: ['PHU_HUYNH'],
         useCases: ['UC-047', 'UC-048', 'UC-049', 'UC-058'],
       },
       {
-        id: 'pr-interactions',
-        title: 'Tương Tác & Thủ Tục Hành Chính',
-        path: '/parent/interactions',
+        id: 'pr-petition',
+        title: '[UC-050] Nộp Đơn Yêu Cầu Sự Vụ Học Sinh',
+        path: '/parent?tab=petitions',
+        icon: 'FileQuestion',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-050'],
+      },
+      {
+        id: 'pr-chat',
+        title: '[UC-066] Nhắn Tin Bảo Mật Cô - Phụ Huynh',
+        path: '/parent?tab=interactions',
         icon: 'MessageSquare',
         roles: ['PHU_HUYNH'],
-        useCases: ['UC-050', 'UC-066', 'UC-067', 'UC-068'],
+        useCases: ['UC-066'],
+      },
+      {
+        id: 'pr-survey',
+        title: '[UC-068] Khảo Sát Ý Kiến & Đánh Giá Dịch Vụ',
+        path: '/parent?tab=survey',
+        icon: 'Star',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-068'],
+      },
+      {
+        id: 'pr-privacy',
+        title: '[UC-069] Xóa Dữ Liệu Sinh Trắc Học (NĐ 13)',
+        path: '/parent?tab=privacy-decree13',
+        icon: 'Lock',
+        roles: ['PHU_HUYNH'],
+        useCases: ['UC-069'],
       },
     ],
   },
 
   // ==========================================
-  // NHÓM CHUNG CHO MỌI VAI TRÒ ĐÃ ĐĂNG NHẬP
+  // NHÓM 1: DÙNG CHUNG CHO MỌI VAI TRÒ ĐÃ ĐĂNG NHẬP
+  // Use Case: UC-004
   // ==========================================
   {
     groupTitle: 'Tài Khoản & Cá Nhân',
@@ -374,7 +657,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     items: [
       {
         id: 'common-profile',
-        title: 'Hồ Sơ Cá Nhân & Bảo Mật',
+        title: '[UC-004] Hồ Sơ Cá Nhân & Đổi Mật Khẩu',
         path: '/profile',
         icon: 'User',
         roles: [

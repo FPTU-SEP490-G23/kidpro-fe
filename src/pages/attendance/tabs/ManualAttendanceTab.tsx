@@ -215,14 +215,7 @@ export const ManualAttendanceTab: React.FC = () => {
         } catch {
           // ignore error
         }
-        return [
-          { id: 'stu-01', fullName: 'Trần Gia Bảo', studentCode: 'HS-1001', allergyInfo: 'Dị ứng đậu phộng, lạc', status: 'ACTIVE' },
-          { id: 'stu-02', fullName: 'Lê Bảo An', studentCode: 'HS-1002', allergyInfo: 'Dị ứng tôm, cua biển (Hải sản nặng)', status: 'ACTIVE' },
-          { id: 'stu-03', fullName: 'Nguyễn Tuấn Kiệt', studentCode: 'HS-1003', status: 'ACTIVE' },
-          { id: 'stu-04', fullName: 'Phạm Minh Khang', studentCode: 'HS-1004', status: 'ACTIVE' },
-          { id: 'stu-05', fullName: 'Hoàng Thảo My', studentCode: 'HS-1005', status: 'ACTIVE' },
-          { id: 'stu-06', fullName: 'Vũ Đăng Khoa', studentCode: 'HS-1006', status: 'ACTIVE' },
-        ];
+        return [];
       }
     }
   });

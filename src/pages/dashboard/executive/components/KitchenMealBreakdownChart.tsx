@@ -55,10 +55,18 @@ export const KitchenMealBreakdownChart: React.FC<KitchenMealBreakdownChartProps>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
-            {classSummaries.map((cls) => {
-              const hasAllergy = cls.allergyDietCount > 0;
+            {classSummaries.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-10 text-center text-slate-400">
+                  <ChefHat className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                  <p className="text-xs font-semibold">Chưa có dữ liệu chốt khẩu phần theo lớp cho ngày này</p>
+                </td>
+              </tr>
+            ) : (
+              classSummaries.map((cls) => {
+                const hasAllergy = cls.allergyDietCount > 0;
 
-              return (
+                return (
                 <tr key={cls.classId} className="hover:bg-slate-50/70 transition">
                   <td className="py-3 px-4">
                     <span className="font-bold text-slate-800 text-sm block">{cls.className}</span>
@@ -116,7 +124,7 @@ export const KitchenMealBreakdownChart: React.FC<KitchenMealBreakdownChartProps>
                   </td>
                 </tr>
               );
-            })}
+            }))}
           </tbody>
         </table>
       </div>

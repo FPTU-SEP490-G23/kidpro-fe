@@ -27,131 +27,7 @@ import {
 import { useResolveDispute } from '../../../hooks/useResolveDispute';
 import { formatCurrency } from '../../../utils/formatters';
 
-// Dữ liệu mẫu khiếu nại học phí
-const INITIAL_DISPUTES: PaymentDisputeItem[] = [
-  {
-    id: 'DISP-202610-001',
-    invoiceId: 'INV-202610-001',
-    invoiceNumber: 'HD-2026-10-001',
-    referenceCode: 'INV202610A7B9C1',
-    studentId: 'STU-101',
-    studentCode: 'KP-2611',
-    studentName: 'Nguyễn Tuấn Kiệt',
-    className: 'Mầm 1 (24-36 tháng)',
-    parentName: 'Nguyễn Văn Tuấn',
-    parentPhone: '0903123456',
-    category: 'MEAL_REFUND',
-    disputedAmount: 105000,
-    reason:
-      'Bé nghỉ 3 ngày có phép từ ngày 10/10 đến 12/10 cô giáo đã duyệt đơn trước 08:30 nhưng bảng kê tháng này chưa thấy trừ 105.000đ tiền ăn',
-    proofPhotoUrl: 'https://images.unsplash.com/photo-1584697964190-705b893e150a?w=500',
-    status: 'PENDING_REVIEW',
-    submittedAt: '2026-10-10 08:15',
-    originalInvoiceTotal: 3850000,
-    crossCheckAudit: {
-      attendanceRecord: {
-        date: '2026-10-10',
-        isPresent: false,
-        cameraPhotoUrl: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=300',
-      },
-      leaveRequest: {
-        id: 'LR-202610-089',
-        submittedAt: '2026-10-10 07:15 AM',
-        approvedBy: 'Cô Lê Thị Mai (GVCN)',
-        isBeforeCutoff: true,
-      },
-      kitchenHeadcount: {
-        mealCharged: true,
-        mealRefundLogged: false, // Bị sót
-      },
-      auditConclusion:
-        'Hợp lệ: Đơn nghỉ nộp lúc 07:15 AM (trước mốc 08:30 AM). Đủ điều kiện hoàn tiền ăn 3 ngày = 105.000 VNĐ.',
-      suggestedAdjustmentAmount: 105000,
-    },
-  },
-  {
-    id: 'DISP-202610-002',
-    invoiceId: 'INV-202610-002',
-    invoiceNumber: 'HD-2026-10-002',
-    referenceCode: 'INV202610B8C2D3',
-    studentId: 'STU-102',
-    studentCode: 'KP-2612',
-    studentName: 'Đặng Ngọc Ánh',
-    className: 'Chồi 1 (3-4 tuổi)',
-    parentName: 'Trịnh Thị Lan',
-    parentPhone: '0912345678',
-    category: 'LATE_PICKUP',
-    disputedAmount: 50000,
-    reason:
-      'Ngày 05/10 mẹ đón bé lúc 17:10 do trời mưa kẹt xe, cô giáo nói hôm đó được miễn trừ do thời tiết nhưng trong hóa đơn vẫn tính 50.000đ phụ phí trông muộn',
-    proofPhotoUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500',
-    status: 'PENDING_REVIEW',
-    submittedAt: '2026-10-09 19:40',
-    originalInvoiceTotal: 4200000,
-    crossCheckAudit: {
-      attendanceRecord: {
-        date: '2026-10-05',
-        isPresent: true,
-        checkInTime: '07:45 AM',
-        checkOutTime: '17:12 PM',
-        cameraPhotoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=300',
-      },
-      leaveRequest: undefined,
-      kitchenHeadcount: {
-        mealCharged: true,
-        mealRefundLogged: true,
-      },
-      auditConclusion:
-        'Hợp lệ: Camera cổng ghi nhận đón lúc 17:12 PM, phù hợp với chính sách miễn trừ đón muộn do thời tiết mưa bão của BGH ngày 05/10. Đủ điều kiện giảm trừ 50.000đ.',
-      suggestedAdjustmentAmount: 50000,
-    },
-  },
-  {
-    id: 'DISP-202609-003',
-    invoiceId: 'INV-202609-003',
-    invoiceNumber: 'HD-2026-09-014',
-    referenceCode: 'INV202609C3D4E5',
-    studentId: 'STU-103',
-    studentCode: 'KP-2613',
-    studentName: 'Lê Hoàng Long',
-    className: 'Chồi 2 (3-4 tuổi)',
-    parentName: 'Lê Văn Nam',
-    parentPhone: '0988776655',
-    category: 'BASE_TUITION',
-    disputedAmount: 300000,
-    reason: 'Đề nghị áp dụng chính sách giảm trừ 10% học phí cho anh chị em ruột học cùng trường',
-    status: 'RESOLVED_ADJUSTED',
-    submittedAt: '2026-09-05 10:20',
-    originalInvoiceTotal: 3500000,
-    adjustmentAmount: 300000,
-    adjustmentReason: 'Đã xác minh hồ sơ 2 bé học cùng trường cơ sở 1 theo quy định giảm trừ anh chị em ruột (BR-012)',
-    adjustedInvoiceTotal: 3200000,
-    reviewedAt: '2026-09-06 09:30',
-    reviewedBy: 'Kế toán trưởng Phạm Thu Hà',
-  },
-  {
-    id: 'DISP-202609-004',
-    invoiceId: 'INV-202609-004',
-    invoiceNumber: 'HD-2026-09-020',
-    referenceCode: 'INV202609D4E5F6',
-    studentId: 'STU-104',
-    studentCode: 'KP-2614',
-    studentName: 'Bùi Hải Yến',
-    className: 'Mầm 2 (24-36 tháng)',
-    parentName: 'Bùi Văn Hùng',
-    parentPhone: '0977112233',
-    category: 'MEAL_REFUND',
-    disputedAmount: 70000,
-    reason: 'Xin hoàn tiền ăn 2 ngày 20/09 và 21/09 gia đình quên nộp đơn trên app',
-    status: 'REJECTED_EXPLAINED',
-    submittedAt: '2026-09-25 14:15',
-    originalInvoiceTotal: 3950000,
-    rejectionReason:
-      'Không đủ điều kiện theo Quyết định 1246/BYT và Quy chế tài chính: Phụ huynh không nộp đơn xin nghỉ trước 08:30 AM nên bếp đã chế biến suất ăn theo kế hoạch.',
-    reviewedAt: '2026-09-26 11:00',
-    reviewedBy: 'Kế toán viên Hoàng Kim Chi',
-  },
-];
+const INITIAL_DISPUTES: PaymentDisputeItem[] = [];
 
 export const PaymentDisputesManagementTab: React.FC = () => {
   // Filters & State
@@ -185,13 +61,12 @@ export const PaymentDisputesManagementTab: React.FC = () => {
     queryFn: async () => {
       try {
         const res = await financeApi.getPaymentDisputes();
-        return res.data && res.data.length > 0 ? res.data : INITIAL_DISPUTES;
+        return res.data && res.data.length > 0 ? res.data : [];
       } catch {
-        return INITIAL_DISPUTES;
+        return [];
       }
     },
-    initialData: INITIAL_DISPUTES,
-  });
+      });
 
   // Mutation
   const resolveMutation = useResolveDispute();

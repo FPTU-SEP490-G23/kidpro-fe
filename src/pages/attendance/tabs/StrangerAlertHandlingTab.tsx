@@ -115,37 +115,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
         console.warn('API getUnresolvedAlerts error, using mock items:', err);
       }
 
-      // High-quality mock items for gate security protocol demonstration
-      return [
-        {
-          id: 'alert-gate-01',
-          studentId: 'stu-01',
-          studentName: 'Trần Gia Bảo',
-          studentCode: 'HS-1001',
-          className: 'Mầm 1',
-          isMatch: false,
-          confidenceScore: 0.42,
-          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
-          capturedAt: '16:45:10',
-          gateName: 'Cổng Chính 01',
-          resolved: false,
-          parentPhone: '0903 123 456'
-        },
-        {
-          id: 'alert-gate-02',
-          studentId: 'stu-03',
-          studentName: 'Phạm Hải Đăng',
-          studentCode: 'HS-1003',
-          className: 'Chồi 2',
-          isMatch: false,
-          confidenceScore: 0.58,
-          photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
-          capturedAt: '17:05:22',
-          gateName: 'Cổng Phụ Sau',
-          resolved: false,
-          parentPhone: '0988 654 321'
-        }
-      ];
+      return [];
     }
   });
 
@@ -153,10 +123,10 @@ export const StrangerAlertHandlingTab: React.FC = () => {
   const currentStudent = useMemo(() => {
     if (!selectedAlert) return null;
     return students.find((s) => s.id === selectedAlert.studentId) || {
-      id: selectedAlert.studentId || 'stu-01',
+      id: selectedAlert.studentId || '',
       fullName: selectedAlert.studentName || 'Học sinh',
-      className: selectedAlert.className || 'Mầm 1',
-      parentName: 'Nguyễn Văn Tuấn',
+      className: selectedAlert.className || 'Chưa xếp lớp',
+      parentName: 'Phụ huynh',
       status: 'ACTIVE' as any
     };
   }, [selectedAlert, students]);
