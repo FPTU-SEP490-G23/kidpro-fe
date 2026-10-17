@@ -111,14 +111,18 @@ export const tenantApi = {
   // 1. Lấy danh sách tenant phân trang & tìm kiếm
   getTenants: async (params?: TenantListParams): Promise<{ data: Tenant[]; total: number }> => {
     try {
-      const res = await axiosClient.get<{ data: Tenant[]; total: number }>('/v1/admin/tenants', {
+      const res: any = await axiosClient.get('/admin/tenants', {
         params,
       });
-      if (res && Array.isArray((res as any).data)) {
-        return res as any;
+      const listData = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : null);
+      if (listData && listData.length > 0) {
+        return {
+          data: listData,
+          total: typeof res?.total === 'number' ? res.total : listData.length,
+        };
       }
     } catch {
-      // fallback
+      // Tự động chuyển tiếp sang kho lưu trữ cục bộ nếu backend chưa triển khai endpoint
     }
 
     let list = getStoredTenants();
@@ -148,9 +152,10 @@ export const tenantApi = {
   // 2. Chi tiết tenant
   getTenantById: async (id: string): Promise<Tenant> => {
     try {
-      const res = await axiosClient.get<Tenant>(`/v1/admin/tenants/${id}`);
-      if (res && (res as any).id) {
-        return res as any;
+      const res: any = await axiosClient.get(`/admin/tenants/${id}`);
+      const data = res?.data || res;
+      if (data && (data.id || data.schoolCode)) {
+        return data;
       }
     } catch {
       // fallback
@@ -165,9 +170,13 @@ export const tenantApi = {
   // 3. Khởi tạo trường học / tenant mới
   createTenant: async (payload: CreateTenantPayload): Promise<Tenant> => {
     try {
-      const res = await axiosClient.post<Tenant>('/v1/admin/tenants', payload);
-      if (res && (res as any).id) {
-        return res as any;
+      const res: any = await axiosClient.post('/admin/tenants', payload);
+      const data = res?.data || res;
+      if (data && data.id) {
+        const list = getStoredTenants();
+        list.unshift(data);
+        saveStoredTenants(list);
+        return data;
       }
     } catch (err: any) {
       if (err?.response?.status === 409) {
@@ -225,9 +234,10 @@ export const tenantApi = {
   // 4. Chỉnh sửa thông tin trường học
   updateTenant: async (id: string, payload: UpdateTenantPayload): Promise<Tenant> => {
     try {
-      const res = await axiosClient.put<Tenant>(`/v1/admin/tenants/${id}`, payload);
-      if (res && (res as any).id) {
-        return res as any;
+      const res: any = await axiosClient.put(`/admin/tenants/${id}`, payload);
+      const data = res?.data || res;
+      if (data && data.id) {
+        return data;
       }
     } catch {
       // fallback
@@ -254,9 +264,10 @@ export const tenantApi = {
     payload: { status: 'ACTIVE' | 'DEACTIVATED' | 'INACTIVE'; reason?: string }
   ): Promise<Tenant> => {
     try {
-      const res = await axiosClient.patch<Tenant>(`/v1/admin/tenants/${id}/status`, payload);
-      if (res && (res as any).id) {
-        return res as any;
+      const res: any = await axiosClient.patch(`/admin/tenants/${id}/status`, payload);
+      const data = res?.data || res;
+      if (data && data.id) {
+        return data;
       }
     } catch {
       // fallback

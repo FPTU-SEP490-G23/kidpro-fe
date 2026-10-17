@@ -63,7 +63,7 @@ export const healthMonitoringApi = {
   async getSystemStatus(): Promise<SystemHealthResponse> {
     try {
       const res = await axiosClient.get<any, { data: SystemHealthResponse }>(
-        '/v1/admin/health/system-status'
+        '/admin/health/system-status'
       );
       if (res?.data) return res.data;
     } catch {
@@ -146,7 +146,7 @@ export const healthMonitoringApi = {
   async getSystemMetrics(): Promise<SystemMetricsResponse> {
     try {
       const res = await axiosClient.get<any, { data: SystemMetricsResponse }>(
-        '/v1/admin/health/metrics'
+        '/admin/health/metrics'
       );
       if (res?.data) return res.data;
     } catch {
@@ -193,7 +193,7 @@ export const healthMonitoringApi = {
   async pingService(serviceName: string): Promise<{ status: string; latencyMs: number; message: string }> {
     try {
       const res = await axiosClient.post<any, { data: any }>(
-        `/v1/admin/health/ping/${serviceName}`
+        `/admin/health/ping/${serviceName}`
       );
       if (res?.data) return res.data;
     } catch {

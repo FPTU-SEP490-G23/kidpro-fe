@@ -75,7 +75,7 @@ export const integrationApi = {
   // Lấy toàn bộ cấu hình tích hợp ngoại vi
   async getIntegrations(): Promise<PlatformIntegrations> {
     try {
-      const res = await axiosClient.get<any, { data: PlatformIntegrations }>('/v1/admin/integrations');
+      const res = await axiosClient.get<any, { data: PlatformIntegrations }>('/admin/integrations');
       if (res?.data) {
         saveStoredIntegrations(res.data);
         return res.data;
@@ -104,7 +104,7 @@ export const integrationApi = {
     };
 
     try {
-      await axiosClient.put('/v1/admin/integrations/payment', payload);
+      await axiosClient.put('/admin/integrations/payment', payload);
     } catch {
       // Fallback
     }
@@ -118,7 +118,7 @@ export const integrationApi = {
   async testPaymentWebhook(webhookUrl: string, _secretKey: string): Promise<WebhookTestResult> {
     try {
       const res = await axiosClient.post<any, { data: WebhookTestResult }>(
-        '/v1/admin/integrations/payment/test-webhook',
+        '/admin/integrations/payment/test-webhook',
         { webhookUrl }
       );
       if (res?.data) return res.data;
@@ -159,7 +159,7 @@ export const integrationApi = {
     };
 
     try {
-      await axiosClient.post('/v1/admin/integrations/firebase-certificate', parsedJson);
+      await axiosClient.post('/admin/integrations/firebase-certificate', parsedJson);
     } catch {
       // Fallback
     }
@@ -183,7 +183,7 @@ export const integrationApi = {
   // Gửi thông báo thử nghiệm Firebase
   async testFirebasePing(): Promise<{ success: boolean; message: string; latencyMs: number }> {
     try {
-      const res = await axiosClient.post<any, { data: any }>('/v1/admin/integrations/firebase/ping');
+      const res = await axiosClient.post<any, { data: any }>('/admin/integrations/firebase/ping');
       if (res?.data) return res.data;
     } catch {
       // Fallback
@@ -212,7 +212,7 @@ export const integrationApi = {
     };
 
     try {
-      await axiosClient.put('/v1/admin/integrations/ai-service', payload);
+      await axiosClient.put('/admin/integrations/ai-service', payload);
     } catch {
       // Fallback
     }
@@ -227,7 +227,7 @@ export const integrationApi = {
     const startTime = performance.now();
     try {
       const res = await axiosClient.post<any, { data: AiPingResult }>(
-        '/v1/admin/integrations/ai-service/ping',
+        '/admin/integrations/ai-service/ping',
         { baseUrl, apiKey }
       );
       if (res?.data) return res.data;
@@ -270,7 +270,7 @@ export const integrationApi = {
     };
 
     try {
-      await axiosClient.put('/v1/admin/integrations/sms', payload);
+      await axiosClient.put('/admin/integrations/sms', payload);
     } catch {
       // Fallback
     }
@@ -284,7 +284,7 @@ export const integrationApi = {
   async testSmsOtp(phone: string): Promise<TestSmsResult> {
     try {
       const res = await axiosClient.post<any, { data: TestSmsResult }>(
-        '/v1/admin/integrations/test-sms',
+        '/admin/integrations/test-sms',
         { phone }
       );
       if (res?.data) return res.data;

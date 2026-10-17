@@ -295,18 +295,121 @@ const saveStoredUsers = (data: UserAccount[]): void => {
   localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(data));
 };
 
+// Helper xác định quyền mặc định theo vai trò
+export const getDefaultPermissionsForRole = (role: string): string[] => {
+  switch (role) {
+    case 'SYSTEM_ADMIN':
+      return [
+        'STUDENTS_VIEW', 'STUDENTS_CREATE', 'STUDENTS_EDIT', 'STUDENTS_DELETE',
+        'CLASSES_VIEW', 'CLASSES_CREATE', 'CLASSES_EDIT', 'CLASSES_DELETE',
+        'TIMETABLES_VIEW', 'TIMETABLES_CREATE', 'TIMETABLES_EDIT', 'TIMETABLES_DELETE',
+        'TRANSFER_REQUESTS_VIEW', 'TRANSFER_REQUESTS_CREATE', 'TRANSFER_REQUESTS_EDIT', 'TRANSFER_REQUESTS_APPROVE',
+        'DAILY_ATTENDANCE_VIEW', 'DAILY_ATTENDANCE_CREATE', 'DAILY_ATTENDANCE_EDIT', 'DAILY_ATTENDANCE_APPROVE',
+        'AI_RECOGNITION_VIEW', 'AI_RECOGNITION_CREATE', 'AI_RECOGNITION_EDIT',
+        'PICKUP_MANAGEMENT_VIEW', 'PICKUP_MANAGEMENT_CREATE', 'PICKUP_MANAGEMENT_EDIT', 'PICKUP_MANAGEMENT_APPROVE',
+        'MEAL_ORDERS_VIEW', 'MEAL_ORDERS_CREATE', 'MEAL_ORDERS_EDIT', 'MEAL_ORDERS_APPROVE',
+        'WEEKLY_MENUS_VIEW', 'WEEKLY_MENUS_CREATE', 'WEEKLY_MENUS_EDIT', 'WEEKLY_MENUS_DELETE',
+        'FOOD_SAFETY_3STEP_VIEW', 'FOOD_SAFETY_3STEP_CREATE', 'FOOD_SAFETY_3STEP_EDIT', 'FOOD_SAFETY_3STEP_APPROVE',
+        'FEE_CONFIG_VIEW', 'FEE_CONFIG_CREATE', 'FEE_CONFIG_EDIT', 'FEE_CONFIG_DELETE',
+        'TUITION_INVOICES_VIEW', 'TUITION_INVOICES_CREATE', 'TUITION_INVOICES_EDIT', 'TUITION_INVOICES_APPROVE',
+        'LATE_PICKUP_FEES_VIEW', 'LATE_PICKUP_FEES_CREATE', 'LATE_PICKUP_FEES_EDIT',
+        'TENANT_MANAGEMENT_VIEW', 'TENANT_MANAGEMENT_CREATE', 'TENANT_MANAGEMENT_EDIT', 'TENANT_MANAGEMENT_DELETE', 'TENANT_MANAGEMENT_APPROVE',
+        'USER_ACCOUNTS_VIEW', 'USER_ACCOUNTS_CREATE', 'USER_ACCOUNTS_EDIT', 'USER_ACCOUNTS_DELETE',
+        'RBAC_PERMISSIONS_VIEW', 'RBAC_PERMISSIONS_CREATE', 'RBAC_PERMISSIONS_EDIT',
+      ];
+    case 'BGH':
+      return [
+        'STUDENTS_VIEW', 'STUDENTS_CREATE', 'STUDENTS_EDIT',
+        'CLASSES_VIEW', 'CLASSES_CREATE', 'CLASSES_EDIT',
+        'TIMETABLES_VIEW', 'TIMETABLES_CREATE', 'TIMETABLES_EDIT',
+        'TRANSFER_REQUESTS_VIEW', 'TRANSFER_REQUESTS_APPROVE',
+        'DAILY_ATTENDANCE_VIEW', 'DAILY_ATTENDANCE_APPROVE',
+        'MEAL_ORDERS_VIEW', 'MEAL_ORDERS_APPROVE',
+        'WEEKLY_MENUS_VIEW', 'WEEKLY_MENUS_APPROVE',
+        'FOOD_SAFETY_3STEP_VIEW', 'FOOD_SAFETY_3STEP_APPROVE',
+        'TUITION_INVOICES_VIEW', 'TUITION_INVOICES_APPROVE',
+      ];
+    case 'GIAO_VIEN':
+      return [
+        'STUDENTS_VIEW', 'STUDENTS_EDIT',
+        'TIMETABLES_VIEW',
+        'DAILY_ATTENDANCE_VIEW', 'DAILY_ATTENDANCE_CREATE', 'DAILY_ATTENDANCE_EDIT',
+        'AI_RECOGNITION_VIEW',
+        'PICKUP_MANAGEMENT_VIEW', 'PICKUP_MANAGEMENT_CREATE',
+        'WEEKLY_MENUS_VIEW',
+        'FOOD_SAFETY_3STEP_VIEW',
+      ];
+    case 'KE_TOAN':
+      return [
+        'STUDENTS_VIEW',
+        'FEE_CONFIG_VIEW', 'FEE_CONFIG_CREATE', 'FEE_CONFIG_EDIT',
+        'TUITION_INVOICES_VIEW', 'TUITION_INVOICES_CREATE', 'TUITION_INVOICES_EDIT',
+        'LATE_PICKUP_FEES_VIEW', 'LATE_PICKUP_FEES_CREATE',
+      ];
+    case 'BEP':
+      return [
+        'MEAL_ORDERS_VIEW', 'MEAL_ORDERS_CREATE', 'MEAL_ORDERS_EDIT',
+        'WEEKLY_MENUS_VIEW', 'WEEKLY_MENUS_CREATE', 'WEEKLY_MENUS_EDIT',
+        'FOOD_SAFETY_3STEP_VIEW', 'FOOD_SAFETY_3STEP_CREATE', 'FOOD_SAFETY_3STEP_EDIT',
+      ];
+    default:
+      return ['STUDENTS_VIEW', 'CLASSES_VIEW'];
+  }
+};
+
+const mapUserDtoToAccount = (dto: any): UserAccount => {
+  const localUsers = getStoredUsers();
+  const localMatch = localUsers.find(
+    (u) => String(u.id) === String(dto.id) || (u.email && u.email.toLowerCase() === dto.email?.toLowerCase())
+  );
+  const defaultRolePerms = getDefaultPermissionsForRole(dto.role);
+
+  return {
+    id: String(dto.id),
+    fullName: dto.fullName || 'Người dùng',
+    email: dto.email,
+    phone: dto.phone || '',
+    tenantId: localMatch?.tenantId || 'tnt_001',
+    tenantName: localMatch?.tenantName || 'KIDPRO Cầu Giấy',
+    role: dto.role,
+    status: dto.status === 'LOCKED' ? 'LOCKED' : 'ACTIVE',
+    avatarUrl:
+      dto.avatarUrl ||
+      localMatch?.avatarUrl ||
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
+    lockReason: localMatch?.lockReason,
+    permissions: localMatch?.permissions || defaultRolePerms,
+    createdAt: dto.createdAt ? new Date(dto.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: localMatch?.updatedAt || (dto.createdAt ? new Date(dto.createdAt).toISOString() : undefined),
+  };
+};
+
 export const rbacApi = {
-  // 1. Lấy danh sách người dùng phân trang & lọc
+  // 1. Lấy danh sách người dùng phân trang & lọc (kết nối Spring Boot /api/admin/users)
   getUsers: async (params?: UserListParams): Promise<{ data: UserAccount[]; total: number }> => {
     try {
-      const res = await axiosClient.get<{ data: UserAccount[]; total: number }>('/v1/admin/users', {
-        params,
+      const queryParams: Record<string, string> = {};
+      if (params?.keyword?.trim()) queryParams.keyword = params.keyword.trim();
+      if (params?.role && params.role !== 'ALL') queryParams.role = params.role;
+      if (params?.status && params.status !== 'ALL') queryParams.status = params.status;
+
+      const res: any = await axiosClient.get('/admin/users', {
+        params: queryParams,
       });
-      if (res && Array.isArray((res as any).data)) {
-        return res as any;
+
+      const rawList = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : null);
+      if (rawList && rawList.length > 0) {
+        let mapped = rawList.map((u: any) => mapUserDtoToAccount(u));
+        if (params?.tenantId && params.tenantId !== 'ALL') {
+          mapped = mapped.filter((u: UserAccount) => u.tenantId === params.tenantId);
+        }
+        return {
+          data: mapped,
+          total: mapped.length,
+        };
       }
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn('Lưu ý: Không thể tải từ backend /api/admin/users, kích hoạt dữ liệu dự phòng:', err);
     }
 
     let list = getStoredUsers();
@@ -344,28 +447,38 @@ export const rbacApi = {
 
   // 2. Lấy danh mục cây tính năng Ma trận phân quyền
   getPermissionsMatrix: async (): Promise<PermissionModule[]> => {
-    try {
-      const res = await axiosClient.get<PermissionModule[]>('/v1/admin/roles/permissions-matrix');
-      if (res && Array.isArray(res)) {
-        return res;
-      }
-    } catch {
-      // fallback
-    }
     return SYSTEM_PERMISSION_MODULES;
   },
 
-  // 3. Thêm tài khoản mới
+  // 3. Thêm tài khoản mới (kết nối Spring Boot /api/admin/users)
   createUser: async (payload: CreateUserPayload): Promise<UserAccount> => {
     try {
-      const res = await axiosClient.post<UserAccount>('/v1/admin/users', payload);
-      if (res && (res as any).id) {
-        return res as any;
+      const bePayload = {
+        email: payload.email.trim(),
+        password: (payload as any).password || 'Kidpro@2026',
+        role: payload.role,
+        fullName: payload.fullName.trim(),
+        phone: payload.phone?.trim() || null,
+        status: 'ACTIVE',
+      };
+
+      const res: any = await axiosClient.post('/admin/users', bePayload);
+      const createdDto = res?.data || res;
+      if (createdDto && (createdDto.id || createdDto.email)) {
+        const newAccount = mapUserDtoToAccount(createdDto);
+        newAccount.tenantId = payload.tenantId;
+        newAccount.tenantName = payload.tenantId === 'tnt_001' ? 'KIDPRO Cầu Giấy' : 'KIDPRO Chi Nhánh';
+
+        const list = getStoredUsers();
+        list.unshift(newAccount);
+        saveStoredUsers(list);
+        return newAccount;
       }
     } catch (err: any) {
-      if (err?.response?.status === 409) {
+      if (err?.response?.status === 409 || err?.response?.data?.message?.toLowerCase().includes('email')) {
         throw new Error(RBAC_MESSAGES.MSG_019);
       }
+      console.warn('Lưu ý: Không thể lưu qua backend, lưu tạm vào bộ nhớ cục bộ:', err);
     }
 
     const list = getStoredUsers();
@@ -389,7 +502,7 @@ export const rbacApi = {
       tenantName: payload.tenantId === 'tnt_001' ? 'KIDPRO Cầu Giấy' : 'KIDPRO Chi Nhánh',
       role: payload.role,
       status: 'ACTIVE',
-      permissions: ['STUDENTS_VIEW', 'DAILY_ATTENDANCE_VIEW'], // Quyền cơ bản mặc định
+      permissions: getDefaultPermissionsForRole(payload.role),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -405,19 +518,6 @@ export const rbacApi = {
     permissions: string[],
     clientUpdatedAt?: string
   ): Promise<UserAccount> => {
-    try {
-      const res = await axiosClient.put<UserAccount>(`/v1/admin/users/${userId}/permissions`, {
-        permissions,
-      });
-      if (res && (res as any).id) {
-        return res as any;
-      }
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
-        throw new Error(RBAC_MESSAGES.MSG_024);
-      }
-    }
-
     const list = getStoredUsers();
     const index = list.findIndex((u) => u.id === userId);
     if (index === -1) throw new Error('Không tìm thấy người dùng');
@@ -442,18 +542,30 @@ export const rbacApi = {
     return targetUser;
   },
 
-  // 5. Khóa / Mở khóa tài khoản người dùng
+  // 5. Khóa / Mở khóa tài khoản người dùng (kết nối Spring Boot PUT /api/admin/users/{id}/status)
   updateUserStatus: async (
     userId: string,
     payload: UpdateUserStatusPayload
   ): Promise<UserAccount> => {
     try {
-      const res = await axiosClient.patch<UserAccount>(`/v1/admin/users/${userId}/status`, payload);
-      if (res && (res as any).id) {
-        return res as any;
+      const res: any = await axiosClient.put(`/admin/users/${userId}/status`, {
+        status: payload.status,
+      });
+      const updatedDto = res?.data || res;
+      if (updatedDto && (updatedDto.id || updatedDto.email)) {
+        const updatedAccount = mapUserDtoToAccount(updatedDto);
+        if (payload.reason) updatedAccount.lockReason = payload.reason;
+
+        const list = getStoredUsers();
+        const index = list.findIndex((u) => u.id === userId);
+        if (index !== -1) {
+          list[index] = updatedAccount;
+          saveStoredUsers(list);
+        }
+        return updatedAccount;
       }
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn('Lưu ý: Không thể cập nhật trạng thái qua backend, thực hiện cục bộ:', err);
     }
 
     const list = getStoredUsers();
