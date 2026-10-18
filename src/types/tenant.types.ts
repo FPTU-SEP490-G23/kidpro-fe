@@ -19,6 +19,7 @@ export interface Tenant {
   status: TenantStatus;
   deactivatedReason?: string;
   totalStudents?: number;
+  totalClasses?: number;
   totalTeachers?: number;
   createdAt: string;
   updatedAt?: string;
