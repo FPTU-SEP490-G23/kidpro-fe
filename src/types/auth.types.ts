@@ -1,6 +1,5 @@
 export type UserRole =
   | 'SYSTEM_ADMIN'
-  | 'SUPER_ADMIN'
   | 'BGH'
   | 'GIAO_VU'
   | 'KE_TOAN'
@@ -16,6 +15,9 @@ export interface User {
   role: UserRole;
   status: string;
   avatarUrl?: string;
+  schoolId?: string;
+  schoolCode?: string;
+  schoolName?: string;
 }
 
 export interface AuthState {

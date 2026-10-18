@@ -174,8 +174,16 @@ export const DashboardPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (role === 'SYSTEM_ADMIN' ) {
+      navigate('/admin/schools', { replace: true });
+      return;
+    }
     loadDashboardStats();
-  }, []);
+  }, [role, navigate]);
+
+  if (role === 'SYSTEM_ADMIN' ) {
+    return null;
+  }
 
   const attendanceRatio =
     stats.totalStudents > 0
@@ -278,7 +286,7 @@ export const DashboardPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Phím tắt cho Giáo viên / BGH */}
-            {(role === 'GIAO_VIEN' || role === 'BGH' || role === 'SYSTEM_ADMIN') && (
+            {(role === 'GIAO_VIEN' || role === 'BGH') && (
               <>
                 <button
                   onClick={() => navigate('/attendance')}
@@ -315,7 +323,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Phím tắt cho Bếp */}
-            {(role === 'BEP' || role === 'BGH' || role === 'SYSTEM_ADMIN') && (
+            {(role === 'BEP' || role === 'BGH') && (
               <button
                 onClick={() => navigate('/kitchen')}
                 className="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-left hover:border-amber-400 hover:bg-amber-50/50 transition group"
@@ -334,7 +342,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Phím tắt cho Kế toán */}
-            {(role === 'KE_TOAN' || role === 'BGH' || role === 'SYSTEM_ADMIN') && (
+            {(role === 'KE_TOAN' || role === 'BGH') && (
               <button
                 onClick={() => navigate('/finance')}
                 className="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-left hover:border-cyan-400 hover:bg-cyan-50/50 transition group"
@@ -353,7 +361,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Phím tắt cho Phụ huynh */}
-            {(role === 'PHU_HUYNH' || role === 'SYSTEM_ADMIN') && (
+            {role === 'PHU_HUYNH' && (
               <button
                 onClick={() => navigate('/parent')}
                 className="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-left hover:border-purple-400 hover:bg-purple-50/50 transition group"
@@ -372,7 +380,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Phím tắt cho Giáo vụ */}
-            {(role === 'GIAO_VU' || role === 'BGH' || role === 'SYSTEM_ADMIN') && (
+            {(role === 'GIAO_VU' || role === 'BGH') && (
               <button
                 onClick={() => navigate('/academic')}
                 className="flex items-center justify-between rounded-xl border border-slate-200 p-4 text-left hover:border-indigo-400 hover:bg-indigo-50/50 transition group"

@@ -48,8 +48,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
   const canReview =
     role === 'GIAO_VU' ||
     role === 'BGH' ||
-    role === 'SYSTEM_ADMIN' ||
-    role === 'SUPER_ADMIN';
+    role === 'SYSTEM_ADMIN' ;
 
   // Filters
   const [selectedWeek, setSelectedWeek] = useState<number>(8);

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, RefreshCw, Radio, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, RefreshCw, Radio, CheckCircle2, Clock, Building2 } from 'lucide-react';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 interface ExecutiveToolbarProps {
   selectedDate: string;
@@ -16,20 +17,38 @@ export const ExecutiveToolbar: React.FC<ExecutiveToolbarProps> = ({
   isFetching,
   isCacheData,
 }) => {
+  const { user } = useAuth();
+  const schoolName = user?.schoolName;
+  const schoolCode = user?.schoolCode;
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs">
       <div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#1E4D40] text-xs font-bold border border-emerald-300">
             UC-012 Executive Dashboard
           </span>
           <span className="text-xs text-slate-400">|</span>
           <span className="text-xs font-semibold text-slate-500">Ban Giám Hiệu & Quản Trị</span>
+          {schoolName && (
+            <>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#275A4E] text-xs font-bold border border-emerald-200">
+                <Building2 className="w-3.5 h-3.5 text-[#275A4E]" />
+                {schoolName} {schoolCode ? `(${schoolCode})` : ''}
+              </span>
+            </>
+          )}
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800 mt-1">
-          Bảng Điều Hành Toàn Trường Thời Gian Thực
+        <h1 className="text-2xl font-bold tracking-tight text-slate-800 mt-1 flex items-center gap-2 flex-wrap">
+          Bảng Điều Hành {schoolName ? `Trường ${schoolName}` : 'Toàn Trường Thời Gian Thực'}
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
+          {schoolName ? (
+            <span className="font-semibold text-slate-700">
+              Cơ sở: {schoolName} {schoolCode ? `[${schoolCode}]` : ''} —{' '}
+            </span>
+          ) : null}
           Giám sát sĩ số chuyên cần, snapshot suất ăn bếp đã chốt 08:30 AM, tiến độ học phí và an ninh camera cổng
         </p>
       </div>

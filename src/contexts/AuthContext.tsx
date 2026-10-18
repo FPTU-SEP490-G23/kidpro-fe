@@ -32,7 +32,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (savedAccessToken && savedRole && savedUserId) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedAccessToken}`;
-          const normalizedRole = (savedRole?.replace('ROLE_', '') || 'SYSTEM_ADMIN') as UserRole;
+          let normalizedRole = (savedRole?.replace('ROLE_', '') || 'SYSTEM_ADMIN') as UserRole;
+          if ((normalizedRole as any) === 'SUPER_ADMIN') {
+            normalizedRole = 'SYSTEM_ADMIN';
+          }
 
           let parsedUser: User;
           if (savedUser) {
@@ -42,18 +45,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               parsedUser = {
                 id: savedUserId,
                 email: localStorage.getItem('userEmail') || '',
-                fullName: 'Người dùng',
+                fullName: localStorage.getItem('userFullName') || 'Người dùng',
                 role: normalizedRole,
                 status: 'ACTIVE',
+                schoolId: localStorage.getItem('userSchoolId') || undefined,
+                schoolName: localStorage.getItem('userSchoolName') || undefined,
+                schoolCode: localStorage.getItem('userSchoolCode') || undefined,
               };
             }
           } else {
             parsedUser = {
               id: savedUserId,
               email: localStorage.getItem('userEmail') || '',
-              fullName: 'Người dùng',
+              fullName: localStorage.getItem('userFullName') || 'Người dùng',
               role: normalizedRole,
               status: 'ACTIVE',
+              schoolId: localStorage.getItem('userSchoolId') || undefined,
+              schoolName: localStorage.getItem('userSchoolName') || undefined,
+              schoolCode: localStorage.getItem('userSchoolCode') || undefined,
             };
           }
 
@@ -209,6 +218,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fullName: data.fullName || data.email?.split('@')[0] || 'Người dùng',
       role: normalizedRole,
       status: 'ACTIVE',
+      schoolId: data.schoolId,
+      schoolCode: data.schoolCode,
+      schoolName: data.schoolName,
     };
 
     setUser(appUser);
@@ -222,13 +234,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const mockLogin = (selectedRole: UserRole) => {
     const mockUsers: Record<UserRole, User> = {
       SYSTEM_ADMIN: { id: 'sa-01', email: 'admin@kidpro.edu.vn', fullName: 'Quản trị viên Hệ thống', role: 'SYSTEM_ADMIN', status: 'ACTIVE' },
-      SUPER_ADMIN: { id: 'spa-01', email: 'superadmin@kidpro.edu.vn', fullName: 'Platform Super Admin', role: 'SUPER_ADMIN', status: 'ACTIVE' },
-      BGH: { id: 'bgh-01', email: 'hieutruong@kidpro.edu.vn', fullName: 'Cô Nguyễn Thu Hà (Hiệu Trưởng)', role: 'BGH', status: 'ACTIVE' },
-      GIAO_VU: { id: 'gv-01', email: 'giaovu@kidpro.edu.vn', fullName: 'Thầy Trần Quốc Bảo (Giáo vụ)', role: 'GIAO_VU', status: 'ACTIVE' },
-      KE_TOAN: { id: 'kt-01', email: 'ketoan@kidpro.edu.vn', fullName: 'Cô Lê Hoàng Mai (Kế toán)', role: 'KE_TOAN', status: 'ACTIVE' },
-      GIAO_VIEN: { id: 'tch-01', email: 'giaovien@kidpro.edu.vn', fullName: 'Cô Phạm Thị Lan (GV Lớp Mầm 1)', role: 'GIAO_VIEN', status: 'ACTIVE' },
-      BEP: { id: 'bep-01', email: 'bep@kidpro.edu.vn', fullName: 'Chú Nguyễn Văn Hùng (Bếp trưởng)', role: 'BEP', status: 'ACTIVE' },
-      PHU_HUYNH: { id: 'ph-01', email: 'phuhuynh@gmail.com', fullName: 'Anh Vũ Đình Trọng (Phụ huynh bé Bo)', role: 'PHU_HUYNH', status: 'ACTIVE' },
+      BGH: { id: 'bgh-01', email: 'hieutruong@kidpro.edu.vn', fullName: 'Cô Nguyễn Thu Hà (Hiệu Trưởng)', role: 'BGH', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
+      GIAO_VU: { id: 'gv-01', email: 'giaovu@kidpro.edu.vn', fullName: 'Thầy Trần Quốc Bảo (Giáo vụ)', role: 'GIAO_VU', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
+      KE_TOAN: { id: 'kt-01', email: 'ketoan@kidpro.edu.vn', fullName: 'Cô Lê Hoàng Mai (Kế toán)', role: 'KE_TOAN', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
+      GIAO_VIEN: { id: 'tch-01', email: 'giaovien@kidpro.edu.vn', fullName: 'Cô Phạm Thị Lan (GV Lớp Mầm 1)', role: 'GIAO_VIEN', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
+      BEP: { id: 'bep-01', email: 'bep@kidpro.edu.vn', fullName: 'Chú Nguyễn Văn Hùng (Bếp trưởng)', role: 'BEP', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
+      PHU_HUYNH: { id: 'ph-01', email: 'phuhuynh@gmail.com', fullName: 'Anh Vũ Đình Trọng (Phụ huynh bé Bo)', role: 'PHU_HUYNH', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
     };
 
     const targetUser = mockUsers[selectedRole];
@@ -241,6 +252,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('accessToken', mockToken);
     localStorage.setItem('userRole', selectedRole);
     localStorage.setItem('userId', targetUser.id);
+    localStorage.setItem('userEmail', targetUser.email);
+    localStorage.setItem('userFullName', targetUser.fullName);
+    if (targetUser.schoolId) localStorage.setItem('userSchoolId', targetUser.schoolId);
+    if (targetUser.schoolName) localStorage.setItem('userSchoolName', targetUser.schoolName);
+    if (targetUser.schoolCode) localStorage.setItem('userSchoolCode', targetUser.schoolCode);
     localStorage.setItem('kidpro_token', mockToken);
     localStorage.setItem('kidpro_user', JSON.stringify(targetUser));
     axios.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
@@ -262,6 +278,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('userFullName');
+      localStorage.removeItem('userSchoolId');
+      localStorage.removeItem('userSchoolName');
+      localStorage.removeItem('userSchoolCode');
       localStorage.removeItem('kidpro_token');
       localStorage.removeItem('kidpro_user');
       delete axios.defaults.headers.common['Authorization'];

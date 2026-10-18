@@ -6,14 +6,14 @@ export interface NavItem {
   path: string;
   icon: string; // Tên icon Lucide
   badgeKey?: 'unresolvedAlerts' | 'pendingMeals' | 'overdueInvoices' | 'pendingDisputes' | 'unreadLeaves';
-  roles: Array<'SUPER_ADMIN' | 'BGH' | 'GIAO_VU' | 'GIAO_VIEN' | 'KE_TOAN' | 'BEP' | 'PHU_HUYNH' | 'SYSTEM_ADMIN'>;
+  roles: UserRole[];
   useCases: string[]; // Danh sách mã UC (ví dụ: ['UC-010'])
   children?: NavItem[];
 }
 
 export interface NavGroup {
   groupTitle: string;
-  roles: Array<'SUPER_ADMIN' | 'BGH' | 'GIAO_VU' | 'GIAO_VIEN' | 'KE_TOAN' | 'BEP' | 'PHU_HUYNH' | 'SYSTEM_ADMIN'>;
+  roles: UserRole[];
   items: NavItem[];
 }
 
@@ -31,19 +31,19 @@ export interface NavigationBadges {
  */
 export const NAVIGATION_GROUPS: NavGroup[] = [
   // ==========================================
-  // NHÓM 2: QUẢN TRỊ VIÊN NỀN TẢNG (SUPER_ADMIN / SYSTEM_ADMIN)
+  // NHÓM 2: QUẢN TRỊ VIÊN NỀN TẢNG (SYSTEM_ADMIN)
   // Các Use Cases: UC-005, UC-006, UC-007, UC-008
   // ==========================================
   {
     groupTitle: 'Hạ Tầng & Nền Tảng Đa Trường',
-    roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
+    roles: ['SYSTEM_ADMIN'],
     items: [
       {
         id: 'admin-schools',
         title: '[UC-005] Quản Trị Trường Học (Tenants)',
         path: '/admin/schools',
         icon: 'Building2',
-        roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
+        roles: ['SYSTEM_ADMIN'],
         useCases: ['UC-005'],
       },
       {
@@ -51,7 +51,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         title: '[UC-006] Phân Quyền Vai Trò RBAC',
         path: '/admin/users-rbac',
         icon: 'ShieldCheck',
-        roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
+        roles: ['SYSTEM_ADMIN'],
         useCases: ['UC-006'],
       },
       {
@@ -59,7 +59,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         title: '[UC-007] Tích Hợp Dịch Vụ Ngoại Vi',
         path: '/admin/integrations',
         icon: 'Cable',
-        roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
+        roles: ['SYSTEM_ADMIN'],
         useCases: ['UC-007'],
       },
       {
@@ -67,7 +67,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         title: '[UC-008] Giám Sát Sức Khỏe & Uptime',
         path: '/admin/system-health',
         icon: 'Activity',
-        roles: ['SUPER_ADMIN', 'SYSTEM_ADMIN'],
+        roles: ['SYSTEM_ADMIN'],
         useCases: ['UC-008'],
       },
     ],
@@ -645,7 +645,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
   {
     groupTitle: 'Tài Khoản & Cá Nhân',
     roles: [
-      'SUPER_ADMIN',
       'SYSTEM_ADMIN',
       'BGH',
       'GIAO_VU',
@@ -661,7 +660,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         path: '/profile',
         icon: 'User',
         roles: [
-          'SUPER_ADMIN',
           'SYSTEM_ADMIN',
           'BGH',
           'GIAO_VU',

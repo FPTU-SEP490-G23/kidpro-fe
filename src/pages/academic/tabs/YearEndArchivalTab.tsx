@@ -36,7 +36,7 @@ export const YearEndArchivalTab: React.FC = () => {
   const { role } = useAuth();
   const queryClient = useQueryClient();
 
-  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' || role === 'SUPER_ADMIN';
+  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' ;
 
   // Sub-tabs: 1. Đóng khóa sổ niên khóa, 2. Trích lục học bạ lịch sử
   const [activeSubTab, setActiveSubTab] = useState<'close_year' | 'dossier_search'>('close_year');

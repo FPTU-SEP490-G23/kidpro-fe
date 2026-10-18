@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { isSupabaseConfigured } from '../../config/supabase';
 import { UserRole } from '../../types/auth.types';
-import { getRoleDisplayName } from '../../utils/formatters';
+import { getRoleDisplayName, getRoleHomePath } from '../../utils/formatters';
 import { ShieldCheck, LogIn, Sparkles, AlertCircle, Info } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -38,7 +37,8 @@ export const LoginPage: React.FC = () => {
       setIsLoading(true);
       setErrorMsg('');
       await loginWithPassword(email, password);
-      navigate('/dashboard');
+      const savedRole = (localStorage.getItem('userRole')?.replace('ROLE_', '') || 'SYSTEM_ADMIN') as UserRole;
+      navigate(getRoleHomePath(savedRole));
     } catch (err: any) {
       setErrorMsg(typeof err === 'string' ? err : (err?.message || 'Sai thông tin đăng nhập'));
     } finally {
@@ -49,7 +49,7 @@ export const LoginPage: React.FC = () => {
   // 3. Chọn nhanh Role để trải nghiệm thử
   const handleSelectMockRole = (role: UserRole) => {
     mockLogin(role);
-    navigate('/dashboard');
+    navigate(getRoleHomePath(role));
   };
 
   return (
@@ -153,7 +153,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            {(['BGH', 'GIAO_VIEN', 'BEP', 'KE_TOAN', 'GIAO_VU', 'PHU_HUYNH'] as UserRole[]).map((r) => (
+            {(['SYSTEM_ADMIN', 'BGH', 'GIAO_VIEN', 'BEP', 'KE_TOAN', 'GIAO_VU', 'PHU_HUYNH'] as UserRole[]).map((r) => (
               <button
                 key={r}
                 onClick={() => handleSelectMockRole(r)}

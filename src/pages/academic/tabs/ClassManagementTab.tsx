@@ -190,7 +190,14 @@ export const ClassManagementTab: React.FC = () => {
             <div key={c.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-800">{c.name}</h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-xl font-bold text-slate-800">{c.name}</h3>
+                    {c.schoolName && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-[#275A4E] border border-emerald-200 font-bold">
+                        {c.schoolName}
+                      </span>
+                    )}
+                  </div>
                   <div className={`mt-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getAgeGroupColor(c.ageGroup)}`}>
                     {getAgeGroupLabel(c.ageGroup)}
                   </div>
@@ -229,7 +236,7 @@ export const ClassManagementTab: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Users className="w-4 h-4 text-slate-400" />
-                  <span>Sĩ số: <span className="font-semibold text-slate-800">{c.currentCount || 0}/{c.maxCapacity || c.capacity}</span></span>
+                  <span>Sĩ số: <span className="font-semibold text-slate-800">{c.currentCount ?? c.currentStudentCount ?? 0}/{c.maxCapacity ?? c.capacity ?? 30}</span></span>
                 </div>
               </div>
               

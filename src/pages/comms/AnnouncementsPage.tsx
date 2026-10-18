@@ -37,7 +37,7 @@ export const AnnouncementsPage: React.FC = () => {
   const { role, user } = useAuth();
 
   // RBAC Checks
-  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' || role === 'SUPER_ADMIN';
+  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' ;
   const canPublish = isBghOrAdmin || role === 'GIAO_VU';
 
   // Announcements state

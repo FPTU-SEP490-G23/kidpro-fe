@@ -7,7 +7,6 @@ import { LogOut, Bell, User as UserIcon } from 'lucide-react';
 
 const allRoles: UserRole[] = [
   'SYSTEM_ADMIN',
-  'SUPER_ADMIN',
   'BGH',
   'GIAO_VIEN',
   'GIAO_VU',
@@ -86,12 +85,19 @@ export const Navbar: React.FC = () => {
             </Link>
 
             <div className="hidden md:flex flex-col">
-              <Link
-                to="/profile"
-                className="text-sm font-semibold text-slate-800 leading-tight hover:text-[#275A4E] transition"
-              >
-                {user.fullName}
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  to="/profile"
+                  className="text-sm font-semibold text-slate-800 leading-tight hover:text-[#275A4E] transition"
+                >
+                  {user.fullName}
+                </Link>
+                {user.schoolName && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-[#275A4E] border border-emerald-200 truncate max-w-[160px]" title={user.schoolName}>
+                    {user.schoolName}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {role && (
                   <select

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   School,
   Activity,
+  Cable,
 } from 'lucide-react';
 
 interface BottomNavItem {
@@ -78,13 +79,11 @@ const getRoleBottomNav = (role?: UserRole | null): BottomNavItem[] => {
       ];
 
     case 'SYSTEM_ADMIN':
-    case 'SUPER_ADMIN':
       return [
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Học vụ', path: '/academic', icon: GraduationCap },
-        { name: 'Trường học', path: '/admin/tenants', icon: School },
-        { name: 'RBAC', path: '/admin/rbac', icon: ShieldCheck },
-        { name: 'Giám sát', path: '/admin/health', icon: Activity },
+        { name: 'Trường học', path: '/admin/schools', icon: School },
+        { name: 'RBAC', path: '/admin/users-rbac', icon: ShieldCheck },
+        { name: 'Tích hợp', path: '/admin/integrations', icon: Cable },
+        { name: 'Giám sát', path: '/admin/system-health', icon: Activity },
       ];
 
     default:

@@ -66,17 +66,17 @@ export const App: React.FC = () => {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'GIAO_VIEN', 'KE_TOAN', 'BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'GIAO_VIEN', 'KE_TOAN', 'BEP', 'SYSTEM_ADMIN']}>
                 <DashboardPage />
               </ProtectedRoute>
             }
           />
 
-          {/* 2. QUẢN TRỊ VIÊN NỀN TẢNG (SUPER_ADMIN / SYSTEM_ADMIN - UC-005 -> UC-008) */}
+          {/* 2. QUẢN TRỊ VIÊN NỀN TẢNG (SYSTEM_ADMIN - UC-005 -> UC-008) */}
           <Route
             path="/admin/schools"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <TenantsPage />
               </ProtectedRoute>
             }
@@ -84,7 +84,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/tenants"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <TenantsPage />
               </ProtectedRoute>
             }
@@ -92,7 +92,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/users-rbac"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <RbacPage />
               </ProtectedRoute>
             }
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/rbac"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <RbacPage />
               </ProtectedRoute>
             }
@@ -108,7 +108,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/integrations"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <IntegrationsPage />
               </ProtectedRoute>
             }
@@ -116,7 +116,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/system-health"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <HealthMonitoringPage />
               </ProtectedRoute>
             }
@@ -124,7 +124,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/health"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
                 <HealthMonitoringPage />
               </ProtectedRoute>
             }
@@ -134,7 +134,7 @@ export const App: React.FC = () => {
           <Route
             path="/dashboard/executive"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <ExecutiveDashboardPage />
               </ProtectedRoute>
             }
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
           <Route
             path="/executive-dashboard"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <ExecutiveDashboardPage />
               </ProtectedRoute>
             }
@@ -150,7 +150,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/academic-planning"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <AcademicYearsPage />
               </ProtectedRoute>
             }
@@ -158,7 +158,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/class-approvals"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <BghClassApprovalsPage />
               </ProtectedRoute>
             }
@@ -166,7 +166,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/fee-policy-approval"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <BghFeePolicyApprovalPage />
               </ProtectedRoute>
             }
@@ -174,7 +174,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/finance-policies"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <BghFeePolicyApprovalPage />
               </ProtectedRoute>
             }
@@ -182,7 +182,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/student-analytics"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <StudentAnalyticsPage />
               </ProtectedRoute>
             }
@@ -190,7 +190,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/safety-reports"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <StudentAnalyticsPage />
               </ProtectedRoute>
             }
@@ -198,7 +198,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/security-audit"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <AuditLogsPage />
               </ProtectedRoute>
             }
@@ -206,7 +206,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/audit-logs"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <AuditLogsPage />
               </ProtectedRoute>
             }
@@ -214,7 +214,7 @@ export const App: React.FC = () => {
           <Route
             path="/bgh/announcements"
             element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <AnnouncementsPage />
               </ProtectedRoute>
             }
@@ -224,7 +224,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -232,7 +232,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/students"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -240,7 +240,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/classes"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -248,7 +248,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/timetables"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -256,7 +256,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/timetable-conflicts"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -264,7 +264,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/transfers"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -272,7 +272,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/guardians"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -280,7 +280,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/safety-guardians"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -288,7 +288,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/allergies"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -296,7 +296,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/lesson-plan-approvals"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -304,7 +304,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/equipment"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -312,7 +312,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/moet-reports"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -320,7 +320,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/year-archival"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -328,7 +328,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/reports"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -336,7 +336,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/years"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AcademicYearsPage />
               </ProtectedRoute>
             }
@@ -344,7 +344,7 @@ export const App: React.FC = () => {
           <Route
             path="/academic/student-analytics"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
                 <StudentAnalyticsPage />
               </ProtectedRoute>
             }
@@ -354,7 +354,7 @@ export const App: React.FC = () => {
           <Route
             path="/attendance"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <AttendancePage />
               </ProtectedRoute>
             }
@@ -362,7 +362,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/attendance"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <AttendancePage />
               </ProtectedRoute>
             }
@@ -370,7 +370,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/dismissal"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <AttendancePage />
               </ProtectedRoute>
             }
@@ -378,7 +378,7 @@ export const App: React.FC = () => {
           <Route
             path="/health"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <HealthPage />
               </ProtectedRoute>
             }
@@ -386,7 +386,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/health"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <HealthPage />
               </ProtectedRoute>
             }
@@ -394,7 +394,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/activities"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }
@@ -402,7 +402,7 @@ export const App: React.FC = () => {
           <Route
             path="/teacher/communication"
             element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
                 <AnnouncementsPage />
               </ProtectedRoute>
             }
@@ -412,7 +412,7 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -420,7 +420,7 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen/menus"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -428,7 +428,7 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen/allergies"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -436,7 +436,7 @@ export const App: React.FC = () => {
           <Route
             path="/kitchen/safety"
             element={
-              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['BEP', 'SYSTEM_ADMIN']}>
                 <KitchenPage />
               </ProtectedRoute>
             }
@@ -446,7 +446,7 @@ export const App: React.FC = () => {
           <Route
             path="/finance"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN']}>
                 <FinancePage />
               </ProtectedRoute>
             }
@@ -454,7 +454,7 @@ export const App: React.FC = () => {
           <Route
             path="/finance/configs"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN']}>
                 <FinancePage />
               </ProtectedRoute>
             }
@@ -462,7 +462,7 @@ export const App: React.FC = () => {
           <Route
             path="/finance/billing-engine"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN']}>
                 <FinancePage />
               </ProtectedRoute>
             }
@@ -470,7 +470,7 @@ export const App: React.FC = () => {
           <Route
             path="/finance/payments"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN']}>
                 <FinancePage />
               </ProtectedRoute>
             }
@@ -478,7 +478,7 @@ export const App: React.FC = () => {
           <Route
             path="/finance/reports"
             element={
-              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['KE_TOAN', 'SYSTEM_ADMIN']}>
                 <FinancePage />
               </ProtectedRoute>
             }
@@ -488,7 +488,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -496,7 +496,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/children"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -504,7 +504,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/daily-care"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -512,7 +512,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/tuition"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }
@@ -520,7 +520,7 @@ export const App: React.FC = () => {
           <Route
             path="/parent/interactions"
             element={
-              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute allowedRoles={['PHU_HUYNH', 'SYSTEM_ADMIN']}>
                 <ParentPage />
               </ProtectedRoute>
             }

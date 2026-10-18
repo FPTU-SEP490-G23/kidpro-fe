@@ -55,9 +55,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     try {
       setIsSubmitting(true);
       const newUser = await rbacApi.createUser({
-        fullName: values.fullName,
-        email: values.email,
-        phone: values.phone,
+        fullName: values.fullName.trim(),
+        email: values.email.trim(),
+        phone: values.phone.replace(/[\s.-]/g, ''),
         tenantId: values.tenantId,
         role: values.role as UserRole,
       });

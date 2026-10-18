@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import healthMonitoringApi, {
   setSimulatedIssue,
   clearSimulatedIssues,
@@ -11,18 +11,10 @@ import {
 import StatusBanner from './components/StatusBanner';
 import HealthCardsGrid from './components/HealthCardsGrid';
 import PerformanceCharts from './components/PerformanceCharts';
-import GateCameraWatcher from './components/GateCameraWatcher';
 import { useToast } from '../../../contexts/ToastContext';
-import {
-  Activity,
-  RefreshCw,
-  Server,
-  Layers,
-  ShieldCheck,
-} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export const HealthMonitoringPage: React.FC = () => {
-  const queryClient = useQueryClient();
   const { info, success } = useToast();
   const [autoRefresh, setAutoRefresh] = useState(true);
 
@@ -91,7 +83,7 @@ export const HealthMonitoringPage: React.FC = () => {
             Giám Sát Sức Khỏe & Uptime Nền Tảng
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Theo dõi tình trạng máy chủ, độ sẵn sàng (uptime 99.9%), cơ sở dữ liệu 7 schemas, Redis và luồng camera AI cổng trường
+            Theo dõi tình trạng máy chủ, độ sẵn sàng (uptime 99.9%), cơ sở dữ liệu 7 schemas, Redis và các dịch vụ nền tảng
           </p>
         </div>
       </div>
@@ -126,9 +118,6 @@ export const HealthMonitoringPage: React.FC = () => {
         latencyHistory={metricsData.latencyHistory}
         trafficHistory={metricsData.trafficHistory}
       />
-
-      {/* 4. Giám sát luồng Camera Cổng trường */}
-      <GateCameraWatcher cameras={healthData.cameras} />
     </div>
   );
 };

@@ -369,8 +369,8 @@ const mapUserDtoToAccount = (dto: any): UserAccount => {
     fullName: dto.fullName || 'Người dùng',
     email: dto.email,
     phone: dto.phone || '',
-    tenantId: localMatch?.tenantId || 'tnt_001',
-    tenantName: localMatch?.tenantName || 'KIDPRO Cầu Giấy',
+    tenantId: dto.schoolId || localMatch?.tenantId || (dto.role === 'SYSTEM_ADMIN' ? 'all' : 'tnt_001'),
+    tenantName: dto.schoolName || localMatch?.tenantName || (dto.role === 'SYSTEM_ADMIN' ? 'Toàn hệ thống' : 'Trường Mầm Sống'),
     role: dto.role,
     status: dto.status === 'LOCKED' ? 'LOCKED' : 'ACTIVE',
     avatarUrl:
@@ -459,6 +459,7 @@ export const rbacApi = {
         role: payload.role,
         fullName: payload.fullName.trim(),
         phone: payload.phone?.trim() || null,
+        schoolId: payload.tenantId && payload.tenantId !== 'ALL' && payload.tenantId.length > 20 ? payload.tenantId : null,
         status: 'ACTIVE',
       };
 
@@ -466,8 +467,10 @@ export const rbacApi = {
       const createdDto = res?.data || res;
       if (createdDto && (createdDto.id || createdDto.email)) {
         const newAccount = mapUserDtoToAccount(createdDto);
-        newAccount.tenantId = payload.tenantId;
-        newAccount.tenantName = payload.tenantId === 'tnt_001' ? 'KIDPRO Cầu Giấy' : 'KIDPRO Chi Nhánh';
+        if (payload.tenantId) {
+          newAccount.tenantId = payload.tenantId;
+          newAccount.tenantName = payload.tenantName || createdDto.schoolName || newAccount.tenantName;
+        }
 
         const list = getStoredUsers();
         list.unshift(newAccount);

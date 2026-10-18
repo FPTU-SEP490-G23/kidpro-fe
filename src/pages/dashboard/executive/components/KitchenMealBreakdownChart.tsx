@@ -69,8 +69,15 @@ export const KitchenMealBreakdownChart: React.FC<KitchenMealBreakdownChartProps>
                 return (
                 <tr key={cls.classId} className="hover:bg-slate-50/70 transition">
                   <td className="py-3 px-4">
-                    <span className="font-bold text-slate-800 text-sm block">{cls.className}</span>
-                    <span className="text-[11px] text-slate-400">{cls.ageGroup}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-slate-800 text-sm">{cls.className}</span>
+                      {(cls as any).schoolName && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-[#275A4E] border border-emerald-200 font-bold">
+                          {(cls as any).schoolName}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">{cls.ageGroup}</span>
                   </td>
 
                   <td className="py-3 px-4 text-center font-bold text-slate-800">

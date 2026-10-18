@@ -117,7 +117,6 @@ export const numberToVietnameseWords = (num: number): string => {
 export const getRoleDisplayName = (role: UserRole): string => {
   const map: Record<UserRole, string> = {
     SYSTEM_ADMIN: 'Quản trị viên',
-    SUPER_ADMIN: 'Quản trị Nền tảng',
     BGH: 'Ban giám hiệu (Hiệu trưởng)',
     GIAO_VU: 'Cán bộ Giáo vụ',
     KE_TOAN: 'Kế toán & Học phí',
@@ -130,8 +129,7 @@ export const getRoleDisplayName = (role: UserRole): string => {
 
 export const getRoleDescription = (role: UserRole): string => {
   const map: Record<UserRole, string> = {
-    SYSTEM_ADMIN: 'Quản trị hệ thống, phân quyền RBAC & giám sát nền tảng',
-    SUPER_ADMIN: 'Quản trị nền tảng đa trường học Multi-Tenant',
+    SYSTEM_ADMIN: 'Quản trị hệ thống, đa trường học, phân quyền RBAC & giám sát nền tảng',
     BGH: 'Điều hành toàn trường, chỉ đạo học vụ & giám sát an ninh',
     GIAO_VU: 'Tiếp nhận học sinh, thời khóa biểu, duyệt giáo án & báo cáo MoET',
     KE_TOAN: 'Quản lý biểu phí, phát hành hóa đơn & quyết toán bán trú',
@@ -145,7 +143,6 @@ export const getRoleDescription = (role: UserRole): string => {
 export const getRoleBadgeColor = (role: UserRole): string => {
   const map: Record<UserRole, string> = {
     SYSTEM_ADMIN: 'bg-slate-800 text-white border-slate-700',
-    SUPER_ADMIN: 'bg-[#1E4D40] text-emerald-200 border-[#275A4E]',
     BGH: 'bg-[#275A4E] text-white border-[#1E4D40]',
     GIAO_VU: 'bg-teal-50 text-teal-800 border-teal-200',
     KE_TOAN: 'bg-emerald-50 text-emerald-800 border-emerald-300',
@@ -172,7 +169,7 @@ export const getRoleHomePath = (role?: UserRole | null): string => {
     case 'BGH':
       return '/executive-dashboard';
     case 'SYSTEM_ADMIN':
-    case 'SUPER_ADMIN':
+      return '/admin/schools';
     default:
       return '/dashboard';
   }

@@ -93,6 +93,9 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       setIsSubmitting(true);
       const newTenant = await tenantApi.createTenant({
         ...values,
+        schoolCode: values.schoolCode.trim().toUpperCase(),
+        adminPhone: values.adminPhone.replace(/[\s.-]/g, ''),
+        hotline: values.hotline.replace(/[\s.-]/g, ''),
         logoUrl: logoPreview || undefined,
       });
 

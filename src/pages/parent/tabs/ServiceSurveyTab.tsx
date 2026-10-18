@@ -60,7 +60,7 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
   className,
 }) => {
   const { role } = useAuth();
-  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' || role === 'SUPER_ADMIN';
+  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' ;
 
   // Active View Tab: 'PARENT_FORM' | 'BGH_ANALYTICS'
   const [activeSubView, setActiveSubView] = useState<'PARENT_FORM' | 'BGH_ANALYTICS'>(

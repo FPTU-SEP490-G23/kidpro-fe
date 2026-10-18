@@ -11,6 +11,9 @@ export interface LoginResponse {
   email: string;
   role: string;
   fullName?: string;
+  schoolId?: string;
+  schoolCode?: string;
+  schoolName?: string;
 }
 
 // Hàm xử lý Đăng nhập qua Spring Boot REST API
@@ -21,8 +24,8 @@ export const login = async (email: string, password?: string): Promise<LoginResp
       password,
     });
 
-    // Kết quả trả về gồm: { token, type: "Bearer", userId, email, role }
-    const { token, role, userId, email: userEmail } = response.data;
+    // Kết quả trả về gồm: { token, type: "Bearer", userId, email, role, schoolId, schoolCode, schoolName }
+    const { token, role, userId, email: userEmail, schoolId, schoolName, schoolCode, fullName } = response.data;
 
     // Lưu token và thông tin người dùng vào localStorage
     localStorage.setItem('accessToken', token);
@@ -30,6 +33,24 @@ export const login = async (email: string, password?: string): Promise<LoginResp
     localStorage.setItem('userId', String(userId));
     if (userEmail) {
       localStorage.setItem('userEmail', userEmail);
+    }
+    if (fullName) {
+      localStorage.setItem('userFullName', fullName);
+    }
+    if (schoolId) {
+      localStorage.setItem('userSchoolId', String(schoolId));
+    } else {
+      localStorage.removeItem('userSchoolId');
+    }
+    if (schoolName) {
+      localStorage.setItem('userSchoolName', schoolName);
+    } else {
+      localStorage.removeItem('userSchoolName');
+    }
+    if (schoolCode) {
+      localStorage.setItem('userSchoolCode', schoolCode);
+    } else {
+      localStorage.removeItem('userSchoolCode');
     }
 
     // Cấu hình Authorization header mặc định cho các request sau

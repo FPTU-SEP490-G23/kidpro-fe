@@ -158,7 +158,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
   const { role, user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isBgh = role === 'BGH' || role === 'SUPER_ADMIN' || role === 'SYSTEM_ADMIN';
+  const isBgh = role === 'BGH'  || role === 'SYSTEM_ADMIN';
   const isKitchenOrBgh = isBgh || role === 'BEP';
 
   const [date, setDate] = useState<string>(
