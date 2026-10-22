@@ -109,38 +109,87 @@ export const numberToVietnameseWords = (num: number): string => {
   let finalWords = words.join(' ').replace(/\s+/g, ' ').trim();
   if (!finalWords) return 'Không đồng chẵn';
 
-  // Viết hoa chữ cái đầu và thêm 'đồng chẵn'
   finalWords = finalWords.charAt(0).toUpperCase() + finalWords.slice(1) + ' đồng chẵn';
   return finalWords;
 };
 
-export const getRoleDisplayName = (role: UserRole): string => {
+// ==========================================
+// ROLE NORMALIZATION VÀ ĐIỀU HƯỚNG CHUẨN XÁC
+// ==========================================
+
+export const normalizeRole = (rawRole?: string | null): UserRole => {
+  if (!rawRole) return 'BGH';
+  const roleStr = rawRole.replace(/^ROLE_/, '').trim().toUpperCase();
+
+  switch (roleStr) {
+    case 'BOARD_OF_DIRECTORS':
+    case 'PRINCIPAL':
+    case 'VICE_PRINCIPAL':
+    case 'BGH':
+      return 'BGH';
+
+    case 'SUPER_ADMIN':
+    case 'SYSTEM_ADMIN':
+    case 'ADMIN':
+      return 'SYSTEM_ADMIN';
+
+    case 'TEACHER':
+    case 'GIAO_VIEN':
+      return 'GIAO_VIEN';
+
+    case 'KITCHEN_STAFF':
+    case 'CHEF':
+    case 'BEP':
+      return 'BEP';
+
+    case 'ACCOUNTANT':
+    case 'KE_TOAN':
+      return 'KE_TOAN';
+
+    case 'ACADEMIC_STAFF':
+    case 'STAFF':
+    case 'GIAO_VU':
+      return 'GIAO_VU';
+
+    case 'PARENT':
+    case 'PHU_HUYNH':
+      return 'PHU_HUYNH';
+
+    default:
+      return 'BGH';
+  }
+};
+
+export const getRoleDisplayName = (role?: UserRole | string | null): string => {
+  const normalized = normalizeRole(role);
   const map: Record<UserRole, string> = {
-    SYSTEM_ADMIN: 'Quản trị viên',
-    BGH: 'Ban giám hiệu (Hiệu trưởng)',
+    SYSTEM_ADMIN: 'Quản trị viên nền tảng',
+    BGH: 'Ban Giám Hiệu (Hiệu trưởng)',
     GIAO_VU: 'Cán bộ Giáo vụ',
     KE_TOAN: 'Kế toán & Học phí',
     GIAO_VIEN: 'Giáo viên Chủ nhiệm',
     BEP: 'Nhân viên Bếp Bán trú',
     PHU_HUYNH: 'Phụ huynh Học sinh',
   };
-  return map[role] || role;
+  return map[normalized] || 'Người dùng';
 };
 
-export const getRoleDescription = (role: UserRole): string => {
+export const getRoleDescription = (role?: UserRole | string | null): string => {
+  const normalized = normalizeRole(role);
   const map: Record<UserRole, string> = {
     SYSTEM_ADMIN: 'Quản trị hệ thống, đa trường học, phân quyền RBAC & giám sát nền tảng',
-    BGH: 'Điều hành toàn trường, chỉ đạo học vụ & giám sát an ninh',
+    BGH: 'Điều hành toàn trường, chỉ đạo học vụ & giám sát an ninh học đường',
     GIAO_VU: 'Tiếp nhận học sinh, thời khóa biểu, duyệt giáo án & báo cáo MoET',
     KE_TOAN: 'Quản lý biểu phí, phát hành hóa đơn & quyết toán bán trú',
     GIAO_VIEN: 'Điểm danh lớp, soạn giáo án, đánh giá TT28 & nhật ký chăm sóc',
     BEP: 'Chốt suất ăn 08:30, khay dị ứng, lưu mẫu 24h & kiểm thực ATVSTP',
     PHU_HUYNH: 'Sổ liên lạc, báo vắng, dặn thuốc, học phí & khảo sát dịch vụ',
   };
-  return map[role] || '';
+  return map[normalized] || '';
 };
 
-export const getRoleBadgeColor = (role: UserRole): string => {
+export const getRoleBadgeColor = (role?: UserRole | string | null): string => {
+  const normalized = normalizeRole(role);
   const map: Record<UserRole, string> = {
     SYSTEM_ADMIN: 'bg-slate-800 text-white border-slate-700',
     BGH: 'bg-[#275A4E] text-white border-[#1E4D40]',
@@ -150,12 +199,13 @@ export const getRoleBadgeColor = (role: UserRole): string => {
     BEP: 'bg-orange-50 text-orange-800 border-orange-200',
     PHU_HUYNH: 'bg-amber-50 text-[#B87A14] border-amber-300',
   };
-  return map[role] || 'bg-slate-100 text-slate-700 border-slate-200';
+  return map[normalized] || 'bg-slate-100 text-slate-700 border-slate-200';
 };
 
-export const getRoleHomePath = (role?: UserRole | null): string => {
+export const getRoleHomePath = (role?: UserRole | string | null): string => {
   if (!role) return '/login';
-  switch (role) {
+  const normalized = normalizeRole(role);
+  switch (normalized) {
     case 'PHU_HUYNH':
       return '/parent';
     case 'BEP':
@@ -167,11 +217,10 @@ export const getRoleHomePath = (role?: UserRole | null): string => {
     case 'GIAO_VU':
       return '/academic';
     case 'BGH':
-      return '/executive-dashboard';
+      return '/dashboard/executive';
     case 'SYSTEM_ADMIN':
       return '/admin/schools';
     default:
-      return '/dashboard';
+      return '/dashboard/executive';
   }
 };
-

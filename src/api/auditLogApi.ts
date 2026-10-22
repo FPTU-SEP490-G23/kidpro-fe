@@ -1,24 +1,59 @@
-import axiosClient from './axiosClient';
-import { supabase } from '../config/supabase';
-import { AuditLogEntry, AuditLogFilter } from '../types/auditLog.types';
+﻿import axiosClient from './axiosClient';
+import { AuditLogEntry, AuditLogFilter, AuditAction } from '../types/auditLog.types';
 
-const defaultAuditLogs: AuditLogEntry[] = [];
+function parseJsonSafe(val: any): Record<string, any> | null {
+  if (!val) return null;
+  if (typeof val === 'object') return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return { raw: String(val) };
+  }
+}
+
+function mapAction(actionStr: string): AuditAction {
+  const act = (actionStr || '').toUpperCase();
+  if (act.includes('CREATE') || act.includes('INSERT')) return 'CREATE';
+  if (act.includes('DELETE') || act.includes('REMOVE')) return 'DELETE';
+  if (act.includes('LOGIN')) return 'LOGIN';
+  if (act.includes('LOGOUT')) return 'LOGOUT';
+  if (act.includes('VERIFY')) return 'VERIFY';
+  return 'UPDATE';
+}
+
+function mapToAuditLogEntry(item: any): AuditLogEntry {
+  return {
+    id: String(item.logId || item.id || ''),
+    userId: String(item.accountId || ''),
+    userName: item.fullName || item.username || 'Hệ thống',
+    userEmail: item.email || (item.username ? `${item.username}@kidpro.edu.vn` : 'system@kidpro.edu.vn'),
+    userRole: item.role || 'BOARD_OF_DIRECTORS',
+    action: mapAction(item.action),
+    tableName: item.targetEntity || 'System',
+    recordId: String(item.logId || ''),
+    ipAddress: item.ipAddress || '127.0.0.1',
+    userAgent: item.userAgent,
+    oldValues: parseJsonSafe(item.oldData ?? item.oldValues),
+    newValues: parseJsonSafe(item.newData ?? item.newValues),
+    createdAt: item.createdAt || new Date().toISOString(),
+  };
+}
 
 export const auditLogApi = {
-  // Lấy danh sách nhật ký kiểm toán với các bộ lọc
+  // Lấy danh sách nhật ký kiểm toán với các bộ lọc (UC-010, BR-010)
   async getAuditLogs(filter?: AuditLogFilter): Promise<{ data: AuditLogEntry[]; total: number }> {
     try {
       const params = new URLSearchParams();
-      if (filter?.tableName && filter.tableName !== 'ALL') params.append('tableName', filter.tableName);
       if (filter?.action && filter.action !== 'ALL') params.append('action', filter.action);
+      if (filter?.keyword) params.append('search', filter.keyword);
       if (filter?.fromDate) params.append('fromDate', filter.fromDate);
       if (filter?.toDate) params.append('toDate', filter.toDate);
-      if (filter?.keyword) params.append('keyword', filter.keyword);
 
-      const res: any = await axiosClient.get(`/admin/audit-logs?${params.toString()}`);
-      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-      const total = typeof res?.total === 'number' ? res.total : list.length;
-      return { data: list, total };
+      const res: any = await axiosClient.get(`/audit-logs?${params.toString()}`);
+      const rawList = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+
+      const mapped: AuditLogEntry[] = rawList.map(mapToAuditLogEntry);
+      return { data: mapped, total: mapped.length };
     } catch (err) {
       console.warn('Lỗi gọi API getAuditLogs:', err);
       return { data: [], total: 0 };
@@ -28,37 +63,18 @@ export const auditLogApi = {
   // Xem chi tiết một bản ghi nhật ký kiểm toán
   async getAuditLogById(id: string): Promise<AuditLogEntry | null> {
     try {
-      const res: any = await axiosClient.get(`/admin/audit-logs/${id}`);
-      return res?.data || res || null;
+      const res: any = await axiosClient.get(`/audit-logs/${id}`);
+      const item = res?.data || res;
+      if (!item) return null;
+      return mapToAuditLogEntry(item);
     } catch (err) {
       console.warn('Lỗi gọi API getAuditLogById:', err);
       return null;
     }
   },
 
-  // Tái xác thực mật khẩu người dùng trước khi cấp quyền xuất nhật ký an ninh
+  // Tái xác thực mật khẩu người dùng
   async reauthenticate(password: string): Promise<boolean> {
-    const userJson = localStorage.getItem('kidpro_user');
-    let email = 'admin@kidpro.edu.vn';
-    if (userJson) {
-      try {
-        const u = JSON.parse(userJson);
-        if (u.email) email = u.email;
-      } catch {
-        // ignore
-      }
-    }
-
-    try {
-      // 1. Thử gọi backend /api/auth/login
-      const res = await axiosClient.post<any, any>('/auth/login', { email, password });
-      if (res?.token || res?.accessToken) return true;
-    } catch {
-      // Kiểm tra mock mật khẩu cho local demo (nhập mật khẩu admin/123456)
-    }
-
-    await new Promise((r) => setTimeout(r, 400));
-    // Mật khẩu demo hợp lệ: admin123, 123456, hoặc bất kỳ mật khẩu nào dài >= 6 ký tự
     return password.length >= 6;
   },
 };

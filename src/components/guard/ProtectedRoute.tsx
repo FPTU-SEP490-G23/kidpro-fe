@@ -2,9 +2,10 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
+import { normalizeRole } from '../../utils/formatters';
 
 interface ProtectedRouteProps {
-  allowedRoles?: UserRole[];
+  allowedRoles?: (UserRole | string)[];
   children?: React.ReactNode;
 }
 
@@ -26,8 +27,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, ch
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    return <Navigate to="/403" replace />;
+  if (allowedRoles && role) {
+    const userRoleNormalized = normalizeRole(role);
+    const isAllowed = allowedRoles.some((r) => normalizeRole(r) === userRoleNormalized);
+    if (!isAllowed) {
+      return <Navigate to="/403" replace />;
+    }
   }
 
   return children ? <>{children}</> : <Outlet />;

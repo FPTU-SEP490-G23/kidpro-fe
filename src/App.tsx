@@ -24,6 +24,20 @@ import StudentAnalyticsPage from './pages/academic/analytics/StudentAnalyticsPag
 import AuditLogsPage from './pages/admin/audit/AuditLogsPage';
 import BghFeePolicyApprovalPage from './pages/bgh/BghFeePolicyApprovalPage';
 import BghClassApprovalsPage from './pages/bgh/BghClassApprovalsPage';
+import BghGradeQuotasPage from './pages/bgh/BghGradeQuotasPage';
+import BghClassroomsPage from './pages/bgh/BghClassroomsPage';
+import BghStaffManagementPage from './pages/bgh/BghStaffManagementPage';
+import BghTeachingAssignmentsPage from './pages/bgh/BghTeachingAssignmentsPage';
+import BghTimetableApprovalsPage from './pages/bgh/BghTimetableApprovalsPage';
+import BghWeeklyMenuApprovalsPage from './pages/bgh/BghWeeklyMenuApprovalsPage';
+import BghTuitionSummaryPage from './pages/bgh/BghTuitionSummaryPage';
+import BghRevenueReportPage from './pages/bgh/BghRevenueReportPage';
+import BghExtracurricularClassesPage from './pages/bgh/BghExtracurricularClassesPage';
+import BghEvaluationApprovalsPage from './pages/bgh/BghEvaluationApprovalsPage';
+import BghLessonPlanApprovalsPage from './pages/bgh/BghLessonPlanApprovalsPage';
+import BghDevelopmentQualityReportPage from './pages/bgh/BghDevelopmentQualityReportPage';
+import BghAnnouncementsPage from './pages/bgh/BghAnnouncementsPage';
+import BghEmergencyBroadcastPage from './pages/bgh/BghEmergencyBroadcastPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 import { useAuth } from './contexts/AuthContext';
@@ -147,11 +161,51 @@ export const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+                    <Route
+            path="/bgh/grade-quotas"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghGradeQuotasPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/classrooms"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghClassroomsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/bgh/academic-planning"
             element={
               <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <AcademicYearsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/staff"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghStaffManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/teaching-assignments"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghTeachingAssignmentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/timetable-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghTimetableApprovalsPage />
               </ProtectedRoute>
             }
           />
@@ -212,10 +266,74 @@ export const App: React.FC = () => {
             }
           />
           <Route
+            path="/bgh/menu-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghWeeklyMenuApprovalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/tuition-summary"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghTuitionSummaryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/revenue-report"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghRevenueReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/extracurricular-classes"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghExtracurricularClassesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/evaluation-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghEvaluationApprovalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/lesson-plan-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghLessonPlanApprovalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/development-quality-report"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghDevelopmentQualityReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/bgh/announcements"
             element={
               <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
-                <AnnouncementsPage />
+                <BghAnnouncementsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/emergency-broadcast"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghEmergencyBroadcastPage />
               </ProtectedRoute>
             }
           />

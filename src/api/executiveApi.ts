@@ -13,13 +13,34 @@ function unwrapSettledResponse(p: PromiseSettledResult<any>): any {
 }
 
 export const executiveApi = {
-  // Lấy dữ liệu điều hành tổng thể toàn trường theo ngày từ các API backend thực tế
+  // Lấy dữ liệu điều hành tổng thể toàn trường theo ngày từ API backend thực tế (UC-012)
   async getExecutiveOverview(selectedDate?: string): Promise<ExecutiveDashboardData> {
     const today = selectedDate || new Date().toISOString().split('T')[0];
     const monthYear = `${today.slice(5, 7)}-${today.slice(0, 4)}`; // ví dụ "10-2026"
 
     try {
-      // Gọi song song các API backend Spring Boot thực tế
+      // 1. Ưu tiên gọi API tổng hợp Bảng Điều Hành Toàn Trường từ Spring Boot
+      const res: any = await axiosClient.get(`/executive/dashboard?date=${today}`);
+      const rawData = res?.data !== undefined ? res.data : res;
+
+      if (rawData && rawData.attendance && rawData.kitchen && rawData.finance && rawData.security) {
+        return {
+          date: rawData.date || today,
+          attendance: rawData.attendance,
+          kitchen: rawData.kitchen,
+          finance: rawData.finance,
+          security: rawData.security,
+          classSummaries: rawData.classSummaries || [],
+          unresolvedAlerts: rawData.unresolvedAlerts || [],
+          isCacheData: Boolean(rawData.isCacheData),
+        };
+      }
+    } catch (e) {
+      console.warn('Executive dashboard consolidated API failed, trying compatibility fallbacks...', e);
+    }
+
+    try {
+      // 2. Fallback gọi song song các API backend thành phần
       const [
         kitchenSummaryRes,
         mealHeadcountsRes,
@@ -255,11 +276,17 @@ export const executiveApi = {
   // Đánh dấu đã xác thực / giải quyết cảnh báo người lạ tại cổng
   async resolveAlert(alertId: string, notes?: string): Promise<void> {
     try {
-      await axiosClient.put(`/attendance/face-logs/${alertId}/resolve-alert`, {
-        resolutionNotes: notes || 'Bảo vệ và BGH đã kiểm tra CCCD, đối chiếu giấy ủy quyền đón trẻ hợp lệ.',
+      await axiosClient.patch(`/executive/security-alerts/${alertId}/resolve`, {
+        note: notes || 'Bảo vệ và BGH đã kiểm tra CCCD, đối chiếu giấy ủy quyền đón trẻ hợp lệ.',
       });
-    } catch (err) {
-      console.warn('Lỗi khi xử lý cảnh báo người lạ tại cổng:', err);
+    } catch {
+      try {
+        await axiosClient.put(`/attendance/face-logs/${alertId}/resolve-alert`, {
+          resolutionNotes: notes || 'Đã xác minh bởi BGH',
+        });
+      } catch (err) {
+        console.warn('Lỗi khi xử lý cảnh báo người lạ tại cổng:', err);
+      }
     }
   },
 };

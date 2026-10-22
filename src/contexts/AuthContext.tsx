@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { supabase, isSupabaseConfigured } from '../config/supabase';
 import { User, UserRole, AuthState } from '../types/auth.types';
-import { login } from '../api/authApi';
+import { login, loginGoogle } from '../api/authApi';
+import { normalizeRole } from '../utils/formatters';
 
 interface AuthContextType extends AuthState {
   loginWithGoogle: () => Promise<void>;
@@ -20,30 +21,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Khôi phục phiên làm việc khi load trang
+  // Khởi phục phiên làm việc khi load trang
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // 1. Ưu tiên kiểm tra token Spring Boot đã lưu (schema core)
-        const savedAccessToken = localStorage.getItem('accessToken');
-        const savedRole = localStorage.getItem('userRole') as UserRole;
+        // 1. Kiểm tra token Spring Boot đã lưu trong localStorage
+        const savedAccessToken = localStorage.getItem('accessToken') || localStorage.getItem('kidpro_token');
+        const rawRole = localStorage.getItem('userRole');
         const savedUserId = localStorage.getItem('userId');
         const savedUser = localStorage.getItem('kidpro_user');
 
-        if (savedAccessToken && savedRole && savedUserId) {
+        if (savedAccessToken) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedAccessToken}`;
-          let normalizedRole = (savedRole?.replace('ROLE_', '') || 'SYSTEM_ADMIN') as UserRole;
-          if ((normalizedRole as any) === 'SUPER_ADMIN') {
-            normalizedRole = 'SYSTEM_ADMIN';
-          }
+          const normalizedRole = normalizeRole(rawRole);
 
           let parsedUser: User;
           if (savedUser) {
             try {
               parsedUser = JSON.parse(savedUser) as User;
+              parsedUser.role = normalizedRole;
             } catch {
               parsedUser = {
-                id: savedUserId,
+                id: savedUserId || 'usr-default',
                 email: localStorage.getItem('userEmail') || '',
                 fullName: localStorage.getItem('userFullName') || 'Người dùng',
                 role: normalizedRole,
@@ -55,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } else {
             parsedUser = {
-              id: savedUserId,
+              id: savedUserId || 'usr-default',
               email: localStorage.getItem('userEmail') || '',
               fullName: localStorage.getItem('userFullName') || 'Người dùng',
               role: normalizedRole,
@@ -68,7 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           setUser(parsedUser);
           setToken(savedAccessToken);
-          setRole(parsedUser.role);
+          setRole(normalizedRole);
+          localStorage.setItem('userRole', normalizedRole);
           setIsLoading(false);
           return;
         }
@@ -77,19 +77,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isSupabaseConfigured) {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
-            handleSupabaseSession(session);
+            await handleSupabaseSession(session);
             setIsLoading(false);
             return;
           }
-        }
-
-        // 3. Kiểm tra localStorage fallback (Local Development)
-        const savedToken = localStorage.getItem('kidpro_token');
-        if (savedUser && savedToken) {
-          const parsedUser = JSON.parse(savedUser) as User;
-          setUser(parsedUser);
-          setToken(savedToken);
-          setRole(parsedUser.role);
         }
       } catch (err) {
         console.error('Lỗi khởi tạo phiên xác thực:', err);
@@ -100,19 +91,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Lắng nghe thay đổi trạng thái từ Supabase
+    // Lắng nghe thay đổi trạng thái từ Supabase OAuth
     if (isSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
-          handleSupabaseSession(session);
-        } else {
-          // Chỉ clear nếu không ở chế độ mock development
-          const savedUser = localStorage.getItem('kidpro_user');
-          if (!savedUser) {
-            setUser(null);
-            setToken(null);
-            setRole(null);
-          }
+          await handleSupabaseSession(session);
         }
       });
 
@@ -122,73 +105,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Xử lý session khi đăng nhập qua Google OAuth
   const handleSupabaseSession = async (session: any) => {
     const sbUser = session.user;
+    const email = sbUser.email || '';
+    const fullName = sbUser.user_metadata?.full_name || sbUser.user_metadata?.name || email.split('@')[0];
+    const avatarUrl = sbUser.user_metadata?.avatar_url;
 
-    // 1. Kiểm tra vai trò đã lưu trước đó trong localStorage
-    let userRole: UserRole | undefined;
-    const savedUser = localStorage.getItem('kidpro_user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser) as User;
-        if (parsed.email === sbUser.email && parsed.role) {
-          userRole = parsed.role;
-        }
-      } catch {
-        // bỏ qua nếu parse lỗi
-      }
+    try {
+      // Đồng bộ trực tiếp với Spring Boot backend để nhận JWT Token chính thức
+      const beAuth = await loginGoogle({
+        email,
+        fullName,
+        avatarUrl,
+      });
+
+      const normalizedRole = normalizeRole(beAuth.role);
+      const appUser: User = {
+        id: String(beAuth.userId || sbUser.id),
+        email: beAuth.email,
+        fullName: beAuth.fullName || fullName || 'Người dùng',
+        avatarUrl,
+        role: normalizedRole,
+        status: 'ACTIVE',
+        schoolId: beAuth.schoolId,
+        schoolCode: beAuth.schoolCode,
+        schoolName: beAuth.schoolName,
+      };
+
+      setUser(appUser);
+      setToken(beAuth.token);
+      setRole(normalizedRole);
+      localStorage.setItem('accessToken', beAuth.token);
+      localStorage.setItem('kidpro_token', beAuth.token);
+      localStorage.setItem('kidpro_user', JSON.stringify(appUser));
+      localStorage.setItem('userRole', normalizedRole);
+      localStorage.setItem('userId', String(beAuth.userId));
+      localStorage.setItem('userEmail', beAuth.email);
+      localStorage.setItem('userFullName', appUser.fullName);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${beAuth.token}`;
+      return;
+    } catch (err) {
+      console.warn('Backend Google Auth sync failed, using session metadata:', err);
     }
 
-    // 2. Kiểm tra vai trò trong user_metadata của Supabase Auth
-    if (!userRole) {
-      userRole = sbUser.user_metadata?.role as UserRole;
-    }
-
-    // 3. Nếu chưa có, truy vấn bảng users trên Supabase theo email
-    if (!userRole && sbUser.email) {
-      try {
-        const { data: dbUser } = await supabase
-          .from('users')
-          .select('role')
-          .eq('email', sbUser.email)
-          .maybeSingle();
-
-        if (dbUser?.role) {
-          userRole = dbUser.role as UserRole;
-        }
-      } catch {
-        // bỏ qua nếu bảng chưa có hoặc quyền RLS
-      }
-    }
-
-    // 4. Mặc định là SYSTEM_ADMIN để người dùng đăng nhập bằng Google lần đầu có toàn quyền trải nghiệm tất cả tính năng
-    if (!userRole) {
-      userRole = 'SYSTEM_ADMIN';
-    }
-
+    // Fallback nếu chưa kết nối được BE
+    const fallbackRole = email.endsWith('@kidpro.edu.vn') ? 'BGH' : 'PHU_HUYNH';
     const appUser: User = {
       id: sbUser.id,
-      email: sbUser.email || '',
-      fullName: sbUser.user_metadata?.full_name || sbUser.email?.split('@')[0] || 'Người dùng',
-      avatarUrl: sbUser.user_metadata?.avatar_url,
-      role: userRole,
+      email,
+      fullName,
+      avatarUrl,
+      role: fallbackRole as UserRole,
       status: 'ACTIVE',
     };
 
     setUser(appUser);
     setToken(session.access_token);
-    setRole(userRole);
+    setRole(fallbackRole as UserRole);
+    localStorage.setItem('userRole', fallbackRole);
     localStorage.setItem('kidpro_token', session.access_token);
     localStorage.setItem('kidpro_user', JSON.stringify(appUser));
   };
 
-  // Chuyển đổi vai trò linh hoạt cho tài khoản đang đăng nhập (dành cho kiểm thử chức năng)
+  // Chuyển đổi vai trò linh hoạt cho tài khoản đang đăng nhập
   const switchRole = (newRole: UserRole) => {
-    setRole(newRole);
+    const cleanRole = normalizeRole(newRole);
+    setRole(cleanRole);
     setUser((prev) => {
       if (!prev) return null;
-      const updated = { ...prev, role: newRole };
+      const updated = { ...prev, role: cleanRole };
       localStorage.setItem('kidpro_user', JSON.stringify(updated));
+      localStorage.setItem('userRole', cleanRole);
       return updated;
     });
   };
@@ -207,10 +195,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  // 2. Đăng nhập Email/Password qua Spring Boot REST API (/api/auth/login) -> lưu/xác thực vào schema core
+  // 2. Đăng nhập Email/Password qua Spring Boot REST API (/api/auth/login)
   const loginWithPassword = async (email: string, password?: string) => {
     const data = await login(email, password);
-    const normalizedRole = (data.role?.replace('ROLE_', '') || 'SYSTEM_ADMIN') as UserRole;
+    const normalizedRole = normalizeRole(data.role);
 
     const appUser: User = {
       id: String(data.userId),
@@ -226,43 +214,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(appUser);
     setToken(data.token);
     setRole(normalizedRole);
+    localStorage.setItem('accessToken', data.token);
     localStorage.setItem('kidpro_token', data.token);
     localStorage.setItem('kidpro_user', JSON.stringify(appUser));
+    localStorage.setItem('userRole', normalizedRole);
+    localStorage.setItem('userId', String(data.userId));
+    localStorage.setItem('userEmail', data.email);
+    localStorage.setItem('userFullName', appUser.fullName);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
   };
 
-  // 3. Mock Login nhanh cho 7 Vai trò (dành cho DEV & Demo)
+  // Mock Login compatibility
   const mockLogin = (selectedRole: UserRole) => {
-    const mockUsers: Record<UserRole, User> = {
-      SYSTEM_ADMIN: { id: 'sa-01', email: 'admin@kidpro.edu.vn', fullName: 'Quản trị viên Hệ thống', role: 'SYSTEM_ADMIN', status: 'ACTIVE' },
-      BGH: { id: 'bgh-01', email: 'hieutruong@kidpro.edu.vn', fullName: 'Cô Nguyễn Thu Hà (Hiệu Trưởng)', role: 'BGH', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-      GIAO_VU: { id: 'gv-01', email: 'giaovu@kidpro.edu.vn', fullName: 'Thầy Trần Quốc Bảo (Giáo vụ)', role: 'GIAO_VU', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-      KE_TOAN: { id: 'kt-01', email: 'ketoan@kidpro.edu.vn', fullName: 'Cô Lê Hoàng Mai (Kế toán)', role: 'KE_TOAN', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-      GIAO_VIEN: { id: 'tch-01', email: 'giaovien@kidpro.edu.vn', fullName: 'Cô Phạm Thị Lan (GV Lớp Mầm 1)', role: 'GIAO_VIEN', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-      BEP: { id: 'bep-01', email: 'bep@kidpro.edu.vn', fullName: 'Chú Nguyễn Văn Hùng (Bếp trưởng)', role: 'BEP', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-      PHU_HUYNH: { id: 'ph-01', email: 'phuhuynh@gmail.com', fullName: 'Anh Vũ Đình Trọng (Phụ huynh bé Bo)', role: 'PHU_HUYNH', status: 'ACTIVE', schoolId: 'a7553657-e409-415b-b2dc-5f26974a3b0a', schoolCode: 'KIDPRO_HANOI', schoolName: 'Trường Mầm Sống' },
-    };
-
-    const targetUser = mockUsers[selectedRole];
-    const mockToken = `mock-token-${selectedRole.toLowerCase()}-jwt-string`;
-
-    setUser(targetUser);
-    setToken(mockToken);
-    setRole(selectedRole);
-
-    localStorage.setItem('accessToken', mockToken);
-    localStorage.setItem('userRole', selectedRole);
-    localStorage.setItem('userId', targetUser.id);
-    localStorage.setItem('userEmail', targetUser.email);
-    localStorage.setItem('userFullName', targetUser.fullName);
-    if (targetUser.schoolId) localStorage.setItem('userSchoolId', targetUser.schoolId);
-    if (targetUser.schoolName) localStorage.setItem('userSchoolName', targetUser.schoolName);
-    if (targetUser.schoolCode) localStorage.setItem('userSchoolCode', targetUser.schoolCode);
-    localStorage.setItem('kidpro_token', mockToken);
-    localStorage.setItem('kidpro_user', JSON.stringify(targetUser));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
+    switchRole(selectedRole);
   };
 
-  // 4. Đăng xuất
+  // 3. Đăng xuất
   const logout = async () => {
     try {
       if (isSupabaseConfigured) {
@@ -316,3 +283,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;

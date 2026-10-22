@@ -4,17 +4,15 @@ import { z } from 'zod';
 import { AcademicYear, CreateAcademicYearInput } from '../../../../types/academicYear.types';
 import {
   Calendar,
-  Layers,
-  Building,
   AlertCircle,
   CheckCircle2,
   X,
   Save,
-  HelpCircle,
   GraduationCap,
+  Sparkles,
 } from 'lucide-react';
 
-// Hàm tính số tuần giữa 2 mốc ngày
+// Hàm tính số tuần thực học giữa 2 mốc ngày
 export const calculateWeeksBetween = (startDateStr: string, endDateStr: string): number => {
   if (!startDateStr || !endDateStr) return 0;
   const start = new Date(startDateStr).getTime();
@@ -24,25 +22,15 @@ export const calculateWeeksBetween = (startDateStr: string, endDateStr: string):
   return Math.floor(diffDays / 7);
 };
 
-// Zod Schema Validation
+// Zod Schema Validation theo đúng DB academic.academic_years
 const academicYearSchema = z
   .object({
     name: z
       .string()
       .min(3, 'Tên niên khóa phải có ít nhất 3 ký tự (VD: 2026-2027)')
-      .regex(/^\d{4}-\d{4}$/, 'Định dạng niên khóa phải là YYYY-YYYY (VD: 2026-2027)'),
+      .regex(/^\d{4}[-–—]\d{4}$/, 'Định dạng niên khóa phải là YYYY-YYYY (VD: 2026-2027)'),
     startDate: z.string().min(1, 'Vui lòng chọn ngày bắt đầu năm học'),
     endDate: z.string().min(1, 'Vui lòng chọn ngày kết thúc năm học'),
-    term1Start: z.string().min(1, 'Vui lòng chọn ngày bắt đầu Học kỳ I'),
-    term1End: z.string().min(1, 'Vui lòng chọn ngày kết thúc Học kỳ I'),
-    term2Start: z.string().min(1, 'Vui lòng chọn ngày bắt đầu Học kỳ II'),
-    term2End: z.string().min(1, 'Vui lòng chọn ngày kết thúc Học kỳ II'),
-    nurseryQuota: z.coerce.number().min(0, 'Chỉ tiêu không được âm'),
-    mamQuota: z.coerce.number().min(0, 'Chỉ tiêu không được âm'),
-    choiQuota: z.coerce.number().min(0, 'Chỉ tiêu không được âm'),
-    laQuota: z.coerce.number().min(0, 'Chỉ tiêu không được âm'),
-    maxSchoolCapacity: z.coerce.number().min(50, 'Công suất tối thiểu 50 trẻ'),
-    notes: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -53,46 +41,16 @@ const academicYearSchema = z
       message: 'MSG-034: Năm học phải đảm bảo tối thiểu 35 tuần thực học theo đúng khung thời gian của Bộ GD&ĐT.',
       path: ['endDate'],
     }
-  )
-  .refine(
-    (data) => {
-      const total = data.nurseryQuota + data.mamQuota + data.choiQuota + data.laQuota;
-      return total <= (data.maxSchoolCapacity || 350);
-    },
-    {
-      message: 'MSG-036: Tổng chỉ tiêu tuyển sinh vượt quá công suất cơ sở vật chất được cấp phép của trường.',
-      path: ['laQuota'],
-    }
   );
 
-type FormValues = z.infer<typeof academicYearSchema>;
-
-const createZodResolver = <T extends Record<string, any>>(schema: z.ZodType<any, any, any>): Resolver<T> => {
-  return async (values) => {
-    const result = schema.safeParse(values);
-    if (result.success) {
-      return { values: result.data, errors: {} };
-    }
-    const errors: Record<string, any> = {};
-    for (const issue of result.error.issues) {
-      const field = issue.path[0]?.toString() || 'root';
-      if (!errors[field]) {
-        errors[field] = {
-          type: issue.code,
-          message: issue.message,
-        };
-      }
-    }
-    return { values: {} as any, errors };
-  };
-};
+type AcademicYearFormData = z.infer<typeof academicYearSchema>;
 
 interface AcademicYearModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateAcademicYearInput) => Promise<void>;
   initialData?: AcademicYear | null;
-  isSubmitting: boolean;
+  isLoading?: boolean;
 }
 
 export const AcademicYearModal: React.FC<AcademicYearModalProps> = ({
@@ -100,9 +58,9 @@ export const AcademicYearModal: React.FC<AcademicYearModalProps> = ({
   onClose,
   onSubmit,
   initialData,
-  isSubmitting,
+  isLoading = false,
 }) => {
-  const isEditing = !!initialData;
+  const isEditing = Boolean(initialData);
 
   const {
     register,
@@ -110,346 +68,227 @@ export const AcademicYearModal: React.FC<AcademicYearModalProps> = ({
     watch,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: createZodResolver<FormValues>(academicYearSchema),
+  } = useForm<AcademicYearFormData>({
+    resolver: async (values) => {
+      const result = academicYearSchema.safeParse(values);
+      if (result.success) {
+        return { values: result.data, errors: {} };
+      }
+      const formattedErrors: Record<string, { type: string; message: string }> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as string;
+        if (!formattedErrors[path]) {
+          formattedErrors[path] = { type: 'manual', message: issue.message };
+        }
+      });
+      return { values: {}, errors: formattedErrors };
+    },
     defaultValues: {
-      name: initialData?.name || '2026-2027',
-      startDate: initialData?.startDate || '2026-09-01',
-      endDate: initialData?.endDate || '2027-05-31',
-      term1Start: initialData?.term1Start || '2026-09-01',
-      term1End: initialData?.term1End || '2027-01-15',
-      term2Start: initialData?.term2Start || '2027-01-18',
-      term2End: initialData?.term2End || '2027-05-31',
-      nurseryQuota: initialData?.nurseryQuota ?? 45,
-      mamQuota: initialData?.mamQuota ?? 75,
-      choiQuota: initialData?.choiQuota ?? 85,
-      laQuota: initialData?.laQuota ?? 95,
-      maxSchoolCapacity: initialData?.maxSchoolCapacity ?? 350,
-      notes: initialData?.notes || '',
+      name: '',
+      startDate: '',
+      endDate: '',
     },
   });
 
+  const startDateWatch = watch('startDate');
+  const endDateWatch = watch('endDate');
+
+  // Tính số tuần thực học
+  const calculatedWeeks = useMemo(() => {
+    return calculateWeeksBetween(startDateWatch, endDateWatch);
+  }, [startDateWatch, endDateWatch]);
+
+  const isWeeksValid = calculatedWeeks >= 35;
+
+  // Điền dữ liệu khi sửa
   useEffect(() => {
     if (initialData) {
       reset({
-        name: initialData.name,
-        startDate: initialData.startDate,
-        endDate: initialData.endDate,
-        term1Start: initialData.term1Start,
-        term1End: initialData.term1End,
-        term2Start: initialData.term2Start,
-        term2End: initialData.term2End,
-        nurseryQuota: initialData.nurseryQuota,
-        mamQuota: initialData.mamQuota,
-        choiQuota: initialData.choiQuota,
-        laQuota: initialData.laQuota,
-        maxSchoolCapacity: initialData.maxSchoolCapacity || 350,
-        notes: initialData.notes || '',
+        name: initialData.name || '',
+        startDate: initialData.startDate || '',
+        endDate: initialData.endDate || '',
       });
     } else {
       reset({
-        name: '2027-2028',
-        startDate: '2027-09-01',
-        endDate: '2028-05-31',
-        term1Start: '2027-09-01',
-        term1End: '2028-01-14',
-        term2Start: '2028-01-17',
-        term2End: '2028-05-31',
-        nurseryQuota: 50,
-        mamQuota: 80,
-        choiQuota: 90,
-        laQuota: 100,
-        maxSchoolCapacity: 350,
-        notes: '',
+        name: '2026-2027',
+        startDate: '2026-09-05',
+        endDate: '2027-05-31',
       });
     }
-  }, [initialData, reset, isOpen]);
-
-  const currentStartDate = watch('startDate');
-  const currentEndDate = watch('endDate');
-  const currentNursery = Number(watch('nurseryQuota') || 0);
-  const currentMam = Number(watch('mamQuota') || 0);
-  const currentChoi = Number(watch('choiQuota') || 0);
-  const currentLa = Number(watch('laQuota') || 0);
-  const maxCapacity = Number(watch('maxSchoolCapacity') || 350);
-
-  const calculatedWeeks = useMemo(() => {
-    return calculateWeeksBetween(currentStartDate, currentEndDate);
-  }, [currentStartDate, currentEndDate]);
-
-  const totalQuota = currentNursery + currentMam + currentChoi + currentLa;
-  const isOverCapacity = totalQuota > maxCapacity;
-  const isUnder35Weeks = calculatedWeeks > 0 && calculatedWeeks < 35;
+  }, [initialData, reset]);
 
   if (!isOpen) return null;
 
-  const handleFormSubmit = async (values: FormValues) => {
-    await onSubmit(values as CreateAcademicYearInput);
+  const handleFormSubmit = async (values: AcademicYearFormData) => {
+    await onSubmit({
+      name: values.name,
+      startDate: values.startDate,
+      endDate: values.endDate,
+    });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 my-8 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-[#275A4E] to-[#1E4D40] text-white">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-emerald-50 text-[#275A4E]">
-              <GraduationCap className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md">
+              <GraduationCap className="w-5 h-5 text-[#78C2AD]" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-800">
-                {isEditing ? 'Chỉnh Sửa Kế Hoạch Năm Học' : 'Thiết Lập Kế Hoạch Năm Học & Tuyển Sinh'}
+              <h3 className="text-lg font-bold">
+                {isEditing ? 'Cập Nhật Niên Khóa' : 'Thiết Lập Niên Khóa Mới'}
               </h3>
-              <p className="text-xs text-slate-500">Khung thời gian GD&ĐT và phân bổ chỉ tiêu các khối lớp</p>
+              <p className="text-xs text-[#78C2AD]">
+                UC-005 • Ban Giám Hiệu • Đồng bộ cơ sở dữ liệu
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-xl transition"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-6 space-y-6">
-          {/* Nhóm 1: Thông tin Niên khóa & Thời gian */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#275A4E] flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              1. Khung Thời Gian Niên Khóa Học (BR-008 Tối Thiểu 35 Tuần)
-            </h4>
+        {/* Form Body */}
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-5">
+          {/* Tên niên khóa */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Tên Niên Khóa <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="2026-2027"
+                {...register('name')}
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm font-semibold transition outline-none ${
+                  errors.name
+                    ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:border-rose-500'
+                    : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E]'
+                }`}
+              />
+              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">
+                Định dạng YYYY-YYYY
+              </span>
+            </div>
+            {errors.name && (
+              <p className="mt-1 text-xs text-rose-500 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5" />
+                {errors.name.message}
+              </p>
+            )}
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tên Niên Khóa <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  {...register('name')}
-                  placeholder="2026-2027"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#275A4E]/30 focus:border-[#275A4E]"
-                />
-                {errors.name && <p className="text-xs text-rose-600 mt-1">{errors.name.message}</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Ngày Bắt Đầu Năm Học <span className="text-rose-500">*</span>
-                </label>
+          {/* Khung ngày Bắt đầu - Kết thúc */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Ngày Bắt Đầu <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
                 <input
                   type="date"
                   {...register('startDate')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#275A4E]/30 focus:border-[#275A4E]"
-                />
-                {errors.startDate && <p className="text-xs text-rose-600 mt-1">{errors.startDate.message}</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Ngày Kết Thúc Năm Học <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  {...register('endDate')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#275A4E]/30 focus:border-[#275A4E]"
-                />
-                {errors.endDate && <p className="text-xs text-rose-600 mt-1">{errors.endDate.message}</p>}
-              </div>
-            </div>
-
-            {/* Chỉ báo số tuần thực học */}
-            <div
-              className={`p-3 rounded-xl flex items-center justify-between text-xs ${
-                isUnder35Weeks
-                  ? 'bg-rose-50 border border-rose-300 text-rose-900'
-                  : 'bg-emerald-50 border border-[#78C2AD] text-[#1E4D40]'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {isUnder35Weeks ? (
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                ) : (
-                  <CheckCircle2 className="w-4 h-4 text-[#275A4E] shrink-0" />
-                )}
-                <span>
-                  {isUnder35Weeks
-                    ? `MSG-034: Năm học hiện chỉ có ${calculatedWeeks} tuần. Phải đảm bảo tối thiểu 35 tuần thực học theo đúng khung thời gian của Bộ GD&ĐT.`
-                    : `Khung thời gian hợp lệ: ${calculatedWeeks} tuần thực học (Đạt chuẩn quy định Bộ GD&ĐT ≥ 35 tuần).`}
-                </span>
-              </div>
-              <span className="font-bold text-sm shrink-0">{calculatedWeeks} Tuần</span>
-            </div>
-
-            {/* Mốc thời gian Học kỳ I & Học kỳ II */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-700">Mốc thời gian Học kỳ I:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-0.5">Bắt đầu HK1:</span>
-                    <input
-                      type="date"
-                      {...register('term1Start')}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-0.5">Kết thúc HK1:</span>
-                    <input
-                      type="date"
-                      {...register('term1End')}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-700">Mốc thời gian Học kỳ II:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-0.5">Bắt đầu HK2:</span>
-                    <input
-                      type="date"
-                      {...register('term2Start')}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-500 block mb-0.5">Kết thúc HK2:</span>
-                    <input
-                      type="date"
-                      {...register('term2End')}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Nhóm 2: Cấu hình Chỉ tiêu Tuyển sinh từng khối */}
-          <div className="space-y-4 pt-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#275A4E] flex items-center gap-1.5">
-              <Layers className="w-4 h-4" />
-              2. Định Mức Chỉ Tiêu Tuyển Sinh Từng Khối Lớp (Trẻ)
-            </h4>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Nhà Trẻ (18-36th)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  {...register('nurseryQuota')}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-800"
-                />
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Khối Mầm (3-4t)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  {...register('mamQuota')}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-800"
-                />
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Khối Chồi (4-5t)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  {...register('choiQuota')}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-800"
-                />
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Khối Lá (5-6t)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  {...register('laQuota')}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-800"
-                />
-              </div>
-            </div>
-
-            {/* Tổng chỉ tiêu & Công suất trường */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-600">Tổng chỉ tiêu tuyển sinh:</span>
-                <span
-                  className={`text-base font-bold ${
-                    isOverCapacity ? 'text-rose-600' : 'text-[#275A4E]'
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition outline-none ${
+                    errors.startDate
+                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                      : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E]'
                   }`}
-                >
-                  {totalQuota} / {maxCapacity} trẻ ({Math.round((totalQuota / maxCapacity) * 100)}%)
-                </span>
+                />
               </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                <div
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    isOverCapacity ? 'bg-rose-500' : 'bg-[#275A4E]'
-                  }`}
-                  style={{ width: `${Math.min(100, (totalQuota / maxCapacity) * 100)}%` }}
-                ></div>
-              </div>
-
-              {isOverCapacity && (
-                <p className="text-xs font-semibold text-rose-600 pt-1 flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>MSG-036: Tổng chỉ tiêu tuyển sinh vượt quá công suất cơ sở vật chất được cấp phép của trường.</span>
+              {errors.startDate && (
+                <p className="mt-1 text-xs text-rose-500 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.startDate.message}
                 </p>
               )}
             </div>
 
-            {/* Ghi chú */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Ghi chú / Kế hoạch triển khai đặc thù
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Ngày Kết Thúc <span className="text-rose-500">*</span>
               </label>
-              <textarea
-                {...register('notes')}
-                rows={2}
-                placeholder="VD: Dự kiến nâng cấp phòng học Montessori, chỉ tiêu theo phê duyệt Phòng GD&ĐT..."
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-hidden focus:ring-2 focus:ring-[#275A4E]/30 focus:border-[#275A4E]"
-              ></textarea>
+              <div className="relative">
+                <input
+                  type="date"
+                  {...register('endDate')}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition outline-none ${
+                    errors.endDate
+                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                      : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E]'
+                  }`}
+                />
+              </div>
+              {errors.endDate && (
+                <p className="mt-1 text-xs text-rose-500 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.endDate.message}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          {/* Thẻ kiểm tra số tuần thực học tự động (BR-005) */}
+          <div
+            className={`p-4 rounded-2xl border transition-all ${
+              isWeeksValid
+                ? 'bg-emerald-50/60 border-emerald-200'
+                : 'bg-amber-50/60 border-amber-200'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {isWeeksValid ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                )}
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800">
+                    Thời lượng năm học: <span className="text-sm font-extrabold">{calculatedWeeks} tuần</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {isWeeksValid
+                      ? 'Đạt tiêu chuẩn tối thiểu 35 tuần theo quy định Bộ GD&ĐT.'
+                      : 'Chưa đủ 35 tuần thực học theo quy định chuẩn Bộ GD&ĐT.'}
+                  </p>
+                </div>
+              </div>
+
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  isWeeksValid
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {isWeeksValid ? 'ĐẠT CHUẨN' : 'CHƯA ĐỦ'}
+              </span>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition cursor-pointer"
+              disabled={isLoading}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
             >
-              Hủy Bỏ
+              Hủy bỏ
             </button>
-
             <button
               type="submit"
-              disabled={isSubmitting || isUnder35Weeks || isOverCapacity}
-              className="bg-[#275A4E] hover:bg-[#1E4D40] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs disabled:opacity-50 cursor-pointer"
+              disabled={isLoading || !isWeeksValid}
+              className="px-6 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
             >
-              <Save className="w-4 h-4 text-[#78C2AD]" />
-              <span>{isEditing ? 'Lưu Thay Đổi' : 'Lưu Kế Hoạch Năm Học'}</span>
+              <Save className="w-4 h-4" />
+              <span>{isLoading ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo niên khóa'}</span>
             </button>
           </div>
         </form>

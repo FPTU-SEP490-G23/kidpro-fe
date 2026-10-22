@@ -2,23 +2,26 @@ export type AcademicYearStatus = 'PLANNING' | 'ACTIVE' | 'CLOSED';
 
 export interface AcademicYear {
   id: string;
-  name: string; // Ví dụ: "2026-2027"
+  name: string; // Tên niên khóa (VD: "2026-2027")
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
-  term1Start: string;
-  term1End: string;
-  term2Start: string;
-  term2End: string;
-  nurseryQuota: number; // 18 - 36 tháng
-  mamQuota: number; // 3 - 4 tuổi
-  choiQuota: number; // 4 - 5 tuổi
-  laQuota: number; // 5 - 6 tuổi
-  totalQuota: number; // Tự động cộng tổng
-  enrolledCount?: number; // Đã tiếp nhận thực tế
-  maxSchoolCapacity?: number; // Công suất cấp phép tối đa cơ sở
+  isActive?: boolean;
   status: AcademicYearStatus;
-  notes?: string;
+  statusMessage?: string;
   isLocked?: boolean;
+  // Optional legacy fields for backward compatibility
+  term1Start?: string;
+  term1End?: string;
+  term2Start?: string;
+  term2End?: string;
+  nurseryQuota?: number;
+  mamQuota?: number;
+  choiQuota?: number;
+  laQuota?: number;
+  totalQuota?: number;
+  enrolledCount?: number;
+  maxSchoolCapacity?: number;
+  notes?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -27,14 +30,16 @@ export interface CreateAcademicYearInput {
   name: string;
   startDate: string;
   endDate: string;
-  term1Start: string;
-  term1End: string;
-  term2Start: string;
-  term2End: string;
-  nurseryQuota: number;
-  mamQuota: number;
-  choiQuota: number;
-  laQuota: number;
+  isActive?: boolean;
+  // Optional for backward compatibility
+  term1Start?: string;
+  term1End?: string;
+  term2Start?: string;
+  term2End?: string;
+  nurseryQuota?: number;
+  mamQuota?: number;
+  choiQuota?: number;
+  laQuota?: number;
   maxSchoolCapacity?: number;
   notes?: string;
 }
@@ -43,10 +48,7 @@ export interface UpdateAcademicYearInput extends Partial<CreateAcademicYearInput
   status?: AcademicYearStatus;
 }
 
-// ==========================================
-// UC-065: LƯU TRỮ DỮ LIỆU HỌC BẠ HẾT NIÊN KHÓA (YEAR-END ARCHIVAL & LOCK)
-// ==========================================
-
+// UC-065 Archival types
 export interface ArchivalPreflightChecklist {
   evaluationsCompleted: boolean;
   incompleteEvaluationCount: number;
@@ -59,14 +61,14 @@ export interface ArchivalPreflightChecklist {
   mamToChoiCount: number;
   choiToLaCount: number;
   laGraduatedCount: number;
-  diskSpaceAvailableGb: number; // Yêu cầu >= 20GB (MSG-281)
+  diskSpaceAvailableGb: number;
   sha256Checksum?: string;
   isReadyToArchive: boolean;
 }
 
 export interface YearEndArchivalPayload {
   academicYearId: string;
-  principalAuthCode: string; // Mã phê duyệt của Hiệu trưởng (MSG-280)
+  principalAuthCode: string;
   archivedDate: string;
   notes?: string;
 }
@@ -84,4 +86,3 @@ export interface ArchivedStudentDossier {
   attendanceRate: number;
   archivedPdfUrl?: string;
 }
-

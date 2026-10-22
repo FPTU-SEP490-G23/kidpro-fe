@@ -469,7 +469,7 @@ export const rbacApi = {
         const newAccount = mapUserDtoToAccount(createdDto);
         if (payload.tenantId) {
           newAccount.tenantId = payload.tenantId;
-          newAccount.tenantName = payload.tenantName || createdDto.schoolName || newAccount.tenantName;
+          newAccount.tenantName = (payload as any).tenantName || createdDto.schoolName || newAccount.tenantName;
         }
 
         const list = getStoredUsers();

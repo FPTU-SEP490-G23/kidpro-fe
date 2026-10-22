@@ -1,262 +1,326 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import classApprovalApi, { ClassApprovalItem } from '../../api/classApprovalApi';
+import { useToast } from '../../contexts/ToastContext';
 import {
   School,
   CheckCircle2,
-  AlertTriangle,
-  ShieldCheck,
+  XCircle,
+  AlertCircle,
+  Clock,
   Sparkles,
-  UserCheck,
   Building,
   RefreshCw,
+  Filter,
+  Users,
+  Calendar,
+  X,
+  MessageSquare,
 } from 'lucide-react';
-import { academicApi } from '../../api/academicApi';
-import { ClassEntity } from '../../types/classroom.types';
 
 export const BghClassApprovalsPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [isApprovingAll, setIsApprovingAll] = useState(false);
+  const { success, error } = useToast();
 
-  // Lấy danh sách lớp trực tiếp từ backend Spring Boot
-  const { data: classes = [], isLoading } = useQuery<ClassEntity[]>({
-    queryKey: ['classes-approval-bgh'],
-    queryFn: async () => {
-      try {
-        const res = await academicApi.getClasses();
-        const raw = Array.isArray(res) ? res : ((res as any)?.data || []);
-        return raw;
-      } catch (err) {
-        console.warn('Lỗi khi tải danh sách lớp học cho BGH:', err);
-        return [];
-      }
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+  const [rejectingClass, setRejectingClass] = useState<ClassApprovalItem | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  // Fetch approvals list
+  const { data: classes = [], isLoading, isFetching, refetch } = useQuery<ClassApprovalItem[]>({
+    queryKey: ['class-approvals-bgh', statusFilter],
+    queryFn: () => classApprovalApi.getApprovals(statusFilter),
+  });
+
+  // Approve mutation
+  const approveMutation = useMutation({
+    mutationFn: (classId: string) => classApprovalApi.approveClass(classId),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
+      success(res?.message || 'MSG-031: Kế hoạch mở lớp học mới đã được phê duyệt thành công. Lớp học chính thức được thành lập.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể phê duyệt kế hoạch mở lớp');
     },
   });
 
-  // Xử lý phê duyệt / hủy ký duyệt từng lớp
-  const handleToggleApprove = async (c: ClassEntity) => {
-    setLoadingId(c.id);
-    const targetStatus = c.status === 'APPROVED' ? 'PENDING' : 'APPROVED';
-    try {
-      await academicApi.approveClass(c.id, targetStatus);
-      await queryClient.invalidateQueries({ queryKey: ['classes-approval-bgh'] });
-      await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      setToastMessage(
-        targetStatus === 'APPROVED'
-          ? `Hiệu trưởng đã phê duyệt cơ cấu lớp "${c.name}".`
-          : `Đã chuyển lớp "${c.name}" về trạng thái chờ BGH duyệt.`
-      );
-    } catch (err) {
-      console.error(err);
-      setToastMessage('Không thể cập nhật trạng thái phê duyệt. Vui lòng thử lại.');
-    } finally {
-      setLoadingId(null);
-      setTimeout(() => setToastMessage(null), 4000);
-    }
+  // Reject mutation
+  const rejectMutation = useMutation({
+    mutationFn: ({ classId, reason }: { classId: string; reason: string }) =>
+      classApprovalApi.rejectClass(classId, reason),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
+      success(res?.message || 'MSG-032: Đã từ chối kế hoạch mở lớp học. Thông báo và lý do từ chối đã được gửi về Cán bộ Giáo vụ.');
+      closeRejectModal();
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể từ chối kế hoạch mở lớp';
+      setValidationError(msg);
+      error(msg);
+    },
+  });
+
+  const openRejectModal = (c: ClassApprovalItem) => {
+    setRejectingClass(c);
+    setRejectionReason('');
+    setValidationError('');
   };
 
-  // Xử lý phê duyệt toàn bộ cơ cấu lớp
-  const handleApproveAll = async () => {
-    if (classes.length === 0) return;
-    setIsApprovingAll(true);
-    try {
-      await academicApi.approveAllClasses();
-      await queryClient.invalidateQueries({ queryKey: ['classes-approval-bgh'] });
-      await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      setToastMessage('Hiệu trưởng đã phê duyệt hoàn tất toàn bộ cơ cấu lớp học niên khóa 2026-2027.');
-    } catch (err) {
-      console.error(err);
-      setToastMessage('Không thể phê duyệt toàn bộ cơ cấu lớp. Vui lòng thử lại.');
-    } finally {
-      setIsApprovingAll(false);
-      setTimeout(() => setToastMessage(null), 4000);
-    }
+  const closeRejectModal = () => {
+    setRejectingClass(null);
+    setRejectionReason('');
+    setValidationError('');
   };
 
-  const totalClasses = classes.length;
-  const approvedCount = classes.filter((c) => c.status === 'APPROVED').length;
-  const totalCapacity = classes.reduce((sum, c) => sum + (c.maxCapacity || c.capacity || 25), 0);
+  const handleConfirmReject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectionReason.trim()) {
+      setValidationError('MSG-033: Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
+      return;
+    }
+    if (!rejectingClass) return;
+    rejectMutation.mutate({ classId: rejectingClass.classId, reason: rejectionReason.trim() });
+  };
+
+  const formatGradeLevel = (lvl?: string) => {
+    switch (lvl) {
+      case 'INFANT': return 'Nhà trẻ (18 - 24 tháng)';
+      case 'TODDLER': return 'Nhà trẻ (24 - 36 tháng)';
+      case 'NURSERY': return 'Khối Mầm (3 - 4 tuổi)';
+      case 'KINDERGARTEN': return 'Khối Lá (5 - 6 tuổi)';
+      default: return lvl || 'Mẫu giáo';
+    }
+  };
 
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
-      {/* HEADER PHÂN HỆ DÀNH RIÊNG CHO BGH (UC-010) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-900 to-[#1E4D40] text-white p-6 rounded-3xl shadow-sm">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Ban Giám Hiệu • Quyền Hạn Phê Duyệt Học Vụ</span>
+    <div className="space-y-6 p-6">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl bg-gradient-to-r from-[#275A4E] to-[#1E4D40] p-8 text-white shadow-xl shadow-[#275A4E]/20">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
+            <span>UC-013 • Ban Giám Hiệu</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
-            <School className="h-8 w-8 text-[#78C2AD]" />
-            <span>Phê Duyệt Cấu Trúc Lớp Học Mới (UC-010)</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-2xl">
-            Thẩm tra phương án quy mô lớp học, chỉ tiêu sĩ số từng độ tuổi, định biên phòng học và phân công Giáo viên Chủ nhiệm do Bộ phận Giáo vụ trình duyệt.
+          <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Mở Lớp Học Mới</h1>
+          <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
+            Xem xét và ký duyệt hoặc từ chối kế hoạch mở lớp học do Cán bộ Giáo vụ trình duyệt theo quy chuẩn BR-011.
           </p>
         </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="self-start sm:self-center inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition cursor-pointer"
+        >
+          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Làm mới</span>
+        </button>
+      </div>
 
-        {/* NÚT PHÊ DUYỆT TOÀN DIỆN */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleApproveAll}
-            disabled={isApprovingAll || totalClasses === 0}
-            className="px-5 py-3 bg-[#E5A93C] hover:bg-amber-400 text-slate-950 font-bold rounded-2xl text-xs sm:text-sm transition flex items-center gap-2 cursor-pointer shadow-md min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isApprovingAll ? (
-              <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4 text-slate-950" />
-            )}
-            <span>{isApprovingAll ? 'Đang Xử Lý...' : 'Phê Duyệt Toàn Bộ Cơ Cấu Lớp'}</span>
-          </button>
+      {/* Bộ lọc trạng thái */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+          <Filter className="w-4 h-4 text-[#275A4E]" />
+          <span>Lọc danh sách kế hoạch:</span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: 'PENDING' as const, label: 'Chờ phê duyệt (PENDING)' },
+            { id: 'APPROVED' as const, label: 'Đã phê duyệt (APPROVED)' },
+            { id: 'REJECTED' as const, label: 'Bị từ chối (REJECTED)' },
+            { id: 'ALL' as const, label: 'Tất cả kế hoạch' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                statusFilter === tab.id
+                  ? 'bg-[#275A4E] text-white shadow-2xs'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* TOAST THÔNG BÁO */}
-      {toastMessage && (
-        <div className="p-4 bg-emerald-50 border border-[#78C2AD] rounded-2xl flex items-center gap-3 text-[#1E4D40] text-sm font-bold shadow-xs animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-[#275A4E] shrink-0" />
-          <span>{toastMessage}</span>
+      {/* Grid Danh Sách Kế Hoạch Mở Lớp */}
+      {classes.length === 0 ? (
+        <div className="rounded-3xl bg-white border border-slate-200 p-12 text-center text-slate-400">
+          <School className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#275A4E]" />
+          <p className="text-base font-bold text-slate-700">Không có kế hoạch mở lớp nào phù hợp</p>
+          <p className="text-xs mt-1">Cán bộ Giáo vụ sẽ gửi đề xuất mở lớp học khi có năm học mới</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {classes.map((c) => {
+            const isApproved = c.status === 'APPROVED';
+            const isRejected = c.status === 'REJECTED';
+            const isPending = c.status === 'PENDING';
+
+            return (
+              <div
+                key={c.classId}
+                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs hover:shadow-md hover:border-[#78C2AD] transition-all duration-200 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#78C2AD]/15 text-[#275A4E] flex items-center justify-center font-bold">
+                      <School className="w-6 h-6" />
+                    </div>
+                    <div>
+                      {isApproved && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>ĐÃ DUYỆT</span>
+                        </span>
+                      )}
+                      {isRejected && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>TỪ CHỐI</span>
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                          <span>CHỜ DUYỆT</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    {c.className}
+                  </h3>
+
+                  <p className="text-xs font-semibold text-[#275A4E] mt-0.5">
+                    {formatGradeLevel(c.gradeLevel)}
+                  </p>
+
+                  <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Sĩ số tối đa:</span>
+                      <strong className="text-slate-800 font-bold">{c.maxCapacity || 25} trẻ</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Phòng học chỉ định:</span>
+                      <strong className="text-slate-800 font-bold">{c.roomName || 'Chưa xếp'}</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Niên khóa:</span>
+                      <strong className="text-slate-800 font-bold">{c.academicYearName || '2026-2027'}</strong>
+                    </div>
+                  </div>
+
+                  {/* Lý do từ chối nếu có */}
+                  {isRejected && c.rejectionReason && (
+                    <div className="mt-3 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                      <strong>Lý do từ chối:</strong> {c.rejectionReason}
+                    </div>
+                  )}
+                </div>
+
+                {/* Nút Phê duyệt / Từ chối (Dành cho trạng thái PENDING hoặc REJECTED cần duyệt lại) */}
+                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                  {!isApproved && (
+                    <button
+                      type="button"
+                      onClick={() => approveMutation.mutate(c.classId)}
+                      disabled={approveMutation.isPending}
+                      className="flex-1 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Phê duyệt</span>
+                    </button>
+                  )}
+
+                  {!isRejected && (
+                    <button
+                      type="button"
+                      onClick={() => openRejectModal(c)}
+                      className="px-4 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                    >
+                      Từ chối
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* CHỈ SỐ QUY MÔ TRƯỜNG */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tổng Lớp Đề Xuất</span>
-          <span className="text-2xl font-black text-slate-800 mt-1 block">{totalClasses} lớp</span>
-        </div>
+      {/* Modal Từ Chối Kế Hoạch Mở Lớp (Rẽ nhánh A1) */}
+      {rejectingClass && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                  <XCircle className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Từ chối kế hoạch mở lớp</h3>
+                  <p className="text-xs text-slate-500">Lớp học: {rejectingClass.className}</p>
+                </div>
+              </div>
+              <button onClick={closeRejectModal} className="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Đã Ký Duyệt</span>
-          <span className="text-2xl font-black text-emerald-800 mt-1 block">
-            {approvedCount} / {totalClasses}
-          </span>
-        </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Theo quy tắc <strong>BR-011</strong>, khi Ban Giám hiệu từ chối mở lớp, bắt buộc phải nêu rõ lý do hoặc nội dung chỉ đạo điều chỉnh gửi về Cán bộ Giáo vụ.
+            </p>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tổng Chỉ Tiêu Sĩ Số</span>
-          <span className="text-2xl font-black text-[#275A4E] mt-1 block">{totalCapacity} trẻ</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-          <span className="text-xs font-bold text-amber-600 uppercase tracking-wider block">Tiêu Chuẩn BGD&amp;ĐT</span>
-          <span className="text-base font-bold text-amber-800 mt-1.5 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-amber-600" />
-            <span>Đạt Chuẩn Mầm Non</span>
-          </span>
-        </div>
-      </div>
-
-      {/* DANH SÁCH LỚP HỌC CHỜ DUYỆT */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Building className="w-5 h-5 text-[#275A4E]" />
-            <span>Bảng Đề Xuất Cơ Cấu Lớp Học Niên Khóa 2026 - 2027</span>
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            Thẩm quyền: Hiệu trưởng / BGH (Căn cứ Thông tư 52/2020/TT-BGDĐT)
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[11px] tracking-wider">
-                <th className="py-3 px-4">Tên Lớp Học</th>
-                <th className="py-3 px-4">Độ Tuổi / Khối</th>
-                <th className="py-3 px-4">Phòng Học</th>
-                <th className="py-3 px-4">Sĩ Số Tối Đa</th>
-                <th className="py-3 px-4">Giáo Viên Chủ Nhiệm (Đề Xuất)</th>
-                <th className="py-3 px-4 text-center">Trạng Thái BGH</th>
-                <th className="py-3 px-4 text-right">Thao Tác Ký Duyệt</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#275A4E] mb-2" />
-                    <p className="text-sm font-medium">Đang tải danh sách cơ cấu lớp học...</p>
-                  </td>
-                </tr>
-              ) : classes.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Building className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm font-medium">Chưa có lớp học nào được đề xuất cho niên khóa này</p>
-                  </td>
-                </tr>
-              ) : (
-                classes.map((c) => {
-                  const status = c.status || 'PENDING';
-                  const isApproved = status === 'APPROVED';
-                  const isRowLoading = loadingId === c.id;
-
-                  return (
-                    <tr key={c.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-4 px-4 font-bold text-slate-900 flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#275A4E] font-extrabold flex items-center justify-center shrink-0">
-                          {c.name ? c.name.slice(0, 2).toUpperCase() : 'LH'}
-                        </div>
-                        <span>{c.name}</span>
-                      </td>
-                      <td className="py-4 px-4 text-slate-600 font-semibold">{c.ageGroup || '3-4 tuổi'}</td>
-                      <td className="py-4 px-4 text-slate-600 font-mono text-xs">{c.roomNumber || c.roomName || 'Phòng 101'}</td>
-                      <td className="py-4 px-4 font-bold text-slate-800">{c.maxCapacity || c.capacity || 25} trẻ</td>
-                      <td className="py-4 px-4 text-slate-700 font-medium">
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 text-[#275A4E] shrink-0" />
-                          <span>{c.teacherName || 'Chưa phân công'}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                            isApproved
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800 animate-pulse'
-                          }`}
-                        >
-                          {isApproved ? (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                              <span>Đã Duyệt</span>
-                            </>
-                          ) : (
-                            <>
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-                              <span>Chờ BGH Duyệt</span>
-                            </>
-                          )}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleApprove(c)}
-                          disabled={isRowLoading || isApprovingAll}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5 ${
-                            isApproved
-                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                              : 'bg-[#275A4E] hover:bg-[#1E4D40] text-white shadow-2xs'
-                          } disabled:opacity-60 disabled:cursor-not-allowed`}
-                        >
-                          {isRowLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                          <span>{isApproved ? 'Hủy Ký Duyệt' : 'Phê Duyệt Lớp'}</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+            <form onSubmit={handleConfirmReject} className="space-y-3">
+              {validationError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{validationError}</span>
+                </div>
               )}
-            </tbody>
-          </table>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Lý do từ chối / Yêu cầu điều chỉnh *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Ví dụ: Phòng học chỉ định đang trong diện sửa chữa cơ sở vật chất, đề nghị bố trí sang phòng học P102..."
+                  className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-xl focus:border-[#275A4E] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeRejectModal}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={rejectMutation.isPending}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer"
+                >
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

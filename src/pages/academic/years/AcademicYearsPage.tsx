@@ -7,33 +7,27 @@ import { formatDate } from '../../../utils/formatters';
 import { calculateWeeksBetween } from './components/AcademicYearModal';
 import AcademicYearModal from './components/AcademicYearModal';
 import ArchiveYearModal from './components/ArchiveYearModal';
-import AcademicYearDetailModal from './components/AcademicYearDetailModal';
 import {
   GraduationCap,
   Calendar,
   Plus,
   Filter,
-  Eye,
   Pencil,
   Archive,
   Trash2,
   CheckCircle2,
-  AlertTriangle,
   Clock,
-  Building,
   RefreshCw,
   Sparkles,
-  Layers,
 } from 'lucide-react';
 
 export const AcademicYearsPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const { success, error, info } = useToast();
+  const { success, error } = useToast();
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | AcademicYearStatus>('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
-  const [detailYear, setDetailYear] = useState<AcademicYear | null>(null);
   const [archivingYear, setArchivingYear] = useState<AcademicYear | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -55,7 +49,7 @@ export const AcademicYearsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
-      success('MSG-033: Thiết lập năm học và kế hoạch tuyển sinh thành công');
+      success('MSG-033: Thiết lập năm học thành công');
       setIsModalOpen(false);
       setEditingYear(null);
     },
@@ -72,7 +66,7 @@ export const AcademicYearsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
-      success('Đã đóng và chuyển niên khóa sang trạng thái lưu trữ thành công');
+      success('Đã chuyển niên khóa sang trạng thái lưu trữ thành công');
       setArchivingYear(null);
     },
     onError: (err: any) => {
@@ -101,7 +95,7 @@ export const AcademicYearsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
-      success('Đã xóa kế hoạch niên khóa thành công');
+      success('Đã xóa niên khóa thành công');
       setDeletingId(null);
     },
     onError: (err: any) => {
@@ -120,81 +114,79 @@ export const AcademicYearsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (year: AcademicYear) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa kế hoạch năm học ${year.name}?`)) {
-      setDeletingId(year.id);
-      deleteMutation.mutate(year.id);
+  const handleSave = async (data: CreateAcademicYearInput) => {
+    await saveMutation.mutateAsync(data);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa niên khóa này không? Thao tác này không thể hoàn tác.')) {
+      setDeletingId(id);
+      deleteMutation.mutate(id);
     }
   };
 
+  const filteredYears = years.filter((y) => {
+    if (statusFilter === 'ALL') return true;
+    return y.status === statusFilter;
+  });
+
   return (
-    <div className="space-y-6">
-      {/* Tiêu đề trang */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+    <div className="space-y-6 p-6">
+      {/* Top Banner Tiêu Đề */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl bg-gradient-to-r from-[#275A4E] to-[#1E4D40] p-8 text-white shadow-xl shadow-[#275A4E]/20">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#1E4D40] text-xs font-bold border border-emerald-300">
-              UC-009 Academic Year Planning
-            </span>
-            <span className="text-xs text-slate-400">|</span>
-            <span className="text-xs font-semibold text-slate-500">BGH & Giáo vụ School Management</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
+            <span>UC-005 • Ban Giám Hiệu</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 mt-1">
-            Thiết Lập Kế Hoạch Năm Học & Tuyển Sinh
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Quản lý danh mục niên khóa, thiết lập mốc học kỳ I & II, định mức chỉ tiêu tuyển sinh cho các khối Nhà trẻ, Mầm, Chồi, Lá
+          <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Năm Học</h1>
+          <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
+            Thiết lập niên khóa học đường, kiểm soát khung thời gian chuẩn 35 tuần của Bộ GD&ĐT (BR-005).
           </p>
         </div>
-
-        <div className="flex items-center gap-2.5 self-start md:self-auto">
+        <div className="flex items-center gap-3">
           <button
-            type="button"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition-all active:scale-95 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#275A4E] ${isFetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
             <span>Làm mới</span>
           </button>
-
           <button
-            type="button"
             onClick={handleOpenCreate}
-            className="bg-[#275A4E] hover:bg-[#1E4D40] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#78C2AD] text-[#1E4D40] hover:bg-[#68b49f] px-5 py-2.5 text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-[#78C2AD]" />
-            <span>Thêm Năm Học Mới</span>
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Tạo Niên Khóa Mới</span>
           </button>
         </div>
       </div>
 
-      {/* Thẻ nổi bật: Niên khóa hiện hành đang kích hoạt (ACTIVE) */}
+      {/* Thẻ Niên Khóa Active Hiện Hành */}
       {activeYear && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-[#275A4E]/10 to-teal-500/10 border-2 border-[#78C2AD] shadow-xs relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-            <div className="flex items-start gap-4">
-              <div className="p-3.5 rounded-2xl bg-[#275A4E] text-white shadow-xs shrink-0">
-                <GraduationCap className="w-8 h-8 text-[#78C2AD]" />
+        <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#275A4E]/10 text-[#275A4E] flex items-center justify-center">
+                <GraduationCap className="w-7 h-7" />
               </div>
               <div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Niên khóa vận hành hiện hành:
                   </span>
-                  <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-[#78C2AD] text-[#1E4D40] shadow-xs flex items-center gap-1">
+                  <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-[#78C2AD] text-[#1E4D40] flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#1E4D40] animate-pulse"></span>
                     ACTIVE
                   </span>
                 </div>
-
                 <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">
                   Năm Học {activeYear.name}
                 </h2>
-
-                <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-3">
+                <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
                   <span>
-                    <strong>Thời gian:</strong> {formatDate(activeYear.startDate)} đến {formatDate(activeYear.endDate)}
+                    <strong>Khung thời gian:</strong> {formatDate(activeYear.startDate)} đến {formatDate(activeYear.endDate)}
                   </span>
                   <span>•</span>
                   <span>
@@ -204,28 +196,15 @@ export const AcademicYearsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Chỉ số nhanh của niên khóa Active */}
-            <div className="flex flex-wrap items-center gap-3 bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="text-center px-3 border-r border-slate-200">
-                <span className="text-[11px] text-slate-400 block font-medium">Tổng Chỉ Tiêu</span>
-                <span className="text-base font-bold text-slate-800">{activeYear.totalQuota} trẻ</span>
-              </div>
-
-              <div className="text-center px-3 border-r border-slate-200">
-                <span className="text-[11px] text-slate-400 block font-medium">Đã Nhập Học</span>
-                <span className="text-base font-bold text-[#275A4E]">
-                  {activeYear.enrolledCount || 0} trẻ
-                </span>
-              </div>
-
-              <div className="text-center px-3">
-                <span className="text-[11px] text-slate-400 block font-medium">Tiến Độ Tuyển Sinh</span>
-                <span className="text-base font-bold text-[#E5A93C]">
-                  {activeYear.totalQuota > 0
-                    ? Math.round(((activeYear.enrolledCount || 0) / activeYear.totalQuota) * 100)
-                    : 0}%
-                </span>
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleOpenEdit(activeYear)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Chỉnh sửa</span>
+              </button>
             </div>
           </div>
         </div>
@@ -268,167 +247,125 @@ export const AcademicYearsPage: React.FC = () => {
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px] tracking-wider">
                 <th className="py-3.5 px-4">Tên Niên Khóa</th>
-                <th className="py-3.5 px-4">Khung Thời Gian</th>
+                <th className="py-3.5 px-4">Ngày Bắt Đầu</th>
+                <th className="py-3.5 px-4">Ngày Kết Thúc</th>
                 <th className="py-3.5 px-4 text-center">Số Tuần Học</th>
-                <th className="py-3.5 px-4 text-center">Tổng Chỉ Tiêu</th>
-                <th className="py-3.5 px-4">Phân Bổ Từng Khối Lớp</th>
                 <th className="py-3.5 px-4 text-center">Trạng Thái</th>
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {years.length === 0 ? (
+              {filteredYears.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <GraduationCap className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm font-medium">Không tìm thấy niên khóa nào phù hợp với bộ lọc</p>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <Calendar className="w-10 h-10 mx-auto mb-2 opacity-30 text-[#275A4E]" />
+                    <p className="text-sm font-semibold">Chưa có niên khóa nào phù hợp bộ lọc</p>
+                    <p className="text-xs mt-0.5">Bấm nút "Tạo Niên Khóa Mới" để thiết lập năm học</p>
                   </td>
                 </tr>
               ) : (
-                years.map((year) => {
-                  const weeks = calculateWeeksBetween(year.startDate, year.endDate);
-                  const isUnderWeeks = weeks < 35;
-                  const isActive = year.status === 'ACTIVE';
-                  const isPlanning = year.status === 'PLANNING';
-                  const isClosed = year.status === 'CLOSED';
+                filteredYears.map((item) => {
+                  const weeks = calculateWeeksBetween(item.startDate, item.endDate);
+                  const isCurrentActive = item.status === 'ACTIVE';
 
                   return (
-                    <tr key={year.id} className="hover:bg-slate-50/60 transition">
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isCurrentActive ? 'bg-[#78C2AD]/5 font-medium' : ''
+                      }`}
+                    >
                       {/* Tên niên khóa */}
+                      <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-[#275A4E]" />
+                        <span>Năm học {item.name}</span>
+                      </td>
+
+                      {/* Ngày bắt đầu */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-800">{year.name}</span>
-                          {isActive && (
-                            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-                          )}
-                        </div>
-                        {year.notes && (
-                          <p className="text-[11px] text-slate-400 truncate max-w-xs">{year.notes}</p>
-                        )}
+                        <span className="font-semibold text-slate-800">{formatDate(item.startDate)}</span>
                       </td>
 
-                      {/* Khung thời gian */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="font-semibold text-slate-800">
-                          {formatDate(year.startDate)}
-                        </span>
-                        <span className="text-slate-400 mx-1.5">→</span>
-                        <span className="font-semibold text-slate-800">
-                          {formatDate(year.endDate)}
-                        </span>
+                      {/* Ngày kết thúc */}
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-slate-800">{formatDate(item.endDate)}</span>
                       </td>
 
-                      {/* Số tuần thực học */}
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      {/* Số tuần học */}
+                      <td className="py-3.5 px-4 text-center">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            isUnderWeeks
-                              ? 'bg-rose-50 text-rose-700 border border-rose-300'
-                              : 'bg-emerald-50 text-[#1E4D40] border border-[#78C2AD]'
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                            weeks >= 35
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}
                         >
-                          {weeks} Tuần
+                          <Clock className="w-3 h-3" />
+                          <span>{weeks} tuần</span>
                         </span>
-                      </td>
-
-                      {/* Tổng chỉ tiêu */}
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <span className="text-sm font-extrabold text-slate-800">
-                          {year.totalQuota}
-                        </span>
-                        <span className="text-[11px] text-slate-400 block">
-                          Đã tuyển: {year.enrolledCount || 0}
-                        </span>
-                      </td>
-
-                      {/* Chi tiết từng khối */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-medium" title="Nhà trẻ">
-                            Nhà trẻ: {year.nurseryQuota}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-medium" title="Khối Mầm">
-                            Mầm: {year.mamQuota}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-medium" title="Khối Chồi">
-                            Chồi: {year.choiQuota}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-medium" title="Khối Lá">
-                            Lá: {year.laQuota}
-                          </span>
-                        </div>
                       </td>
 
                       {/* Trạng thái */}
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            isActive
-                              ? 'bg-emerald-50 text-[#1E4D40] border border-[#78C2AD]'
-                              : isPlanning
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : 'bg-slate-100 text-slate-600 border border-slate-200'
-                          }`}
-                        >
-                          {isActive ? 'ĐANG ÁP DỤNG' : isPlanning ? 'CHUẨN BỊ' : 'ĐÃ LƯU TRỮ'}
-                        </span>
+                      <td className="py-3.5 px-4 text-center">
+                        {isCurrentActive ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-[#78C2AD]/20 text-[#1E4D40] border border-[#78C2AD]/40">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#1E4D40] animate-pulse"></span>
+                            ACTIVE
+                          </span>
+                        ) : item.status === 'PLANNING' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            PLANNING
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            CLOSED
+                          </span>
+                        )}
                       </td>
 
                       {/* Thao tác */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* Xem chi tiết */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Nút Kích hoạt niên khóa nếu đang PLANNING */}
+                          {item.status === 'PLANNING' && (
+                            <button
+                              type="button"
+                              onClick={() => activateMutation.mutate(item.id)}
+                              title="Kích hoạt áp dụng niên khóa này"
+                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          {/* Nút Sửa */}
                           <button
                             type="button"
-                            onClick={() => setDetailYear(year)}
-                            title="Xem chi tiết"
+                            onClick={() => handleOpenEdit(item)}
+                            title="Chỉnh sửa thông tin"
                             className="p-1.5 rounded-lg text-slate-500 hover:text-[#275A4E] hover:bg-slate-100 transition cursor-pointer"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                           </button>
 
-                          {/* Chỉnh sửa */}
-                          {!isClosed && (
+                          {/* Nút Đóng / Lưu trữ */}
+                          {item.status !== 'CLOSED' && (
                             <button
                               type="button"
-                              onClick={() => handleOpenEdit(year)}
-                              title="Chỉnh sửa"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 transition cursor-pointer"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                          )}
-
-                          {/* Kích hoạt thành Active */}
-                          {isPlanning && (
-                            <button
-                              type="button"
-                              onClick={() => activateMutation.mutate(year.id)}
-                              title="Kích hoạt năm học"
-                              className="px-2 py-1 rounded-lg bg-emerald-50 text-[#275A4E] hover:bg-emerald-100 font-semibold text-[11px] transition cursor-pointer"
-                            >
-                              Kích hoạt
-                            </button>
-                          )}
-
-                          {/* Đóng & Lưu trữ (Archive) */}
-                          {isActive && (
-                            <button
-                              type="button"
-                              onClick={() => setArchivingYear(year)}
-                              title="Đóng & Lưu trữ niên khóa"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-slate-100 transition cursor-pointer"
+                              onClick={() => setArchivingYear(item)}
+                              title="Đóng niên khóa"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
                             >
                               <Archive className="w-4 h-4" />
                             </button>
                           )}
 
-                          {/* Xóa (chỉ xóa nếu PLANNING và chưa có học sinh) */}
-                          {isPlanning && (
+                          {/* Nút Xóa (Chỉ cho phép xóa khi chưa CLOSED hoặc đang PLANNING) */}
+                          {item.status !== 'ACTIVE' && (
                             <button
                               type="button"
-                              onClick={() => handleDelete(year)}
-                              disabled={deletingId === year.id}
+                              onClick={() => handleDelete(item.id)}
+                              disabled={deletingId === item.id}
                               title="Xóa niên khóa"
                               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                             >
@@ -446,37 +383,30 @@ export const AcademicYearsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Tạo/Sửa Niên Khóa */}
+      {/* Modal Thêm / Sửa Niên Khóa */}
       <AcademicYearModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setEditingYear(null);
         }}
-        onSubmit={async (data) => {
-          await saveMutation.mutateAsync(data);
-        }}
+        onSubmit={handleSave}
         initialData={editingYear}
-        isSubmitting={saveMutation.isPending}
+        isLoading={saveMutation.isPending}
       />
 
-      {/* Modal Xem Chi Tiết */}
-      <AcademicYearDetailModal
-        isOpen={!!detailYear}
-        year={detailYear}
-        onClose={() => setDetailYear(null)}
-      />
-
-      {/* Modal Xác Nhận Lưu Trữ (Archive) */}
-      <ArchiveYearModal
-        isOpen={!!archivingYear}
-        year={archivingYear}
-        onClose={() => setArchivingYear(null)}
-        onConfirm={async (id) => {
-          await archiveMutation.mutateAsync(id);
-        }}
-        isArchiving={archiveMutation.isPending}
-      />
+      {/* Modal Đóng / Lưu Trữ Niên Khóa */}
+      {archivingYear && (
+        <ArchiveYearModal
+          isOpen={Boolean(archivingYear)}
+          onClose={() => setArchivingYear(null)}
+          year={archivingYear}
+          onConfirm={async (id: string) => {
+            await archiveMutation.mutateAsync(id);
+          }}
+          isArchiving={archiveMutation.isPending}
+        />
+      )}
     </div>
   );
 };
