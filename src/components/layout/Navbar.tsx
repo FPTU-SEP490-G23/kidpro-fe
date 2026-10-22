@@ -1,29 +1,11 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+﻿import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { UserRole } from '../../types/auth.types';
-import { getRoleDisplayName, getRoleBadgeColor, getRoleHomePath } from '../../utils/formatters';
+import { getRoleDisplayName, getRoleBadgeColor } from '../../utils/formatters';
 import { LogOut, Bell, User as UserIcon } from 'lucide-react';
 
-const allRoles: UserRole[] = [
-  'SYSTEM_ADMIN',
-  'BGH',
-  'GIAO_VIEN',
-  'GIAO_VU',
-  'KE_TOAN',
-  'BEP',
-  'PHU_HUYNH',
-];
-
 export const Navbar: React.FC = () => {
-  const { user, role, switchRole, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleRoleChange = (newRole: UserRole) => {
-    switchRole(newRole);
-    const targetPath = getRoleHomePath(newRole);
-    navigate(targetPath);
-  };
+  const { user, role, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/90 px-4 sm:px-6 backdrop-blur-md">
@@ -39,23 +21,16 @@ export const Navbar: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Bộ chuyển vai trò trải nghiệm trên Mobile */}
+        {/* Vai trò người dùng trên Mobile */}
         {role && (
           <div className="md:hidden flex items-center">
-            <select
-              value={role}
-              onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-              title="Chuyển đổi vai trò trải nghiệm"
+            <span
               className={`rounded-lg px-2 py-1 text-[11px] font-bold border ${getRoleBadgeColor(
                 role
-              )} cursor-pointer focus:outline-hidden min-h-[36px]`}
+              )} min-h-[36px] flex items-center`}
             >
-              {allRoles.map((r) => (
-                <option key={r} value={r} className="bg-white text-slate-800 text-xs">
-                  {getRoleDisplayName(r)}
-                </option>
-              ))}
-            </select>
+              {getRoleDisplayName(role)}
+            </span>
           </div>
         )}
 
@@ -100,20 +75,13 @@ export const Navbar: React.FC = () => {
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {role && (
-                  <select
-                    value={role}
-                    onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-                    title="Chuyển đổi vai trò trải nghiệm"
+                  <span
                     className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold border ${getRoleBadgeColor(
                       role
-                    )} cursor-pointer focus:outline-hidden hover:opacity-90`}
+                    )}`}
                   >
-                    {allRoles.map((r) => (
-                      <option key={r} value={r} className="bg-white text-slate-800 text-xs">
-                        {getRoleDisplayName(r)}
-                      </option>
-                    ))}
-                  </select>
+                    {getRoleDisplayName(role)}
+                  </span>
                 )}
                 <span className="text-xs text-slate-400">{user.email}</span>
               </div>
