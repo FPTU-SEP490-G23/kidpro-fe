@@ -151,6 +151,81 @@ export const LoginPage: React.FC = () => {
               <span>{isLoading ? 'Đang xác thực...' : 'Đăng nhập hệ thống'}</span>
             </button>
           </form>
+
+          {/* Tài khoản thử nghiệm nhanh (Demo Fast Login) */}
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px bg-slate-200 flex-1"></div>
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                Tài khoản chạy thử nhanh
+              </span>
+              <div className="h-px bg-slate-200 flex-1"></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('bep@kidpro.edu.vn');
+                  setPassword('password123');
+                }}
+                className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/70 p-2 text-left hover:bg-orange-100/80 transition cursor-pointer"
+              >
+                <span className="text-base">🍳</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-orange-950 truncate">Bộ phận Bếp</p>
+                  <p className="text-[10px] text-orange-700 truncate">bep@kidpro.edu.vn</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('bgh@kidpro.edu.vn');
+                  setPassword('password123');
+                }}
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2 text-left hover:bg-emerald-100/80 transition cursor-pointer"
+              >
+                <span className="text-base">🏫</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-950 truncate">Ban Giám Hiệu</p>
+                  <p className="text-[10px] text-emerald-700 truncate">bgh@kidpro.edu.vn</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('giaovien@kidpro.edu.vn');
+                  setPassword('password123');
+                }}
+                className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50/70 p-2 text-left hover:bg-teal-100/80 transition cursor-pointer"
+              >
+                <span className="text-base">👩‍🏫</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-teal-950 truncate">Giáo Viên</p>
+                  <p className="text-[10px] text-teal-700 truncate">giaovien@kidpro.edu.vn</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('ketoan@kidpro.edu.vn');
+                  setPassword('password123');
+                }}
+                className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-left hover:bg-blue-100/80 transition cursor-pointer"
+              >
+                <span className="text-base">💵</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-blue-950 truncate">Kế Toán</p>
+                  <p className="text-[10px] text-blue-700 truncate">ketoan@kidpro.edu.vn</p>
+                </div>
+              </button>
+            </div>
+            <p className="text-[10px] text-center text-slate-400 mt-2">
+              Mật khẩu mặc định: <span className="font-semibold text-slate-600">password123</span>
+            </p>
+          </div>
         </div>
 
         {/* Footer */}

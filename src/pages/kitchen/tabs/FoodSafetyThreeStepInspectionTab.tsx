@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   Clock,
   Printer,
-  Sparkles,
   Thermometer,
   FileCheck2,
   AlertCircle,
@@ -20,14 +19,14 @@ import {
   RawMaterialInspectionItem
 } from '../../../types/kitchen.types';
 import kitchenApi from '../../../api/kitchenApi';
+import { openKitchenEvidence, uploadKitchenEvidence } from '../../../api/kitchenEvidenceApi';
 import { useFoodInspectionSteps } from '../../../hooks/useFoodInspectionSteps';
 import { DigitalSignaturePad } from '../../../components/common/DigitalSignaturePad';
 
-// System Messages (Quyết định 1246/QĐ-BYT)
-const MSG_232 = 'Đã hoàn thành kiểm thực 3 bước và niêm phong mẫu thức ăn 24h an toàn';
-const MSG_233 = 'Khối lượng mẫu lưu bắt buộc tối thiểu 100g/món theo Quyết định 1246/QĐ-BYT của Bộ Y tế.';
-const MSG_234 = 'Nhiệt độ tủ lưu mẫu vượt quá 8°C! Yêu cầu kiểm tra hệ thống làm lạnh ngay.';
-const MSG_235 = 'Yêu cầu kiểm thực kép: Ban Giám Hiệu bắt buộc phải cùng ký xác nhận sổ kiểm thực.';
+const MSG_112 = 'Lưu sổ kiểm thực 3 bước và lưu mẫu thành công.';
+const MSG_113 = 'Nguyên liệu nhập thiếu hóa đơn/ảnh chứng từ hoặc không đạt cảm quan tươi sống.';
+const MSG_114 = 'Nhiệt độ tủ lưu mẫu nằm ngoài khoảng quy định an toàn (thấp hơn 2°C hoặc vượt quá 8°C).';
+const MSG_115 = 'Bỏ sót mã niêm phong hoặc ảnh lưu mẫu của một món ăn trong thực đơn.';
 
 // Mock Initial 3-Step Inspection Log
 const createInitialInspectionLog = (date: string): ThreeStepFoodSafetyInspectionLog => ({
@@ -42,9 +41,9 @@ const createInitialInspectionLog = (date: string): ThreeStepFoodSafetyInspection
   step2ChefSignature: undefined,
   cookingTemperatures: [],
   hygieneChecklist: {
-    protectiveClothing: true,
-    separateCuttingBoards: true,
-    cleanWaterSource: true,
+    protectiveClothing: false,
+    separateCuttingBoards: false,
+    cleanWaterSource: false,
   },
   step3Completed: false,
   step3Time: '11:15 AM',
@@ -77,28 +76,196 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   const saveInspectionMutation = useFoodInspectionSteps();
 
   // Query Inspection Log
-  const { data: inspectionLog = createInitialInspectionLog(selectedDate), refetch } = useQuery({
+  const {
+    data: inspectionLog,
+    isLoading: isInspectionLogLoading,
+    isError: isInspectionLogError,
+    error: inspectionLogError
+  } = useQuery<ThreeStepFoodSafetyInspectionLog>({
     queryKey: ['food-inspection-log', selectedDate],
     queryFn: async () => {
-      try {
-        const res = await kitchenApi.getThreeStepInspectionLog(selectedDate);
-        return res.data || createInitialInspectionLog(selectedDate);
-      } catch {
-        return createInitialInspectionLog(selectedDate);
-      }
+      const res = await kitchenApi.getThreeStepInspectionLog(selectedDate);
+      return res.status === 204 ? createInitialInspectionLog(selectedDate) : res.data;
     },
+    retry: false
   });
 
   // State local to manage edits before save
-  const [localLog, setLocalLog] = useState<ThreeStepFoodSafetyInspectionLog>(inspectionLog);
+  const [localLog, setLocalLog] = useState<ThreeStepFoodSafetyInspectionLog>(
+    () => createInitialInspectionLog(selectedDate)
+  );
+  const [newMaterial, setNewMaterial] = useState({
+    ingredientName: '',
+    quantityKg: 0,
+    supplierName: '',
+    invoiceNumber: '',
+    deliveryTemperatureCelsius: 4,
+    isFrozenOrChilled: false
+  });
+  const [newCookingDish, setNewCookingDish] = useState({
+    dishName: '',
+    cookingMethod: '',
+    coreTemperatureCelsius: 70
+  });
+
+  const getWeekStartDate = (dateText: string) => {
+    const date = new Date(`${dateText}T00:00:00`);
+    const day = date.getDay();
+    date.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+  const targetDayNumber = new Date(`${selectedDate}T00:00:00`).getDay() || 7;
+  const {
+    data: weeklyMenuItems = [],
+    isLoading: isWeeklyMenuLoading,
+    isError: isWeeklyMenuError,
+    error: weeklyMenuError
+  } = useQuery({
+    queryKey: ['inspection-menu-items', selectedDate],
+    queryFn: async () => (await kitchenApi.getWeeklyMenus(getWeekStartDate(selectedDate))).data,
+    enabled: Boolean(selectedDate),
+    retry: false
+  });
+  const dayName = ['', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'][targetDayNumber];
+  const todaysApprovedDishes = React.useMemo(
+    () => weeklyMenuItems.filter((dish) =>
+      dish.menuStatus === 'APPROVED' && (
+        typeof dish.dayOfWeek === 'number'
+          ? dish.dayOfWeek === targetDayNumber
+          : String(dish.dayOfWeek) === dayName
+      )
+    ),
+    [weeklyMenuItems, targetDayNumber, dayName]
+  );
 
   // Update localLog if query changes
   React.useEffect(() => {
-    setLocalLog(inspectionLog);
-  }, [inspectionLog]);
+    setLocalLog(inspectionLog || createInitialInspectionLog(selectedDate));
+  }, [inspectionLog, selectedDate]);
+
+  React.useEffect(() => {
+    if (isInspectionLogLoading || isInspectionLogError || weeklyMenuItems.length === 0) return;
+    if (todaysApprovedDishes.length === 0) return;
+
+    setLocalLog((current) => {
+      if (current.inspectionDate !== selectedDate || current.retentionSamples.length > 0) return current;
+      return {
+        ...current,
+        retentionSamples: todaysApprovedDishes.map((dish) => ({
+          id: `sample-${dish.id || dish.itemId || dish.mealType}-${targetDayNumber}`,
+          dishName: dish.dishName,
+          sampleWeightGrams: 100,
+          sealCode: '',
+          storageTemperatureCelsius: 4,
+          sensoryEvaluation: 'PASSED',
+          tastedBy: ''
+        }))
+      };
+    });
+  }, [isInspectionLogLoading, isInspectionLogError, weeklyMenuItems, todaysApprovedDishes, selectedDate, targetDayNumber]);
+
+  const handleAddRawMaterial = () => {
+    if (!newMaterial.ingredientName.trim() || !newMaterial.supplierName.trim() || !newMaterial.invoiceNumber.trim()) {
+      setToastMessage({ type: 'error', text: 'Cần nhập tên thực phẩm, nhà cung cấp và số hóa đơn.' });
+      return;
+    }
+    setLocalLog((current) => ({
+      ...current,
+      rawMaterials: [...current.rawMaterials, {
+        ...newMaterial,
+        id: crypto.randomUUID(),
+        sensoryEvaluation: 'PASSED',
+        isRejected: false
+      }]
+    }));
+    setNewMaterial({
+      ingredientName: '',
+      quantityKg: 0,
+      supplierName: '',
+      invoiceNumber: '',
+      deliveryTemperatureCelsius: 4,
+      isFrozenOrChilled: false
+    });
+  };
+
+  const handleAddCookingDish = () => {
+    if (!newCookingDish.dishName.trim() || !newCookingDish.cookingMethod.trim()) {
+      setToastMessage({ type: 'error', text: 'Cần nhập tên món và phương pháp chế biến.' });
+      return;
+    }
+    setLocalLog((current) => ({
+      ...current,
+      cookingTemperatures: [...current.cookingTemperatures, {
+        ...newCookingDish,
+        id: crypto.randomUUID(),
+        isHygieneStandardPassed: false
+      }]
+    }));
+    setNewCookingDish({ dishName: '', cookingMethod: '', coreTemperatureCelsius: 70 });
+  };
+
+  const handleInvoicePhotoUpload = async (itemId: string, file?: File) => {
+    if (!file) return;
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `inspections/${selectedDate}/invoice_${itemId}.${extension}`;
+      const savedPath = await uploadKitchenEvidence(file, path);
+      setLocalLog((current) => ({
+        ...current,
+        rawMaterials: current.rawMaterials.map((item) =>
+          item.id === itemId ? { ...item, invoicePhotoPath: savedPath } : item
+        )
+      }));
+      setToastMessage({ type: 'success', text: 'Đã tải ảnh hóa đơn lên kho bằng chứng.' });
+    } catch (uploadError) {
+      setToastMessage({
+        type: 'error',
+        text: uploadError instanceof Error ? uploadError.message : 'Không thể tải ảnh hóa đơn.'
+      });
+    }
+  };
+
+  const handleSamplePhotoUpload = async (sampleId: string, sealCode: string, file?: File) => {
+    if (!file) return;
+    const safeSealCode = sealCode.trim().replace(/[^A-Za-z0-9_-]/g, '_');
+    if (!safeSealCode) {
+      setToastMessage({ type: 'error', text: 'Nhập mã niêm phong trước khi tải ảnh mẫu.' });
+      return;
+    }
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `samples/${selectedDate}/${safeSealCode}.${extension}`;
+      const savedPath = await uploadKitchenEvidence(file, path);
+      setLocalLog((current) => ({
+        ...current,
+        retentionSamples: current.retentionSamples.map((sample) =>
+          sample.id === sampleId ? { ...sample, photoUrl: savedPath } : sample
+        )
+      }));
+      setToastMessage({ type: 'success', text: 'Đã tải ảnh tem niêm phong lên kho bằng chứng.' });
+    } catch (uploadError) {
+      setToastMessage({
+        type: 'error',
+        text: uploadError instanceof Error ? uploadError.message : 'Không thể tải ảnh mẫu lưu.'
+      });
+    }
+  };
 
   // Handle Step 1 Save
   const handleSaveStep1 = () => {
+    const invalidRawMaterials = localLog.rawMaterials.length === 0 || localLog.rawMaterials.some(
+      (item) =>
+        !item.supplierName.trim() ||
+        !item.invoiceNumber.trim() ||
+        !item.invoicePhotoPath ||
+        item.sensoryEvaluation !== 'PASSED'
+    );
+    if (invalidRawMaterials) {
+      setToastMessage({ type: 'error', text: `MSG-113: ${MSG_113}` });
+      setTimeout(() => setToastMessage(null), 5000);
+      return;
+    }
+
     if (!localLog.step1ChefSignature) {
       setToastMessage({
         type: 'warning',
@@ -112,26 +279,39 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
       ...localLog,
       step1Completed: true,
     };
-    setLocalLog(updated);
     saveInspectionMutation.mutate(updated, {
       onSuccess: () => {
+        setLocalLog(updated);
         setToastMessage({
           type: 'success',
           text: 'Đã hoàn thành và ký số Bước 1: Kiểm tra nhập nguyên liệu (06:30 AM)',
         });
         setTimeout(() => setToastMessage(null), 4000);
       },
+      onError: (error) => {
+        setToastMessage({ type: 'error', text: error.message });
+      },
     });
   };
 
   // Handle Step 2 Save
   const handleSaveStep2 = () => {
-    // Validate cooking temperature > 75°C
-    const undercooked = localLog.cookingTemperatures.some((dish) => dish.coreTemperatureCelsius <= 75);
-    if (undercooked) {
+    const invalidCookingTemperature = localLog.cookingTemperatures.length === 0 ||
+      localLog.cookingTemperatures.some((dish) => dish.coreTemperatureCelsius < 70);
+    if (invalidCookingTemperature) {
       setToastMessage({
         type: 'error',
-        text: 'Cảnh báo nhiệt độ tâm món nấu chín phải đạt > 75°C để tiêu diệt vi khuẩn gây bệnh!',
+        text: 'Nhiệt độ tâm thức ăn chín phải đạt ít nhất 70.0°C.',
+      });
+      setTimeout(() => setToastMessage(null), 5000);
+      return;
+    }
+
+    const hygiene = localLog.hygieneChecklist;
+    if (!hygiene.protectiveClothing || !hygiene.separateCuttingBoards || !hygiene.cleanWaterSource) {
+      setToastMessage({
+        type: 'error',
+        text: 'Vui lòng xác nhận đầy đủ các yêu cầu vệ sinh trong quá trình chế biến.',
       });
       setTimeout(() => setToastMessage(null), 5000);
       return;
@@ -150,49 +330,54 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
       ...localLog,
       step2Completed: true,
     };
-    setLocalLog(updated);
     saveInspectionMutation.mutate(updated, {
       onSuccess: () => {
+        setLocalLog(updated);
         setToastMessage({
           type: 'success',
           text: 'Đã hoàn thành và ký số Bước 2: Kiểm tra chế biến & nhiệt độ tâm món (10:30 AM)',
         });
         setTimeout(() => setToastMessage(null), 4000);
       },
+      onError: (error) => {
+        setToastMessage({ type: 'error', text: error.message });
+      },
     });
   };
 
-  // Handle Step 3 Save & Dual Signatures Check (MSG-233, MSG-234, MSG-235)
+  // Handle Step 3 Save
   const handleSaveStep3 = () => {
-    // Rule 1: Khối lượng mẫu >= 100g (MSG-233)
-    const invalidWeight = localLog.retentionSamples.some((s) => s.sampleWeightGrams < 100);
-    if (invalidWeight) {
+    const invalidSamples = localLog.retentionSamples.length === 0 || localLog.retentionSamples.some(
+      (sample) =>
+        sample.sampleWeightGrams < 100 ||
+        !sample.sealCode.trim() ||
+        !sample.photoUrl
+    );
+    if (invalidSamples) {
       setToastMessage({
         type: 'error',
-        text: `MSG-233: ${MSG_233}`,
+        text: `MSG-115: ${MSG_115}`,
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
     }
 
-    // Rule 2: Nhiệt độ tủ bảo quản 2°C <= T <= 8°C (MSG-234)
     const invalidTemp = localLog.retentionSamples.some(
       (s) => s.storageTemperatureCelsius < 2 || s.storageTemperatureCelsius > 8
     );
     if (invalidTemp) {
       setToastMessage({
         type: 'error',
-        text: `MSG-234: ${MSG_234}`,
+        text: `MSG-114: ${MSG_114}`,
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
     }
 
-    // Rule 3: Chữ ký kép Bếp trưởng & Ban Giám Hiệu (MSG-235)
-    if (!localLog.step3ChefSignature || !localLog.step3PrincipalSignature) {
+    if (!localLog.step3ChefSignature) {
       setToastMessage({
         type: 'warning',
-        text: `MSG-235: ${MSG_235}`,
+        text: 'Vui lòng ký xác nhận điện tử Bước 3 của Bếp trưởng trước khi hoàn tất.',
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
@@ -203,14 +388,17 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
       step3Completed: true,
       overallStatus: 'COMPLETED',
     };
-    setLocalLog(updated);
     saveInspectionMutation.mutate(updated, {
       onSuccess: () => {
+        setLocalLog(updated);
         setToastMessage({
           type: 'success',
-          text: `MSG-232: ${MSG_232}`,
+          text: `MSG-112: ${MSG_112}`,
         });
         setTimeout(() => setToastMessage(null), 6000);
+      },
+      onError: (error) => {
+        setToastMessage({ type: 'error', text: error.message });
       },
     });
   };
@@ -236,15 +424,21 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
       overallStatus: 'REJECTED_INCIDENT',
     };
 
-    setLocalLog(updated);
-    saveInspectionMutation.mutate(updated);
-    setToastMessage({
-      type: 'warning',
-      text: `Đã từ chối lô hàng "${rejectingItem.ingredientName}", lập biên bản vi phạm và gửi cảnh báo khẩn cấp tới Ban Giám Hiệu.`,
+    saveInspectionMutation.mutate(updated, {
+      onSuccess: () => {
+        setLocalLog(updated);
+        setRejectingItem(null);
+        setRejectionReasonInput('');
+        setToastMessage({
+          type: 'warning',
+          text: `Đã lưu biên bản từ chối lô hàng "${rejectingItem.ingredientName}".`,
+        });
+        setTimeout(() => setToastMessage(null), 6000);
+      },
+      onError: (error) => {
+        setToastMessage({ type: 'error', text: error.message });
+      },
     });
-    setRejectingItem(null);
-    setRejectionReasonInput('');
-    setTimeout(() => setToastMessage(null), 6000);
   };
 
   return (
@@ -272,6 +466,17 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
         </div>
       )}
 
+      {isInspectionLogError && (
+        <div className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800" role="alert">
+          Không thể tải sổ kiểm thực từ máy chủ: {inspectionLogError instanceof Error
+            ? inspectionLogError.message
+            : 'Lỗi không xác định.'}
+          <p className="mt-1 text-xs">
+            Dữ liệu đang nhập chỉ là bản nháp trong phiên này; schema hiện tại chưa có API lưu đầy đủ thông tin 3 bước.
+          </p>
+        </div>
+      )}
+
       {/* Header & Stepper */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -290,12 +495,12 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
             value={selectedDate}
             onChange={(e) => {
               setSelectedDate(e.target.value);
-              refetch();
             }}
             className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold shadow-xs focus:border-[#275A4E] focus:outline-none min-h-[44px]"
           />
           <button
             onClick={() => setIsExportModalOpen(true)}
+            disabled={isInspectionLogLoading || isInspectionLogError}
             className="flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs transition min-h-[44px] cursor-pointer"
           >
             <Printer className="h-4 w-4 text-[#275A4E]" />
@@ -367,7 +572,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 10:30 AM
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Vệ sinh sơ chế, dao thớt tách biệt & đo nhiệt độ tâm món &gt; 75°C</p>
+            <p className="text-xs text-slate-500 mt-1">Vệ sinh sơ chế, dao thớt tách biệt & đo nhiệt độ tâm món ≥ 70°C</p>
             <div className="mt-2 text-[11px] font-bold">
               {localLog.step2Completed ? (
                 <span className="text-emerald-700 flex items-center gap-1">
@@ -444,6 +649,16 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
               )}
             </div>
 
+            <div className="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-3">
+              <input aria-label="Tên thực phẩm" placeholder="Tên thực phẩm" value={newMaterial.ingredientName} onChange={(event) => setNewMaterial({ ...newMaterial, ingredientName: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+              <input aria-label="Khối lượng kg" type="number" min="0" step="0.1" placeholder="Khối lượng (kg)" value={newMaterial.quantityKg} onChange={(event) => setNewMaterial({ ...newMaterial, quantityKg: Number(event.target.value) })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+              <input aria-label="Nhà cung cấp" placeholder="Nhà cung cấp" value={newMaterial.supplierName} onChange={(event) => setNewMaterial({ ...newMaterial, supplierName: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+              <input aria-label="Số hóa đơn" placeholder="Số hóa đơn / kiểm dịch" value={newMaterial.invoiceNumber} onChange={(event) => setNewMaterial({ ...newMaterial, invoiceNumber: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+              <input aria-label="Nhiệt độ giao hàng" type="number" step="0.1" placeholder="Nhiệt độ giao (°C)" value={newMaterial.deliveryTemperatureCelsius} onChange={(event) => setNewMaterial({ ...newMaterial, deliveryTemperatureCelsius: Number(event.target.value) })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+              <label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={newMaterial.isFrozenOrChilled} onChange={(event) => setNewMaterial({ ...newMaterial, isFrozenOrChilled: event.target.checked })} />Hàng đông lạnh / bảo quản mát</label>
+              <button type="button" onClick={handleAddRawMaterial} className="rounded-lg bg-[#275A4E] px-4 py-2 text-xs font-bold text-white sm:col-span-3">Thêm nguyên liệu</button>
+            </div>
+
             {/* Bảng nguyên liệu */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -455,13 +670,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                     <th className="py-3 px-3">Số Hóa Đơn / Kiểm Dịch</th>
                     <th className="py-3 px-3">Nhiệt Độ Giao (°C)</th>
                     <th className="py-3 px-3">Đánh Giá Cảm Quan</th>
+                    <th className="py-3 px-3">Ảnh Hóa Đơn</th>
                     <th className="py-3 px-3 text-right">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {localLog.rawMaterials.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
                         Chưa có lô nguyên liệu nào được nhập trong ngày hôm nay.
                       </td>
                     </tr>
@@ -504,6 +720,12 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                           </span>
                         )}
                       </td>
+                      <td className="py-3 px-3">
+                        {item.invoicePhotoPath && (
+                          <button type="button" onClick={() => openKitchenEvidence(item.invoicePhotoPath!).catch((error) => setToastMessage({ type: 'error', text: error.message }))} className="mb-1 block text-[10px] font-semibold text-[#275A4E] underline">Xem ảnh đã tải</button>
+                        )}
+                        <input type="file" accept="image/*" aria-label={`Ảnh hóa đơn ${item.ingredientName}`} onChange={(event) => handleInvoicePhotoUpload(item.id, event.target.files?.[0])} className="max-w-32 text-[10px]" />
+                      </td>
                       <td className="py-3 px-3 text-right">
                         {!item.isRejected ? (
                           <button
@@ -538,7 +760,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 <button
                   type="button"
                   onClick={handleSaveStep1}
-                  disabled={saveInspectionMutation.isPending}
+                  disabled={saveInspectionMutation.isPending || isInspectionLogLoading || isInspectionLogError}
                   className="px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white shadow-xs transition min-h-[44px] cursor-pointer flex items-center gap-1.5"
                 >
                   <Check className="h-4 w-4" />
@@ -560,7 +782,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 <span>Bước 2: Kiểm Tra Trong Quá Trình Chế Biến (Lúc 10:30 AM)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Kiểm tra điều kiện vệ sinh môi trường bếp, trang phục bảo hộ và đo nhiệt độ tâm món nấu chín (&gt; 75°C)
+                Kiểm tra điều kiện vệ sinh môi trường bếp, trang phục bảo hộ và đo nhiệt độ tâm món nấu chín (≥ 70°C)
               </p>
             </div>
 
@@ -626,9 +848,15 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
 
             {/* Bảng đo nhiệt độ tâm món */}
             <div>
+              <div className="mb-3 grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-3">
+                <input aria-label="Tên món kiểm tra nhiệt độ" placeholder="Tên món" value={newCookingDish.dishName} onChange={(event) => setNewCookingDish({ ...newCookingDish, dishName: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+                <input aria-label="Phương pháp chế biến" placeholder="Phương pháp chế biến" value={newCookingDish.cookingMethod} onChange={(event) => setNewCookingDish({ ...newCookingDish, cookingMethod: event.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+                <input aria-label="Nhiệt độ tâm món" type="number" step="0.5" value={newCookingDish.coreTemperatureCelsius} onChange={(event) => setNewCookingDish({ ...newCookingDish, coreTemperatureCelsius: Number(event.target.value) })} className="rounded-lg border border-slate-300 px-3 py-2 text-xs" />
+                <button type="button" onClick={handleAddCookingDish} className="rounded-lg bg-[#275A4E] px-4 py-2 text-xs font-bold text-white sm:col-span-3">Thêm món đo nhiệt độ</button>
+              </div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-800 uppercase">
-                  Bảng Đo Nhiệt Độ Tâm Món Nấu Chín (Bắt buộc &gt; 75°C)
+                  Bảng Đo Nhiệt Độ Tâm Món Nấu Chín (Bắt buộc ≥ 70°C)
                 </span>
                 <span className="text-[11px] text-slate-500">
                   Dùng nhiệt kế kim đo trực tiếp tâm phần thịt/cá trước khi chia suất
@@ -655,7 +883,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                       </tr>
                     ) : (
                       localLog.cookingTemperatures.map((dish, idx) => {
-                      const isHotEnough = dish.coreTemperatureCelsius > 75;
+                      const isHotEnough = dish.coreTemperatureCelsius >= 70;
 
                       return (
                         <tr key={dish.id} className="hover:bg-slate-50">
@@ -681,7 +909,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                           <td className="py-3 px-3">
                             {isHotEnough ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                ĐẠT (&gt; 75°C)
+                                ĐẠT (≥ 70°C)
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300 animate-pulse">
@@ -713,7 +941,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 <button
                   type="button"
                   onClick={handleSaveStep2}
-                  disabled={saveInspectionMutation.isPending}
+                  disabled={saveInspectionMutation.isPending || isInspectionLogLoading || isInspectionLogError}
                   className="px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white shadow-xs transition min-h-[44px] cursor-pointer flex items-center gap-1.5"
                 >
                   <Check className="h-4 w-4" />
@@ -738,6 +966,15 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 Đánh giá cảm quan trước khi chia suất, niêm phong mẫu $\ge 100g$, tủ 2°C - 8°C và bắt buộc chữ ký kép Bếp & BGH
               </p>
             </div>
+            {isWeeklyMenuError ? (
+              <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                Không tải được thực đơn để đối chiếu mẫu lưu: {weeklyMenuError instanceof Error ? weeklyMenuError.message : 'Lỗi không xác định'}.
+              </div>
+            ) : !isInspectionLogLoading && !isWeeklyMenuLoading && todaysApprovedDishes.length === 0 ? (
+              <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                Chưa có thực đơn đã duyệt cho ngày này. Không thể hoàn tất bước lưu mẫu cho tới khi có thực đơn đã duyệt.
+              </div>
+            ) : null}
 
             {/* Bảng lưu mẫu thức ăn */}
             <div className="overflow-x-auto">
@@ -790,10 +1027,24 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                             <span className="text-slate-500">g</span>
                           </div>
                           {!isWeightValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Bắt buộc &ge; 100g (MSG-233)</span>
+                            <span className="text-[10px] text-rose-600 block mt-0.5">Bắt buộc ≥ 100g (MSG-115)</span>
                           )}
                         </td>
-                        <td className="py-3 px-3 font-mono text-slate-700">{sample.sealCode}</td>
+                        <td className="py-3 px-3">
+                          <input
+                            type="text"
+                            value={sample.sealCode}
+                            onChange={(e) => {
+                              const updated = [...localLog.retentionSamples];
+                              updated[idx] = { ...sample, sealCode: e.target.value, photoUrl: undefined };
+                              setLocalLog({ ...localLog, retentionSamples: updated });
+                            }}
+                            aria-label={`Mã niêm phong mẫu ${sample.dishName}`}
+                            className={`w-36 px-2 py-1 text-xs rounded-lg border font-mono ${
+                              sample.sealCode.trim() ? 'border-slate-300' : 'border-rose-400 bg-rose-50'
+                            }`}
+                          />
+                        </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-1.5">
                             <input
@@ -813,19 +1064,12 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                             <span className="text-slate-500">°C</span>
                           </div>
                           {!isTempValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Tủ phải 2-8°C (MSG-234)</span>
+                            <span className="text-[10px] text-rose-600 block mt-0.5">Tủ phải 2-8°C (MSG-114)</span>
                           )}
                         </td>
                         <td className="py-3 px-3">
-                          {sample.photoUrl ? (
-                            <img
-                              src={sample.photoUrl}
-                              alt={sample.dishName}
-                              className="h-10 w-10 rounded-lg object-cover border border-slate-200"
-                            />
-                          ) : (
-                            <span className="text-slate-400 italic">Chưa chụp</span>
-                          )}
+                          {sample.photoUrl && <button type="button" onClick={() => openKitchenEvidence(sample.photoUrl!).catch((error) => setToastMessage({ type: 'error', text: error.message }))} className="mb-1 block text-[10px] font-semibold text-[#275A4E] underline">Xem ảnh đã tải</button>}
+                          <input type="file" accept="image/*" aria-label={`Ảnh mẫu ${sample.dishName}`} onChange={(event) => handleSamplePhotoUpload(sample.id, sample.sealCode, event.target.files?.[0])} className="max-w-32 text-[10px]" />
                         </td>
                       </tr>
                     );
@@ -834,28 +1078,13 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
               </table>
             </div>
 
-            {/* Chữ Ký Kép Bắt Buộc (Bếp Trưởng & Đại Diện Ban Giám Hiệu - MSG-235) */}
-            <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase">
-                <Sparkles className="h-4 w-4 text-amber-600" />
-                <span>Yêu Cầu Chữ Ký Kép Điện Tử (Bắt Buộc Theo QĐ 1246/QĐ-BYT):</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DigitalSignaturePad
-                  signerTitle="Bếp Trưởng"
-                  signerName="Nguyễn Văn Tuấn"
-                  savedSignature={localLog.step3ChefSignature}
-                  onSave={(signature) => setLocalLog({ ...localLog, step3ChefSignature: signature })}
-                />
-
-                <DigitalSignaturePad
-                  signerTitle="Đại Diện Ban Giám Hiệu"
-                  signerName="Cô Trần Thị Mai (Hiệu Phó Nuôi Dưỡng)"
-                  savedSignature={localLog.step3PrincipalSignature}
-                  onSave={(signature) => setLocalLog({ ...localLog, step3PrincipalSignature: signature })}
-                />
-              </div>
+            <div className="w-full max-w-sm">
+              <DigitalSignaturePad
+                signerTitle="Bếp Trưởng"
+                signerName="Nguyễn Văn Tuấn"
+                savedSignature={localLog.step3ChefSignature}
+                onSave={(signature) => setLocalLog({ ...localLog, step3ChefSignature: signature })}
+              />
             </div>
 
             {/* Hoàn tất lưu mẫu 3 bước */}
@@ -863,11 +1092,11 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
               <button
                 type="button"
                 onClick={handleSaveStep3}
-                disabled={saveInspectionMutation.isPending}
+                disabled={saveInspectionMutation.isPending || isInspectionLogLoading || isInspectionLogError}
                 className="px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white shadow-xs transition min-h-[44px] cursor-pointer flex items-center gap-1.5"
               >
                 <Check className="h-4 w-4" />
-                <span>Xác Nhận Ký Kép & Niêm Phong Mẫu 24H (11:15 AM)</span>
+                <span>Xác Nhận & Niêm Phong Mẫu 24H (11:15 AM)</span>
               </button>
             </div>
           </div>
@@ -926,9 +1155,10 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
               <button
                 type="button"
                 onClick={handleRejectShipment}
+                disabled={isInspectionLogLoading || isInspectionLogError}
                 className="px-5 py-2 text-xs font-bold rounded-xl bg-rose-700 text-white hover:bg-rose-800 shadow-sm cursor-pointer"
               >
-                Lập Biên Bản & Gửi BGH
+                Lập biên bản
               </button>
             </div>
           </div>
@@ -1001,7 +1231,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                     <thead className="bg-slate-100 font-bold">
                       <tr>
                         <th className="p-2">Món ăn</th>
-                        <th className="p-2">Nhiệt độ tâm (&gt; 75°C)</th>
+                        <th className="p-2">Nhiệt độ tâm (≥ 70°C)</th>
                         <th className="p-2">Vệ sinh bảo hộ</th>
                       </tr>
                     </thead>
