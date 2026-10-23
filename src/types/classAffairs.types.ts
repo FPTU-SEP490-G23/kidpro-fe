@@ -1,11 +1,11 @@
-﻿/**
+/**
  * Types and Interfaces for Academic Affairs (Cán bộ Giáo vụ)
  * G3-UC-01, G3-UC-02, G3-UC-04
  */
 
-export type GradeLevel = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
+export type GradeLevel = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
 
-export type ClassStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'INACTIVE';
+export type ClassStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
 export type TeacherRole = 'HOMEROOM' | 'ASSISTANT';
 
@@ -32,6 +32,8 @@ export interface ClassSummary {
   homeroomTeacherName?: string;
   createdAt?: string;
   updatedAt?: string;
+  archivedAt?: string;
+  archivedById?: string;
 }
 
 export interface ClassDetail extends ClassSummary {

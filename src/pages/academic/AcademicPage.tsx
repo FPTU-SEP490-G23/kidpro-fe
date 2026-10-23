@@ -66,11 +66,11 @@ interface TabMeta {
 
 const TAB_META: Record<AcademicTabKey, TabMeta> = {
   students: {
-    uc: 'UC-015',
-    title: 'Tiếp Nhận Học Sinh & Phân Lớp',
-    description: 'Quy trình tiếp nhận hồ sơ nhập học của trẻ, kiểm tra độ tuổi và phân bổ vào danh sách khối lớp.',
+    uc: 'G4-UC-01',
+    title: 'Quản Lý Danh Sách & Hồ Sơ Học Sinh',
+    description: 'Tiếp nhận hồ sơ nhập học, tự động cấp mã định danh HS duy nhất (BR-011), tra cứu tìm kiếm toàn trường và cập nhật lý lịch học sinh.',
     icon: UserPlus,
-    badge: 'Hồ Sơ Mầm Non',
+    badge: 'Hồ Sơ Học Sinh',
   },
   classes: {
     uc: 'UC-016',
@@ -256,6 +256,22 @@ export const AcademicPage: React.FC = () => {
         description: 'Phân bổ học sinh chưa có lớp vào các lớp học phù hợp theo độ tuổi (BR-011) và kiểm soát sĩ số tối đa theo định mức quy định (BR-005).',
         icon: Users,
         badge: 'Xếp Trẻ Vào Lớp',
+      };
+    } else if (subtab === 'promotion' || subtab === 'promotions') {
+      currentMeta = {
+        uc: 'G3-UC-11',
+        title: 'Lập Kế Hoạch Kết Chuyển Học Sinh Đầu Năm (Student Promotion)',
+        description: 'Kết chuyển học sinh sang khối lớp mới theo quy tắc lũy tiến (BR-009) hoặc tốt nghiệp (GRADUATED), hỗ trợ lưu ban có lý do theo nguyện vọng gia đình.',
+        icon: Sparkles,
+        badge: 'Kết Chuyển Đầu Năm',
+      };
+    } else if (subtab === 'archive' || subtab === 'archived') {
+      currentMeta = {
+        uc: 'G3-UC-12',
+        title: 'Đóng & Lưu Trữ Hồ Sơ Lớp Học (Class Archival)',
+        description: 'Đóng hồ sơ lớp học khi kết thúc niên khóa, chuyển toàn bộ dữ liệu lớp sang trạng thái chỉ đọc (ARCHIVED) để lưu trữ lịch sử (BR-010).',
+        icon: Archive,
+        badge: 'Lưu Trữ Lớp Học',
       };
     } else {
       currentMeta = {

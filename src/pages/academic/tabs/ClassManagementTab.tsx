@@ -20,7 +20,11 @@ import {
   FileCheck2,
   Clock,
   Layers,
-  Info
+  Info,
+  Archive,
+  ShieldAlert,
+  Sparkles,
+  Lock,
 } from 'lucide-react';
 import { classService } from '../../../services/classService';
 import { assignmentService } from '../../../services/assignmentService';
@@ -28,6 +32,7 @@ import { academicYearApi } from '../../../api/academicYearApi';
 import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
 import { useToast } from '../../../contexts/ToastContext';
 import { StudentPlacementTab } from './StudentPlacementTab';
+import { StudentPromotionTab } from './StudentPromotionTab';
 import {
   ClassSummary,
   ClassProposalResponse,
@@ -49,7 +54,7 @@ type UpdateClassFormValues = z.infer<typeof updateClassSchema>;
 // G3-UC-02: Lập kế hoạch mở lớp mới
 const createProposalSchema = z.object({
   className: z.string().min(2, 'Tên lớp học phải có ít nhất 2 ký tự').max(50, 'Tên lớp tối đa 50 ký tự'),
-  gradeLevel: z.enum(['INFANT', 'TODDLER', 'NURSERY', 'KINDERGARTEN']),
+  gradeLevel: z.enum(['INFANT', 'TODDLER', 'NURSERY', 'KINDERGARTEN', 'PRE_K']),
   academicYearId: z.string().min(1, 'Vui lòng chọn niên khóa năm học'),
   proposedCapacity: z.number().min(10, 'Sĩ số dự kiến tối thiểu là 10').max(40, 'Sĩ số dự kiến không quá 40'),
   proposedRoomId: z.string().optional(),
@@ -68,7 +73,8 @@ const GRADE_LABELS: Record<GradeLevel, string> = {
   INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
   TODDLER: 'Nhà trẻ (12 - 36 tháng)',
   NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi & Lá (4 - 6 tuổi)',
+  KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
+  PRE_K: 'Khối Lá (5 - 6 tuổi)',
 };
 
 export const ClassManagementTab: React.FC = () => {
@@ -76,30 +82,55 @@ export const ClassManagementTab: React.FC = () => {
   const { success, error } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Đồng bộ subtab với URL param `subtab`
+  // Đồng bộ subtab với URL param `subtab` & `mode`
   const subtabParam = searchParams.get('subtab')?.toLowerCase();
-  const getInitialSubTab = (): 'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT' => {
+  const modeParam = searchParams.get('mode')?.toLowerCase();
+
+  const getInitialSubTab = (): 'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT' | 'PROMOTION' => {
     if (subtabParam === 'proposals' || subtabParam === 'open-proposals') return 'PROPOSALS';
     if (subtabParam === 'assignments' || subtabParam === 'teacher-assignments') return 'ASSIGNMENTS';
     if (subtabParam === 'placement' || subtabParam === 'placements') return 'PLACEMENT';
+    if (subtabParam === 'promotion' || subtabParam === 'promotions') return 'PROMOTION';
     return 'CLASSES';
   };
 
-  const [activeSubTab, setActiveSubTab] = useState<'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT'>(getInitialSubTab);
+  const [activeSubTab, setActiveSubTab] = useState<'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT' | 'PROMOTION'>(getInitialSubTab);
+
+  // Filters
+  const [selectedYearId, setSelectedYearId] = useState<string>('ALL');
+  const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
+  const [searchKeyword, setSearchKeyword] = useState<string>('');
+
+  // G3-UC-12: Chế độ hiển thị lớp học (Đang hoạt động vs Đã lưu trữ)
+  const [classFilterMode, setClassFilterMode] = useState<'ACTIVE' | 'ARCHIVED'>(() => {
+    if (subtabParam === 'archive' || subtabParam === 'archived' || modeParam === 'archived') return 'ARCHIVED';
+    return 'ACTIVE';
+  });
+  const [archivingClass, setArchivingClass] = useState<ClassSummary | null>(null);
 
   useEffect(() => {
     if (subtabParam === 'proposals' || subtabParam === 'open-proposals') {
       setActiveSubTab('PROPOSALS');
+      setClassFilterMode('ACTIVE');
     } else if (subtabParam === 'assignments' || subtabParam === 'teacher-assignments') {
       setActiveSubTab('ASSIGNMENTS');
+      setClassFilterMode('ACTIVE');
     } else if (subtabParam === 'placement' || subtabParam === 'placements') {
       setActiveSubTab('PLACEMENT');
+      setClassFilterMode('ACTIVE');
+    } else if (subtabParam === 'promotion' || subtabParam === 'promotions') {
+      setActiveSubTab('PROMOTION');
+      setClassFilterMode('ACTIVE');
+    } else if (subtabParam === 'archive' || subtabParam === 'archived' || modeParam === 'archived') {
+      setActiveSubTab('CLASSES');
+      setClassFilterMode('ARCHIVED');
     } else if (subtabParam === 'classes' || subtabParam === 'class-list') {
       setActiveSubTab('CLASSES');
+      setClassFilterMode('ACTIVE');
     }
-  }, [subtabParam]);
+  }, [subtabParam, modeParam]);
 
-  const handleSubTabChange = (tab: 'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT') => {
+  const handleSubTabChange = (tab: 'CLASSES' | 'PROPOSALS' | 'ASSIGNMENTS' | 'PLACEMENT' | 'PROMOTION') => {
     setActiveSubTab(tab);
     const newParams = new URLSearchParams(searchParams);
     if (tab === 'CLASSES') {
@@ -108,16 +139,13 @@ export const ClassManagementTab: React.FC = () => {
       newParams.set('subtab', 'proposals');
     } else if (tab === 'ASSIGNMENTS') {
       newParams.set('subtab', 'assignments');
+    } else if (tab === 'PROMOTION') {
+      newParams.set('subtab', 'promotion');
     } else {
       newParams.set('subtab', 'placement');
     }
     setSearchParams(newParams);
   };
-
-  // Filters
-  const [selectedYearId, setSelectedYearId] = useState<string>('ALL');
-  const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
-  const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   // Modals
   const [editingClass, setEditingClass] = useState<ClassSummary | null>(null);
@@ -155,6 +183,36 @@ export const ClassManagementTab: React.FC = () => {
       }),
   });
   const classesList: ClassSummary[] = classesData?.content || [];
+
+  // G3-UC-12: Danh sách lớp đã lưu trữ theo niên khóa
+  const {
+    data: archivedClasses = [],
+    isLoading: isLoadingArchived,
+  } = useQuery({
+    queryKey: ['archived-classes', selectedYearId],
+    queryFn: () => classService.getArchivedClasses(selectedYearId !== 'ALL' ? selectedYearId : undefined),
+    enabled: classFilterMode === 'ARCHIVED',
+  });
+
+  // G3-UC-12: Đóng & Lưu trữ hồ sơ lớp học (BR-010, MSG-043, MSG-044)
+  const archiveClassMutation = useMutation({
+    mutationFn: (classId: string) => classService.archiveClass(classId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['archived-classes'] });
+      success('MSG-043: Lưu trữ hồ sơ lớp học thành công.');
+      setArchivingClass(null);
+    },
+    onError: (err: any) => {
+      const code = err?.response?.data?.code;
+      const msg = err?.response?.data?.message || err?.message;
+      if (code === 'MSG-044' || msg?.includes('MSG-044') || msg?.includes('chưa đủ điều kiện')) {
+        error('MSG-044: Lớp học chưa đủ điều kiện đóng hồ sơ do còn học sinh chưa được xử lý kết chuyển hoặc chuyển trường.');
+      } else {
+        error(msg || 'Lỗi khi đóng và lưu trữ hồ sơ lớp học.');
+      }
+    },
+  });
 
   // G3-UC-02: Danh sách đề xuất mở lớp
   const {
@@ -403,7 +461,8 @@ export const ClassManagementTab: React.FC = () => {
   };
 
   // Filtered classes list
-  const filteredClasses = classesList.filter((c) => {
+  const classesToDisplay = classFilterMode === 'ARCHIVED' ? archivedClasses : classesList;
+  const filteredClasses = classesToDisplay.filter((c) => {
     if (!searchKeyword.trim()) return true;
     const kw = searchKeyword.toLowerCase();
     return (
@@ -416,66 +475,50 @@ export const ClassManagementTab: React.FC = () => {
 
   return (
     <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
-      {/* SUBTAB NAVIGATION BAR */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200/70 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => handleSubTabChange('CLASSES')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeSubTab === 'CLASSES' ? 'bg-[#1E4D40] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <School className="w-3.5 h-3.5" />
-          <span>[G3-UC-01] Quản Lý Lớp Học</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSubTabChange('PROPOSALS')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeSubTab === 'PROPOSALS' ? 'bg-[#1E4D40] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <FileCheck2 className="w-3.5 h-3.5" />
-          <span>[G3-UC-02] Kế Hoạch Mở Lớp</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSubTabChange('ASSIGNMENTS')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeSubTab === 'ASSIGNMENTS' ? 'bg-[#1E4D40] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <UserCheck className="w-3.5 h-3.5" />
-          <span>[G3-UC-04] Phân Công Giáo Viên</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSubTabChange('PLACEMENT')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeSubTab === 'PLACEMENT' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span>[G3-UC-06] Xếp Trẻ Vào Lớp</span>
-        </button>
-      </div>
-
       {/* RENDER PLACEMENT TAB DIRECTLY IF SELECTED */}
       {activeSubTab === 'PLACEMENT' && <StudentPlacementTab />}
 
+      {/* RENDER PROMOTION TAB DIRECTLY IF SELECTED */}
+      {activeSubTab === 'PROMOTION' && <StudentPromotionTab />}
+
       {/* TOOLBAR FOR CLASSES, PROPOSALS & ASSIGNMENTS */}
-      {activeSubTab !== 'PLACEMENT' && (
+      {activeSubTab !== 'PLACEMENT' && activeSubTab !== 'PROMOTION' && (
       <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
         {/* Title & Quick Action */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2 text-sm font-extrabold text-slate-800">
+          <div className="flex flex-wrap items-center gap-3 text-sm font-extrabold text-slate-800">
             {activeSubTab === 'CLASSES' && (
               <>
-                <School className="w-4 h-4 text-[#275A4E]" />
-                <span>Danh Sách Lớp Học ({classesList.length} lớp)</span>
+                <div className="flex items-center gap-2">
+                  <School className="w-4 h-4 text-[#275A4E]" />
+                  <span>Danh Sách Lớp Học ({filteredClasses.length} lớp)</span>
+                </div>
+                {/* G3-UC-12: ACTIVE VS ARCHIVED TOGGLE */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setClassFilterMode('ACTIVE')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      classFilterMode === 'ACTIVE'
+                        ? 'bg-white text-emerald-900 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Đang hoạt động ({classesList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setClassFilterMode('ARCHIVED')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      classFilterMode === 'ARCHIVED'
+                        ? 'bg-purple-700 text-white shadow-2xs'
+                        : 'text-slate-500 hover:text-purple-700'
+                    }`}
+                  >
+                    <Archive className="w-3.5 h-3.5" />
+                    Đã lưu trữ (Chỉ đọc) ({archivedClasses.length})
+                  </button>
+                </div>
               </>
             )}
             {activeSubTab === 'PROPOSALS' && (
@@ -601,13 +644,18 @@ export const ClassManagementTab: React.FC = () => {
                       {/* Class Card Header */}
                       <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-1">
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1E4D40]/10 text-[#1E4D40]">
                               {c.code || 'MÃ LỚP'}
                             </span>
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
                               {c.gradeLevel ? GRADE_LABELS[c.gradeLevel] || c.gradeLevel : 'Khối lớp'}
                             </span>
+                            {c.status === 'ARCHIVED' && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5" /> ĐÃ LƯU TRỮ
+                              </span>
+                            )}
                           </div>
                           <h3 className="text-lg font-black text-slate-800 tracking-tight">
                             {c.name}
@@ -619,7 +667,7 @@ export const ClassManagementTab: React.FC = () => {
                           type="button"
                           onClick={() => onOpenEditClass(c)}
                           className="p-2 text-slate-400 hover:text-[#1E4D40] bg-slate-50 hover:bg-emerald-50 rounded-xl transition border border-slate-100 cursor-pointer"
-                          title="Cập nhật thông tin lớp"
+                          title={c.status === 'ARCHIVED' ? 'Xem chi tiết lớp (Chỉ đọc)' : 'Cập nhật thông tin lớp'}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -680,21 +728,46 @@ export const ClassManagementTab: React.FC = () => {
 
                     {/* Footer Actions */}
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onOpenAssignModal(c)}
-                        className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40]/10 text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/60 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
-                      >
-                        <UserCheck className="w-3.5 h-3.5 text-[#275A4E]" />
-                        <span>Phân công GV</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onOpenEditClass(c)}
-                        className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition min-h-[44px] cursor-pointer"
-                      >
-                        Chỉnh sửa
-                      </button>
+                      {c.status !== 'ARCHIVED' && classFilterMode === 'ACTIVE' ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onOpenAssignModal(c)}
+                            className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40]/10 text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/60 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
+                          >
+                            <UserCheck className="w-3.5 h-3.5 text-[#275A4E]" />
+                            <span>Phân công GV</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenEditClass(c)}
+                            className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition min-h-[44px] cursor-pointer"
+                          >
+                            Chỉnh sửa
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setArchivingClass(c)}
+                            className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-900 border border-purple-200 text-xs font-bold rounded-xl transition min-h-[44px] cursor-pointer"
+                            title="Đóng & Lưu trữ hồ sơ lớp học (BR-010)"
+                          >
+                            <Archive className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="w-full flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-800 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200">
+                            <Lock className="w-3.5 h-3.5 text-purple-600" /> Đã đóng & Lưu trữ (Chỉ đọc)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onOpenEditClass(c)}
+                            className="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition cursor-pointer"
+                          >
+                            Xem hồ sơ
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -905,9 +978,12 @@ export const ClassManagementTab: React.FC = () => {
       {editingClass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-slate-100 bg-[#1E4D40] text-white flex justify-between items-center">
-              <div>
-                <h2 className="text-base font-bold">Cập nhật Thông tin Lớp học</h2>
+            <div className={`px-6 py-4 border-b border-slate-100 ${editingClass.status === 'ARCHIVED' ? 'bg-purple-900' : 'bg-[#1E4D40]'} text-white flex justify-between items-center`}>
+              <div className="flex items-center gap-2">
+                {editingClass.status === 'ARCHIVED' && <Lock className="w-4 h-4 text-purple-300" />}
+                <h2 className="text-base font-bold">
+                  {editingClass.status === 'ARCHIVED' ? 'Chi Tiết Hồ Sơ Lớp Học (Lưu Trữ - Chỉ Đọc)' : 'Cập nhật Thông tin Lớp học'}
+                </h2>
               </div>
               <button
                 type="button"
@@ -919,6 +995,13 @@ export const ClassManagementTab: React.FC = () => {
             </div>
 
             <form onSubmit={handleEditSubmit(onSaveEditClass)} className="p-6 space-y-4">
+              {editingClass.status === 'ARCHIVED' && (
+                <div className="p-3.5 bg-purple-50 rounded-2xl border border-purple-200 text-purple-950 text-xs font-semibold flex items-center gap-2.5">
+                  <Lock className="w-4 h-4 text-purple-700 shrink-0" />
+                  <span>Hồ sơ lớp học đã được đóng và lưu trữ (chế độ chỉ đọc, bất biến). Không thể chỉnh sửa hoặc phân công.</span>
+                </div>
+              )}
+
               {/* Tên lớp */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -926,7 +1009,8 @@ export const ClassManagementTab: React.FC = () => {
                 </label>
                 <input
                   {...registerEdit('name')}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                  disabled={editingClass.status === 'ARCHIVED'}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                   placeholder="VD: Mầm 1, Chồi A"
                 />
                 {editErrors.name?.message && (
@@ -941,7 +1025,8 @@ export const ClassManagementTab: React.FC = () => {
                 </label>
                 <select
                   {...registerEdit('roomId')}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                  disabled={editingClass.status === 'ARCHIVED'}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                 >
                   <option value="">-- Chọn phòng học --</option>
                   {classrooms.map((r) => (
@@ -966,7 +1051,8 @@ export const ClassManagementTab: React.FC = () => {
                 <input
                   type="number"
                   {...registerEdit('maxCapacity', { valueAsNumber: true })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                  disabled={editingClass.status === 'ARCHIVED'}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                 />
                 {editErrors.maxCapacity?.message && (
                   <p className="text-xs text-rose-500 mt-1">{editErrors.maxCapacity.message}</p>
@@ -975,24 +1061,36 @@ export const ClassManagementTab: React.FC = () => {
 
               {/* Actions */}
               <div className="pt-3 border-t border-slate-100 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingClass(null)}
-                  className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition text-xs min-h-[44px] cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateClassMutation.isPending}
-                  className="flex-1 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex justify-center items-center gap-2 min-h-[44px] cursor-pointer"
-                >
-                  {updateClassMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Lưu Thay Đổi (MSG-024)'
-                  )}
-                </button>
+                {editingClass.status === 'ARCHIVED' ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditingClass(null)}
+                    className="w-full py-2.5 bg-purple-800 text-white font-bold rounded-xl hover:bg-purple-900 transition text-xs min-h-[44px]"
+                  >
+                    Đóng (Chỉ đọc)
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setEditingClass(null)}
+                      className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition text-xs min-h-[44px] cursor-pointer"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={updateClassMutation.isPending}
+                      className="flex-1 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex justify-center items-center gap-2 min-h-[44px] cursor-pointer"
+                    >
+                      {updateClassMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Lưu Thay Đổi (MSG-024)'
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </form>
           </div>
@@ -1266,6 +1364,68 @@ export const ClassManagementTab: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL G3-UC-12: XÁC NHẬN ĐÓNG & LƯU TRỮ HỒ SƠ LỚP HỌC (BR-010, MSG-043, MSG-044) */}
+      {archivingClass && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 mb-4 text-purple-950">
+              <div className="h-10 w-10 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700">
+                <Archive className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold">Đóng & Lưu Trữ Hồ Sơ Lớp Học</h3>
+                <p className="text-xs text-slate-500">Nghiệp vụ G3-UC-12 & Quy tắc BR-010</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs text-slate-700">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <div>Lớp học: <span className="font-bold text-slate-900">{archivingClass.name}</span> ({archivingClass.code})</div>
+                <div>Khối lớp: <span className="font-semibold">{GRADE_LABELS[archivingClass.gradeLevel] || archivingClass.gradeLevel}</span></div>
+                <div>Sĩ số hiện diện: <span className={`font-extrabold ${archivingClass.currentEnrollment > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{archivingClass.currentEnrollment} học sinh</span></div>
+              </div>
+
+              {archivingClass.currentEnrollment > 0 ? (
+                <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 text-xs leading-relaxed flex items-start gap-2.5">
+                  <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Cảnh báo vi phạm BR-010:</span> Lớp học hiện vẫn còn <strong>{archivingClass.currentEnrollment} học sinh</strong> đang liên kết.
+                    Theo quy định, chỉ được đóng sổ lưu trữ khi toàn bộ học sinh đã hoàn tất kết chuyển hoặc ra trường (sĩ số = 0).
+                    <p className="font-bold text-rose-700 mt-1">Mã lỗi: MSG-044</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs leading-relaxed flex items-start gap-2.5">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Đủ điều kiện lưu trữ:</span> Sĩ số lớp là 0 học sinh. Sau khi đóng, hồ sơ lớp học sẽ chuyển sang trạng thái <strong>Chỉ đọc (Bất biến)</strong>.
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setArchivingClass(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Hủy Bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => archiveClassMutation.mutate(archivingClass.id)}
+                  disabled={archiveClassMutation.isPending}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-sm transition-all"
+                >
+                  {archiveClassMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Xác Nhận Đóng Hồ Sơ Lớp
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

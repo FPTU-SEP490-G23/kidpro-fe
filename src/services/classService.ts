@@ -1,4 +1,4 @@
-﻿import axiosClient from '../api/axiosClient';
+import axiosClient from '../api/axiosClient';
 import {
   ClassSummary,
   ClassDetail,
@@ -115,6 +115,28 @@ export const classService = {
   getProposalById: async (id: string): Promise<ClassProposalResponse> => {
     const res: any = await axiosClient.get(`/classes/proposals/${id}`);
     return res?.data || res;
+  },
+
+  // =========================================================================
+  // G3-UC-12: Đóng & Lưu trữ Hồ sơ Lớp học
+  // =========================================================================
+
+  /**
+   * Lấy danh sách các lớp đã lưu trữ theo niên khóa
+   */
+  getArchivedClasses: async (academicYearId?: string): Promise<ClassSummary[]> => {
+    const cleanParams: any = {};
+    if (academicYearId && academicYearId !== 'ALL') cleanParams.academicYearId = academicYearId;
+    const res: any = await axiosClient.get('/classes/archived', { params: cleanParams });
+    return res?.data || (Array.isArray(res) ? res : []);
+  },
+
+  /**
+   * Đóng và lưu trữ hồ sơ lớp học khi kết thúc niên khóa (BR-010, MSG-043, MSG-044)
+   */
+  archiveClass: async (classId: string): Promise<ApiResponse<void>> => {
+    const res: any = await axiosClient.post(`/classes/${classId}/archive`);
+    return res;
   },
 };
 
