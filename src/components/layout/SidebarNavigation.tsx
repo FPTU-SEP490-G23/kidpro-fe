@@ -303,10 +303,17 @@ export const SidebarNavigation: React.FC = () => {
                         let isActive = false;
 
                         if (item.path.includes('?')) {
-                          if (currentFullPath === item.path) {
+                          const [itemPath, itemQuery] = item.path.split('?');
+                          const isAcademicMatch =
+                            (location.pathname === '/academic' || location.pathname === '/academic/classes') &&
+                            itemPath === '/academic/classes' &&
+                            location.search === `?${itemQuery}`;
+
+                          if (currentFullPath === item.path || isAcademicMatch) {
                             isActive = true;
                           } else if (!location.search) {
                             // Mặc định khi vào trang gốc chưa có query string
+                            if (item.path === '/academic/classes?subtab=classes' && (location.pathname === '/academic' || location.pathname === '/academic/classes')) isActive = true;
                             if (item.path === '/finance?tab=fee-configs' && location.pathname === '/finance') isActive = true;
                             if (item.path === '/kitchen?tab=portions' && location.pathname === '/kitchen') isActive = true;
                             if (item.path === '/parent?tab=gate-notifications' && location.pathname === '/parent') isActive = true;
@@ -322,7 +329,7 @@ export const SidebarNavigation: React.FC = () => {
                             location.pathname.startsWith(item.path) &&
                             item.path !== '/dashboard' &&
                             item.path !== '/academic';
-                          if (item.path === '/academic/students' && location.pathname === '/academic') {
+                          if (item.path === '/academic/classes' && location.pathname === '/academic') {
                             isActive = true;
                           } else {
                             isActive = isExactActive || isPrefixActive;

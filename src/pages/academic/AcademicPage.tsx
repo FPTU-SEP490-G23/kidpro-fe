@@ -19,6 +19,9 @@ import {
   Archive,
   Star,
   Sparkles,
+  School,
+  FileCheck2,
+  UserCheck,
 } from 'lucide-react';
 import AcademicYearsPage from './years/AcademicYearsPage';
 import { StudentAdmissionTab } from './tabs/StudentAdmissionTab';
@@ -172,8 +175,8 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
 
 const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
   if (role === 'GIAO_VIEN') return 'lesson_plans';
-  if (role === 'GIAO_VU') return 'students';
-  return 'students';
+  if (role === 'GIAO_VU') return 'classes';
+  return 'classes';
 };
 
 export const AcademicPage: React.FC = () => {
@@ -227,7 +230,59 @@ export const AcademicPage: React.FC = () => {
     setActiveTab(resolveTab(searchParams.get('tab')));
   }, [location.pathname, searchParams, role]);
 
-  const currentMeta = TAB_META[activeTab] || TAB_META['students'];
+  let currentMeta = TAB_META[activeTab] || TAB_META['classes'];
+  if (activeTab === 'classes') {
+    const subtab = searchParams.get('subtab')?.toLowerCase();
+    if (subtab === 'proposals' || subtab === 'open-proposals') {
+      currentMeta = {
+        uc: 'G3-UC-02',
+        title: 'Lập Kế Hoạch Mở Lớp Học Mới',
+        description: 'Lập dự thảo mở các lớp học mới cho năm học, kiểm tra định mức sĩ số chuẩn Bộ GD&ĐT (BR-005, BR-007) để trình Ban Giám hiệu phê duyệt.',
+        icon: FileCheck2,
+        badge: 'Đề Xuất Mở Lớp',
+      };
+    } else if (subtab === 'assignments' || subtab === 'teacher-assignments') {
+      currentMeta = {
+        uc: 'G3-UC-04',
+        title: 'Lập Kế Hoạch Phân Công Giáo Viên Chủ Nhiệm & Phụ Tá',
+        description: 'Lập dự thảo phân công nhân sự sư phạm cho từng lớp, kiểm tra tài khoản khả dụng và tuân thủ định mức 1 GVCN/lớp (BR-006, BR-008).',
+        icon: UserCheck,
+        badge: 'Phân Công Sư Phạm',
+      };
+    } else if (subtab === 'placement' || subtab === 'placements') {
+      currentMeta = {
+        uc: 'G3-UC-06',
+        title: 'Xếp Trẻ Vào Lớp Học (Student Placement)',
+        description: 'Phân bổ học sinh chưa có lớp vào các lớp học phù hợp theo độ tuổi (BR-011) và kiểm soát sĩ số tối đa theo định mức quy định (BR-005).',
+        icon: Users,
+        badge: 'Xếp Trẻ Vào Lớp',
+      };
+    } else {
+      currentMeta = {
+        uc: 'G3-UC-01',
+        title: 'Quản Lý Danh Sách & Cập Nhật Thông Tin Lớp Học',
+        description: 'Tra cứu danh sách lớp học theo khối tuổi, cập nhật phân bổ phòng học chống trùng lặp (BR-005) và theo dõi sĩ số thực tế.',
+        icon: School,
+        badge: 'Cơ Cấu Lớp Học',
+      };
+    }
+  } else if (activeTab === 'transfers') {
+    currentMeta = {
+      uc: 'G3-UC-08',
+      title: 'Phê Duyệt Chuyển Lớp Cho Học Sinh (Class Transfer)',
+      description: 'Thẩm định điều kiện sĩ số lớp tiếp nhận (BR-005), điều chuyển học sinh sang lớp mới (BR-007) hoặc từ chối có lý do quy định.',
+      icon: ArrowRightLeft,
+      badge: 'Chuyển Lớp Học Sinh',
+    };
+  } else if (activeTab === 'timetable' || activeTab === 'conflicts') {
+    currentMeta = {
+      uc: 'G3-UC-09',
+      title: 'Xây Dựng Khung Thời Khóa Biểu Tuần (Weekly Timetable)',
+      description: 'Thiết lập khung giờ học tập, sinh hoạt, kiểm tra chống trùng lặp giáo viên & phòng chức năng toàn trường (BR-008) để trình BGH duyệt.',
+      icon: Calendar,
+      badge: 'Thời Khóa Biểu Tuần',
+    };
+  }
   const MetaIcon = currentMeta.icon;
 
   return (
@@ -245,7 +300,7 @@ export const AcademicPage: React.FC = () => {
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>
-                {role === 'GIAO_VIEN' ? 'Giáo Viên' : 'Giáo Vụ'} • {currentMeta.uc}
+                {role === 'GIAO_VIEN' ? 'Giáo Viên' : 'Cán bộ Giáo vụ'} • {currentMeta.uc}
               </span>
             </span>
             {currentMeta.badge && (
