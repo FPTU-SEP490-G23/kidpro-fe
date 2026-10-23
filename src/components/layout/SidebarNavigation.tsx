@@ -66,7 +66,10 @@ import {
   Award,
   Percent,
   Timer,
-  Moon
+  Moon,
+  Users,
+  BookOpenCheck,
+  HeartHandshake
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -118,7 +121,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Award,
   Percent,
   Timer,
-  Moon
+  Moon,
+  Users,
+  BookOpenCheck,
+  HeartHandshake
 };
 
 export const SidebarNavigation: React.FC = () => {
