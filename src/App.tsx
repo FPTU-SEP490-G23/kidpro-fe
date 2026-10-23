@@ -388,6 +388,22 @@ export const App: React.FC = () => {
             }
           />
           <Route
+            path="/academic/withdrawals"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/parent-accounts"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/academic/guardians"
             element={
               <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
@@ -420,9 +436,25 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/academic/equipment"
+            path="/academic/health-reports"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/club-assignments"
             element={
               <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/equipment"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN']}>
                 <AcademicPage />
               </ProtectedRoute>
             }

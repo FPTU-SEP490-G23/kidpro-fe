@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -183,15 +183,17 @@ export const ClassManagementTab: React.FC = () => {
       }),
   });
   const classesList: ClassSummary[] = classesData?.content || [];
+  const activeClasses = useMemo(() => {
+    return classesList.filter((c) => c.status !== 'ARCHIVED');
+  }, [classesList]);
 
   // G3-UC-12: Danh sách lớp đã lưu trữ theo niên khóa
   const {
     data: archivedClasses = [],
     isLoading: isLoadingArchived,
-  } = useQuery({
+  } = useQuery<ClassSummary[]>({
     queryKey: ['archived-classes', selectedYearId],
     queryFn: () => classService.getArchivedClasses(selectedYearId !== 'ALL' ? selectedYearId : undefined),
-    enabled: classFilterMode === 'ARCHIVED',
   });
 
   // G3-UC-12: Đóng & Lưu trữ hồ sơ lớp học (BR-010, MSG-043, MSG-044)
@@ -202,6 +204,11 @@ export const ClassManagementTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['archived-classes'] });
       success('MSG-043: Lưu trữ hồ sơ lớp học thành công.');
       setArchivingClass(null);
+      // Tự động chuyển view sang tab Đã lưu trữ
+      setClassFilterMode('ARCHIVED');
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('subtab', 'archive');
+      setSearchParams(newParams);
     },
     onError: (err: any) => {
       const code = err?.response?.data?.code;
@@ -461,8 +468,8 @@ export const ClassManagementTab: React.FC = () => {
   };
 
   // Filtered classes list
-  const classesToDisplay = classFilterMode === 'ARCHIVED' ? archivedClasses : classesList;
-  const filteredClasses = classesToDisplay.filter((c) => {
+  const classesToDisplay: ClassSummary[] = classFilterMode === 'ARCHIVED' ? archivedClasses : activeClasses;
+  const filteredClasses: ClassSummary[] = classesToDisplay.filter((c: ClassSummary) => {
     if (!searchKeyword.trim()) return true;
     const kw = searchKeyword.toLowerCase();
     return (
@@ -497,19 +504,29 @@ export const ClassManagementTab: React.FC = () => {
                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                   <button
                     type="button"
-                    onClick={() => setClassFilterMode('ACTIVE')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    onClick={() => {
+                      setClassFilterMode('ACTIVE');
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.set('subtab', 'classes');
+                      setSearchParams(newParams);
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       classFilterMode === 'ACTIVE'
                         ? 'bg-white text-emerald-900 shadow-2xs'
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    Đang hoạt động ({classesList.length})
+                    Đang hoạt động ({activeClasses.length})
                   </button>
                   <button
                     type="button"
-                    onClick={() => setClassFilterMode('ARCHIVED')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    onClick={() => {
+                      setClassFilterMode('ARCHIVED');
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.set('subtab', 'archive');
+                      setSearchParams(newParams);
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       classFilterMode === 'ARCHIVED'
                         ? 'bg-purple-700 text-white shadow-2xs'
                         : 'text-slate-500 hover:text-purple-700'
@@ -631,7 +648,7 @@ export const ClassManagementTab: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredClasses.map((c) => {
+              {filteredClasses.map((c: ClassSummary) => {
                 const enrollmentRatio = c.maxCapacity > 0 ? (c.currentEnrollment / c.maxCapacity) * 100 : 0;
                 const isOverfilled = c.currentEnrollment > c.maxCapacity;
 
@@ -649,7 +666,7 @@ export const ClassManagementTab: React.FC = () => {
                               {c.code || 'MÃ LỚP'}
                             </span>
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
-                              {c.gradeLevel ? GRADE_LABELS[c.gradeLevel] || c.gradeLevel : 'Khối lớp'}
+                              {c.gradeLevel ? (GRADE_LABELS[c.gradeLevel as GradeLevel] || c.gradeLevel) : 'Khối lớp'}
                             </span>
                             {c.status === 'ARCHIVED' && (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1">

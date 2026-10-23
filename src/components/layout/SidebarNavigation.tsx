@@ -68,6 +68,8 @@ import {
   Timer,
   Moon,
   Users,
+  Smartphone,
+  Link,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -122,6 +124,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Moon,
   Users,
   Sparkles,
+  Smartphone,
+  Link,
 };
 
 export const SidebarNavigation: React.FC = () => {

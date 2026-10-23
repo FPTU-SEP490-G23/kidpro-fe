@@ -22,6 +22,7 @@ import {
   School,
   FileCheck2,
   UserCheck,
+  HeartPulse,
 } from 'lucide-react';
 import AcademicYearsPage from './years/AcademicYearsPage';
 import { StudentAdmissionTab } from './tabs/StudentAdmissionTab';
@@ -36,7 +37,12 @@ import { LessonPlanApprovalsTab } from './tabs/LessonPlanApprovalsTab';
 import { ClassroomEquipmentTab } from './tabs/ClassroomEquipmentTab';
 import { MoetAttendanceReportTab } from './tabs/MoetAttendanceReportTab';
 import { YearEndArchivalTab } from './tabs/YearEndArchivalTab';
+import { StudentWithdrawalTab } from './tabs/StudentWithdrawalTab';
+import { ParentAccountManagementTab } from './tabs/ParentAccountManagementTab';
 import { ServiceSurveyTab } from '../parent/tabs/ServiceSurveyTab';
+import { HealthReportTab } from './tabs/HealthReportTab';
+import { ClubAssignmentTab } from './tabs/ClubAssignmentTab';
+import { EquipmentManagementTab } from './tabs/EquipmentManagementTab';
 
 export type AcademicTabKey =
   | 'lesson_plans'
@@ -49,11 +55,16 @@ export type AcademicTabKey =
   | 'students'
   | 'transfers'
   | 'guardians'
+  | 'withdrawals'
+  | 'parent_accounts'
   | 'lesson_plan_approvals'
   | 'moet_attendance'
   | 'year_archival'
   | 'quality_surveys'
-  | 'academic_years';
+  | 'academic_years'
+  | 'health_reports'
+  | 'club_assignments'
+  | 'equipment';
 
 interface TabMeta {
   uc: string;
@@ -106,6 +117,20 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
     description: 'Thẩm định hồ sơ, giấy tờ định danh và phê duyệt danh sách người thân được phụ huynh ủy quyền đón trẻ.',
     icon: ShieldCheck,
     badge: 'An Toàn Đón Trả',
+  },
+  withdrawals: {
+    uc: 'G4-UC-04',
+    title: 'Xử Lý Hồ Sơ Rút Học Bạ & Chuyển Trường (Student Withdrawal)',
+    description: 'Tiếp nhận đơn chuyển trường, đối chiếu quyết toán tài chính công nợ học phí (BR-017), xuất biên bản bàn giao hồ sơ y tế và rút khỏi sĩ số lớp.',
+    icon: School,
+    badge: 'Rút Hồ Sơ & Chuyển Trường',
+  },
+  parent_accounts: {
+    uc: 'G4-UC-08 / G4-UC-09',
+    title: 'Quản Lý & Kích Hoạt Tài Khoản Phụ Huynh (Parent Mobile App)',
+    description: 'Khởi tạo tài khoản Mobile App theo số điện thoại (BR-016), gửi mã kích hoạt và liên kết nhiều con (Multi-child) chuyển đổi hồ sơ liền mạch.',
+    icon: Users,
+    badge: 'Tài Khoản Phụ Huynh',
   },
   allergies: {
     uc: 'UC-053',
@@ -171,6 +196,27 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
     icon: CalendarDays,
     badge: 'Kế Hoạch Năm Học',
   },
+  health_reports: {
+    uc: 'G7-UC-04',
+    title: 'Báo Cáo Tổng Hợp Sức Khỏe Lớp & Toàn Trường',
+    description: 'Theo dõi dinh dưỡng WHO Z-score, danh sách học sinh cần can thiệp dinh dưỡng đặc biệt và xuất Sổ theo dõi thể lực chuẩn TTLT 13/2016/TTLT-BYT-BGDĐT.',
+    icon: HeartPulse,
+    badge: 'Sức Khỏe & Thể Lực',
+  },
+  club_assignments: {
+    uc: 'G9-UC-02',
+    title: 'Phân Công Giáo Viên Phụ Trách Câu Lạc Bộ Ngoại Khóa',
+    description: 'Phân công giáo viên chính & trợ giảng các lớp năng khiếu, tự động kiểm tra chống trùng lịch dạy chính khóa và định mức giờ dạy tối đa theo tuần (BR-046).',
+    icon: Award,
+    badge: 'Phân Công CLB',
+  },
+  equipment: {
+    uc: 'G9-UC-06',
+    title: 'Quản Lý Danh Mục Thiết Bị & Đồ Chơi Mầm Non',
+    description: 'Khai báo mã định danh tài sản duy nhất (BR-051), phân bổ giáo cụ về phòng học và thực hiện điều chuyển thiết bị an toàn giữa các phòng.',
+    icon: Boxes,
+    badge: 'Thiết Bị Mầm Non',
+  },
 };
 
 const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
@@ -196,10 +242,15 @@ export const AcademicPage: React.FC = () => {
       if (param === 'timetable' || param === 'timetables') return 'timetable';
       if (param === 'conflicts' || param === 'timetable-conflicts') return 'conflicts';
       if (param === 'transfers') return 'transfers';
+      if (param === 'withdrawals' || param === 'student-withdrawals') return 'withdrawals';
+      if (param === 'parent-accounts' || param === 'parent_accounts' || param === 'parents') return 'parent_accounts';
       if (param === 'guardians' || param === 'safety-guardians') return 'guardians';
       if (param === 'allergies') return 'allergies';
       if (param === 'lesson_plan_approvals' || param === 'lesson-plan-approvals') return 'lesson_plan_approvals';
-      if (param === 'classroom_equipment' || param === 'equipment') return 'classroom_equipment';
+      if (param === 'classroom_equipment') return 'classroom_equipment';
+      if (param === 'equipment' || param === 'equipment-inventories') return 'equipment';
+      if (param === 'health-reports' || param === 'health_reports' || param === 'health') return 'health_reports';
+      if (param === 'club-assignments' || param === 'club_assignments' || param === 'clubs') return 'club_assignments';
       if (param === 'moet_attendance' || param === 'moet-reports' || param === 'reports') return 'moet_attendance';
       if (param === 'year_archival' || param === 'year-archival') return 'year_archival';
       if (param === 'lesson_plans' || param === 'lesson-plans') return 'lesson_plans';
@@ -212,10 +263,14 @@ export const AcademicPage: React.FC = () => {
     if (location.pathname === '/academic/timetables') return 'timetable';
     if (location.pathname === '/academic/timetable-conflicts') return 'conflicts';
     if (location.pathname === '/academic/transfers') return 'transfers';
+    if (location.pathname === '/academic/withdrawals') return 'withdrawals';
+    if (location.pathname === '/academic/parent-accounts') return 'parent_accounts';
     if (location.pathname === '/academic/guardians' || location.pathname === '/academic/safety-guardians') return 'guardians';
     if (location.pathname === '/academic/allergies') return 'allergies';
     if (location.pathname === '/academic/lesson-plan-approvals') return 'lesson_plan_approvals';
-    if (location.pathname === '/academic/equipment') return 'classroom_equipment';
+    if (location.pathname === '/academic/health-reports') return 'health_reports';
+    if (location.pathname === '/academic/club-assignments') return 'club_assignments';
+    if (location.pathname === '/academic/equipment') return 'equipment';
     if (location.pathname === '/academic/moet-reports' || location.pathname === '/academic/reports') return 'moet_attendance';
     if (location.pathname === '/academic/year-archival') return 'year_archival';
     if (location.pathname === '/teacher/activities') return 'lesson_plans';
@@ -343,12 +398,17 @@ export const AcademicPage: React.FC = () => {
         {activeTab === 'classes' && <ClassManagementTab />}
         {(activeTab === 'timetable' || activeTab === 'conflicts') && <TimetableManagementTab />}
         {activeTab === 'transfers' && <ClassTransferTab />}
+        {activeTab === 'withdrawals' && <StudentWithdrawalTab />}
+        {activeTab === 'parent_accounts' && <ParentAccountManagementTab />}
         {activeTab === 'guardians' && <GuardianVerificationTab />}
         {activeTab === 'allergies' && <AllergyCommandCenterTab />}
         {activeTab === 'lesson_plans' && <WeeklyLessonPlanTab />}
         {activeTab === 'evaluations' && <EarlyChildhoodEvaluationTab />}
         {activeTab === 'lesson_plan_approvals' && <LessonPlanApprovalsTab />}
         {activeTab === 'classroom_equipment' && <ClassroomEquipmentTab />}
+        {activeTab === 'health_reports' && <HealthReportTab />}
+        {activeTab === 'club_assignments' && <ClubAssignmentTab />}
+        {activeTab === 'equipment' && <EquipmentManagementTab />}
         {activeTab === 'moet_attendance' && <MoetAttendanceReportTab />}
         {activeTab === 'year_archival' && <YearEndArchivalTab />}
         {activeTab === 'quality_surveys' && (
