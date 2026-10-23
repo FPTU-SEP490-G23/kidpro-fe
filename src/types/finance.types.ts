@@ -585,3 +585,166 @@ export interface FinancialReportData {
   generatedBy: string;
 }
 
+
+// ==========================================
+// NEW DB & DTO TYPES FOR KE_TOAN (G8-UC-01 .. G8-UC-12)
+// ==========================================
+
+export interface ServiceDto {
+  serviceId: string;
+  serviceName: string;
+  unitPrice: number;
+  chargeCycle: 'MONTHLY' | 'SEMESTER' | 'YEARLY' | 'ONE_TIME';
+  isMandatory: boolean;
+  message?: string;
+}
+
+export interface ServiceRequestDto {
+  serviceName: string;
+  unitPrice: number;
+  chargeCycle: string;
+  isMandatory: boolean;
+}
+
+export interface DiscountPolicyDto {
+  policyId: string;
+  policyName: string;
+  discountPercentage: number;
+  discountAmount: number;
+  message?: string;
+}
+
+export interface DiscountPolicyRequestDto {
+  policyName: string;
+  discountPercentage: number;
+  discountAmount: number;
+}
+
+export interface StudentDiscountDto {
+  studentDiscountId: number;
+  studentId: string;
+  studentName: string;
+  studentCode: string;
+  className: string;
+  policyId: string;
+  policyName: string;
+  discountPercentage: number;
+  discountAmount: number;
+  appliedDate: string;
+  message?: string;
+}
+
+export interface AssignStudentDiscountRequestDto {
+  studentId: string;
+  policyId: string;
+  appliedDate?: string;
+}
+
+export interface InvoiceItemDto {
+  itemId?: number;
+  invoiceId?: string;
+  itemDescription: string;
+  amount: number;
+}
+
+export interface InvoiceDto {
+  invoiceId: string;
+  invoiceCode: string;
+  studentId: string;
+  studentName: string;
+  studentCode: string;
+  className: string;
+  parentName: string;
+  parentPhone: string;
+  billingMonth: number;
+  billingYear: number;
+  totalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  dueDate: string;
+  status: 'UNPAID' | 'DRAFT' | 'PENDING' | 'PARTIAL' | 'PAID' | 'CANCELLED' | 'OVERDUE' | 'DISPUTED';
+  paymentQrCode: string;
+  items: InvoiceItemDto[];
+  message?: string;
+}
+
+export interface GenerateBillingRequestDto {
+  month: number;
+  year: number;
+  classId?: string;
+}
+
+export interface AddInvoiceItemRequestDto {
+  itemDescription: string;
+  amount: number;
+  reason?: string;
+}
+
+export interface PublishInvoicesRequestDto {
+  month?: number;
+  year?: number;
+  classId?: string;
+  dueDate?: string;
+  customMessage?: string;
+  invoiceIds?: string[];
+}
+
+export interface PublishInvoicesResponseDto {
+  publishedCount: number;
+  billingMonth: number;
+  billingYear: number;
+  dueDate: string;
+  message: string;
+}
+
+export interface RecordCashPaymentRequestDto {
+  amountPaid: number;
+  paymentDate?: string;
+  payerName?: string;
+  notes?: string;
+}
+
+export interface ReceiptDto {
+  receiptId: string;
+  invoiceId: string;
+  invoiceCode: string;
+  transactionId: string;
+  transactionCode: string;
+  studentName: string;
+  studentCode: string;
+  className: string;
+  payerName: string;
+  amountPaid: number;
+  remainingDebt: number;
+  paymentMethod: 'VIETQR_PAYOS' | 'BANK_TRANSFER' | 'CASH';
+  paymentTime: string;
+  notes: string;
+  schoolName: string;
+  schoolTaxCode: string;
+  schoolAddress: string;
+  verificationCode: string;
+  message?: string;
+}
+
+export interface ClassTuitionSummaryDto {
+  classId: string;
+  className: string;
+  gradeLevel: string;
+  studentCount: number;
+  grossAmount: number;
+  discountAmount: number;
+  netAmount: number;
+}
+
+export interface TuitionSummaryDto {
+  billingMonth: number;
+  billingYear: number;
+  status: 'DRAFT' | 'APPROVED' | 'REJECTED';
+  totalStudents: number;
+  totalGrossAmount: number;
+  totalDiscountAmount: number;
+  totalNetAmount: number;
+  rejectionReason?: string;
+  message?: string;
+  classSummaries: ClassTuitionSummaryDto[];
+}

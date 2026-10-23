@@ -1,51 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import {
   Calculator,
   Percent,
-  Timer,
-  Receipt,
+  Cpu,
   FileCheck2,
   QrCode,
   Banknote,
-  Webhook,
-  Bell,
-  Coins,
-  FileQuestion,
   BarChart3,
-  Cpu,
-  Sparkles
 } from 'lucide-react';
-import { DynamicBillingEngineTab } from './tabs/DynamicBillingEngineTab';
-import { FeePolicyManagementTab } from './tabs/FeePolicyManagementTab';
-import { MealRefundRateTab } from './tabs/MealRefundRateTab';
+import { FeeCatalogTab } from './tabs/FeeCatalogTab';
 import { DiscountPolicyTab } from './tabs/DiscountPolicyTab';
-import { LatePickupRuleTab } from './tabs/LatePickupRuleTab';
-import { MealRefundAuditTab } from './tabs/MealRefundAuditTab';
-import { BulkInvoiceIssuanceTab } from './tabs/BulkInvoiceIssuanceTab';
-import { CashCollectionTab } from './tabs/CashCollectionTab';
-import { WebhookTransactionReconciliationTab } from './tabs/WebhookTransactionReconciliationTab';
-import { StudentDepositDeductionTab } from './tabs/StudentDepositDeductionTab';
-import { OverdueDebtRemindersTab } from './tabs/OverdueDebtRemindersTab';
-import { PaymentDisputesManagementTab } from './tabs/PaymentDisputesManagementTab';
-import { FinancialReportsTab } from './tabs/FinancialReportsTab';
+import { TuitionCalculationTab } from './tabs/TuitionCalculationTab';
+import { TuitionSummaryTab } from './tabs/TuitionSummaryTab';
+import { InvoiceIssuanceTab } from './tabs/InvoiceIssuanceTab';
+import { CashReceiptsTab } from './tabs/CashReceiptsTab';
+import { RevenueReportTab } from './tabs/RevenueReportTab';
 import { useAuth } from '../../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
 
 export type FinanceTabKey =
-  | 'disputes-mgmt'
-  | 'financial-reports'
-  | 'deposit-deduction'
-  | 'overdue-reminders'
+  | 'fee-catalog'
+  | 'discounts'
+  | 'tuition-calc'
+  | 'tuition-summary'
+  | 'invoice-issuance'
+  | 'cash-receipts'
+  | 'revenue-report'
+  | 'fee-configs'
   | 'billing-engine'
-  | 'meal-refund-audit'
   | 'bulk-issuance'
   | 'cash-collection'
-  | 'webhook-reconcile'
-  | 'fee-configs'
-  | 'meal-refund'
-  | 'discounts'
-  | 'late-pickup';
+  | 'financial-reports'
+  | 'overdue-reminders';
 
 interface TabMeta {
   uc: string;
@@ -54,168 +40,154 @@ interface TabMeta {
   icon: React.ElementType;
 }
 
-const TAB_META: Record<FinanceTabKey, TabMeta> = {
-  'fee-configs': {
-    uc: 'UC-033',
-    title: 'Cấu Hình Danh Mục Khoản Thu & Tính Chất Biểu Phí',
-    description: 'Thiết lập danh mục khoản thu cố định, biến đổi theo ngày, bắt buộc hoặc tự nguyện cho niên khóa.',
+const TAB_META: Record<string, TabMeta> = {
+  'fee-catalog': {
+    uc: 'G8-UC-01',
+    title: 'Danh mục Khoản thu Biểu phí',
+    description: 'Thiết lập danh mục các khoản thu trong năm học (học phí, tiền ăn, bán trú, xe buýt, CLB), quy định đơn giá định mức và chu kỳ thu.',
     icon: Calculator,
   },
   discounts: {
-    uc: 'UC-033',
-    title: 'Chính Sách Miễn Giảm Học Phí & Học Bổng',
-    description: 'Quản lý chính sách giảm trừ anh chị em, con thương binh chính sách, học bổng phát triển năng khiếu.',
+    uc: 'G8-UC-03',
+    title: 'Chính sách Miễn giảm & Học bổng',
+    description: 'Cấu hình quy chế ưu đãi theo nhóm đối tượng (con thứ 2, gia đình chính sách, học bổng) và gán chính sách cho hồ sơ học sinh.',
     icon: Percent,
   },
-  'late-pickup': {
-    uc: 'UC-033',
-    title: 'Biểu Phí Phụ Thu Trông Muộn Ngoài Giờ',
-    description: 'Khung phạt đón muộn lũy tiến theo mốc 15/30/60 phút sau giờ tan trường (17:00 / 17:30).',
-    icon: Timer,
-  },
-  'meal-refund': {
-    uc: 'UC-034',
-    title: 'Cấu Hình Đơn Giá Hoàn Tiền Ăn Nghỉ Phép',
-    description: 'Định mức hoàn tiền ăn (bữa chính, bữa phụ) khi phụ huynh nộp đơn xin nghỉ học hợp lệ trước 08:30 sáng.',
-    icon: Coins,
-  },
-  'billing-engine': {
-    uc: 'UC-035',
-    title: 'Động Cơ Quyết Toán Học Phí Động Toàn Trường',
-    description: 'Chạy lệnh tổng hợp tự động: Biểu phí gốc (-) Hoàn tiền ăn nghỉ phép (-) Miễn giảm (+) Phụ thu ngoài giờ.',
+  'tuition-calc': {
+    uc: 'G8-UC-04/05',
+    title: 'Lập Bảng tính Học phí & Phụ phí Phát sinh',
+    description: 'Tự động tính toán dự thu hàng tháng, áp dụng miễn giảm và ghi nhận các khoản phụ thu/đền bù/phạt phát sinh cho từng học sinh.',
     icon: Cpu,
   },
-  'meal-refund-audit': {
-    uc: 'UC-036',
-    title: 'Kiểm Toán & Tự Động Tính Tiền Ăn Hoàn Trả',
-    description: 'Đối soát chéo dữ liệu điểm danh thực tế, báo vắng hợp lệ và số suất ăn đóng băng lúc 08:30 từ bộ phận Bếp.',
+  'tuition-summary': {
+    uc: 'G8-UC-06',
+    title: 'Bảng Tổng hợp Học phí Toàn trường',
+    description: 'Xem bảng tổng hợp thu học phí toàn trường và từng lớp học, theo dõi trạng thái thẩm định & ký duyệt chính thức từ Ban Giám hiệu.',
     icon: FileCheck2,
   },
-  'bulk-issuance': {
-    uc: 'UC-037',
-    title: 'Duyệt & Phát Hành Bảng Kê Học Phí Hàng Loạt (VietQR)',
-    description: 'Tạo mã VietQR động PayOS kèm thông báo học phí gửi tức thì tới ứng dụng phụ huynh.',
+  'invoice-issuance': {
+    uc: 'G8-UC-07',
+    title: 'Phát hành Thông báo Học phí & VietQR',
+    description: 'Phát hành phiếu báo học phí tới ứng dụng phụ huynh kèm mã VietQR Napas PayOS đã điền sẵn số tiền và nội dung chuyển khoản.',
     icon: QrCode,
   },
-  'cash-collection': {
-    uc: 'UC-038',
-    title: 'Gạch Nợ Thủ Công & Quầy Thu Tiền Mặt / POS',
-    description: 'Thu tiền trực tiếp tại quầy, xuất biên lai điện tử và ghi nhận gạch nợ tức thời vào hệ thống.',
+  'cash-receipts': {
+    uc: 'G8-UC-10/11',
+    title: 'Thu Tiền mặt & In Biên lai Điện tử',
+    description: 'Ghi nhận thu tiền mặt trực tiếp tại quầy kế toán, gạch nợ tức thì và xuất biên lai thu tiền/hóa đơn điện tử có mã số thuế chuẩn.',
     icon: Banknote,
   },
-  'webhook-reconcile': {
-    uc: 'UC-039',
-    title: 'Đối Soát Webhook VietQR PayOS Gạch Nợ Tự Động',
-    description: 'Giám sát luồng Webhook IPN thời gian thực, tự động gạch nợ ngay khi phụ huynh quét mã thanh toán thành công.',
-    icon: Webhook,
-  },
-  'deposit-deduction': {
-    uc: 'UC-056',
-    title: 'Tự Động Khấu Trừ Tiền Cọc Nhập Học',
-    description: 'Khấu trừ tiền cọc giữ chỗ vào bảng kê học phí kỳ đầu tiên cho các bé nhập học chính thức.',
-    icon: Coins,
-  },
-  'overdue-reminders': {
-    uc: 'UC-057',
-    title: 'Giám Sát Công Nợ Quá Hạn & Nhắc Nợ Tự Động',
-    description: 'Gửi thông báo nhắc nợ tự động đa kênh (Push Notification, SMS) cho các hóa đơn quá hạn nộp học phí.',
-    icon: Bell,
-  },
-  'disputes-mgmt': {
-    uc: 'UC-059',
-    title: 'Tiếp Nhận & Xử Lý Khiếu Nại Sai Lệch Tiền Học',
-    description: 'Thẩm định khiếu nại sai lệch tiền ăn, khoản thu của phụ huynh và thực hiện lệnh điều chỉnh giảm trừ số dư.',
-    icon: FileQuestion,
-  },
-  'financial-reports': {
-    uc: 'UC-060',
-    title: 'Bảng Tổng Hợp Thu Chi & Giám Sát Tuổi Nợ (VAS)',
-    description: 'Phân tích cơ cấu nguồn thu, dòng tiền thực nhận, tuổi nợ 30/60/90 ngày và xuất báo cáo kiểm toán Excel/PDF.',
+  'revenue-report': {
+    uc: 'G8-UC-12',
+    title: 'Báo cáo Doanh thu & Công nợ Quá hạn',
+    description: 'Theo dõi tiến độ hoàn thành thu học phí toàn trường, biểu đồ phân tích và danh sách phụ huynh nợ quá hạn (màn hình chung với BGH).',
     icon: BarChart3,
   },
 };
 
-export const FinancePage: React.FC = () => {
-  const { role } = useAuth();
-  const location = useLocation();
-
-  // If user is BGH, redirect directly to BGH's dedicated Fee Policy Approval page (UC-011)
-  if (role === 'BGH') {
-    return <Navigate to="/bgh/fee-policy-approval" replace />;
+const normalizeTabKey = (tabKey: string | null): string => {
+  if (!tabKey) return 'fee-catalog';
+  switch (tabKey) {
+    case 'fee-configs':
+    case 'meal-refund':
+    case 'late-pickup':
+      return 'fee-catalog';
+    case 'billing-engine':
+    case 'deposit-deduction':
+    case 'disputes-mgmt':
+      return 'tuition-calc';
+    case 'meal-refund-audit':
+      return 'tuition-summary';
+    case 'bulk-issuance':
+    case 'webhook-reconcile':
+      return 'invoice-issuance';
+    case 'cash-collection':
+      return 'cash-receipts';
+    case 'financial-reports':
+    case 'overdue-reminders':
+      return 'revenue-report';
+    default:
+      return tabKey in TAB_META ? tabKey : 'fee-catalog';
   }
+};
 
-  const resolveTab = (param: string | null): FinanceTabKey => {
-    if (param && param in TAB_META) {
-      return param as FinanceTabKey;
-    }
-    if (location.pathname === '/finance/configs') return 'fee-configs';
-    if (location.pathname === '/finance/billing-engine') return 'billing-engine';
-    if (location.pathname === '/finance/payments') return 'cash-collection';
-    if (location.pathname === '/finance/reports') return 'financial-reports';
-    return 'fee-configs';
-  };
+export const FinancePage: React.FC = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<FinanceTabKey>(() => {
-    const searchParams = new URLSearchParams(location.search);
-    return resolveTab(searchParams.get('tab'));
-  });
+  const searchParams = new URLSearchParams(location.search);
+  const rawTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<string>(normalizeTabKey(rawTab));
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    setActiveTab(resolveTab(searchParams.get('tab')));
-  }, [location.pathname, location.search]);
+    const normalized = normalizeTabKey(rawTab);
+    setActiveTab(normalized);
+  }, [location.search]);
 
-  const currentMeta = TAB_META[activeTab] || TAB_META['fee-configs'];
-  const MetaIcon = currentMeta.icon;
+  const allowedRoles = ['KE_TOAN', 'ACCOUNTANT', 'BGH', 'BOARD_OF_DIRECTORS', 'SYSTEM_ADMIN', 'ADMIN'];
+  if (user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    navigate(`/finance?tab=${key}`, { replace: true });
+  };
+
+  const currentMeta = TAB_META[activeTab] || TAB_META['fee-catalog'];
 
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
-      {/* HEADER PHÂN HỆ TÀI CHÍNH (ĐỘNG THEO USE CASE ĐANG CHỌN, HOÀN TOÀN KHÔNG CÓ THANH SCROLL NGANG) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-[#1E4D40] to-[#275A4E] text-white rounded-3xl shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Phòng Kế Toán • {currentMeta.uc}</span>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+              Phân hệ Kế toán & Quản trị Tài chính
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
-              Quy Chuẩn VAS
+            <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+              {currentMeta.uc}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center text-[#78C2AD] shrink-0">
-              <MetaIcon className="h-5 w-5" />
-            </div>
-            <span>{currentMeta.title}</span>
+          <h1 className="text-2xl font-black text-slate-900 mt-1 tracking-tight flex items-center gap-2">
+            {React.createElement(currentMeta.icon, { className: 'w-7 h-7 text-indigo-600' })}
+            {currentMeta.title}
           </h1>
-          <p className="text-xs sm:text-sm text-emerald-100/80 max-w-3xl">
+          <p className="text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
             {currentMeta.description}
           </p>
         </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-[11px] font-bold text-emerald-200/90 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5">
-            <Receipt className="w-4 h-4 text-[#E5A93C]" />
-            <span>Kỳ Quyết Toán: 10/2026</span>
-          </span>
-        </div>
       </div>
 
-      {/* NỘI DUNG TỪNG PHÂN HỆ (RENDER TRỰC TIẾP, KHÔNG CÒN THANH SCROLL NGANG LÀM RỐI MẮT) */}
-      <div className="bg-transparent">
-        {activeTab === 'disputes-mgmt' && <PaymentDisputesManagementTab />}
-        {activeTab === 'financial-reports' && <FinancialReportsTab />}
-        {activeTab === 'deposit-deduction' && <StudentDepositDeductionTab />}
-        {activeTab === 'overdue-reminders' && <OverdueDebtRemindersTab />}
-        {activeTab === 'webhook-reconcile' && <WebhookTransactionReconciliationTab />}
-        {activeTab === 'meal-refund-audit' && <MealRefundAuditTab />}
-        {activeTab === 'bulk-issuance' && <BulkInvoiceIssuanceTab />}
-        {activeTab === 'cash-collection' && <CashCollectionTab />}
-        {activeTab === 'billing-engine' && <DynamicBillingEngineTab />}
-        {activeTab === 'fee-configs' && <FeePolicyManagementTab />}
-        {activeTab === 'meal-refund' && <MealRefundRateTab />}
+      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-x-auto flex gap-1.5 scrollbar-thin">
+        {Object.entries(TAB_META).map(([key, meta]) => {
+          const Icon = meta.icon;
+          const isActive = activeTab === key;
+          return (
+            <button
+              key={key}
+              onClick={() => handleTabChange(key)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+              }`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>[{meta.uc}] {meta.title}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="min-h-[500px]">
+        {activeTab === 'fee-catalog' && <FeeCatalogTab />}
         {activeTab === 'discounts' && <DiscountPolicyTab />}
-        {activeTab === 'late-pickup' && <LatePickupRuleTab />}
+        {activeTab === 'tuition-calc' && <TuitionCalculationTab />}
+        {activeTab === 'tuition-summary' && <TuitionSummaryTab />}
+        {activeTab === 'invoice-issuance' && <InvoiceIssuanceTab />}
+        {activeTab === 'cash-receipts' && <CashReceiptsTab />}
+        {activeTab === 'revenue-report' && <RevenueReportTab />}
       </div>
     </div>
   );
