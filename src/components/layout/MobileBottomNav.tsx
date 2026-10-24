@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
 import {
+  AlertTriangle,
   Baby,
   GraduationCap,
   ClipboardCheck,
@@ -31,7 +32,7 @@ const getRoleBottomNav = (role?: UserRole | null): BottomNavItem[] => {
     case 'PHU_HUYNH':
       return [
         { name: 'Sổ liên lạc', path: '/parent', icon: Baby },
-        { name: 'Bản tin', path: '/announcements', icon: Megaphone },
+        { name: 'Học phí', path: '/parent?tab=invoice', icon: Receipt },
         { name: 'Tài khoản', path: '/profile', icon: UserCheck },
       ];
 
@@ -41,14 +42,14 @@ const getRoleBottomNav = (role?: UserRole | null): BottomNavItem[] => {
         { name: 'Giáo án & Lớp', path: '/academic', icon: GraduationCap },
         { name: 'Sức khỏe', path: '/health', icon: HeartPulse },
         { name: 'Báo bếp', path: '/kitchen', icon: UtensilsCrossed },
-        { name: 'Bản tin', path: '/announcements', icon: Megaphone },
+        { name: 'Trao đổi', path: '/teacher/communication', icon: Megaphone },
       ];
 
     case 'BEP':
       return [
         { name: 'Bếp ăn', path: '/kitchen', icon: UtensilsCrossed },
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Bản tin', path: '/announcements', icon: Megaphone },
+        { name: 'Khóa suất', path: '/kitchen?tab=portions', icon: ClipboardCheck },
+        { name: 'Dị ứng', path: '/kitchen?tab=allergies', icon: AlertTriangle },
         { name: 'Tài khoản', path: '/profile', icon: UserCheck },
       ];
 
@@ -56,7 +57,7 @@ const getRoleBottomNav = (role?: UserRole | null): BottomNavItem[] => {
       return [
         { name: 'Học phí', path: '/finance', icon: Receipt },
         { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Bản tin', path: '/announcements', icon: Megaphone },
+        { name: 'Báo cáo', path: '/finance?tab=revenue-report', icon: LineChart },
         { name: 'Tài khoản', path: '/profile', icon: UserCheck },
       ];
 

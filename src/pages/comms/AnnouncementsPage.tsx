@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/formatters';
@@ -36,9 +37,13 @@ const MSG_004 = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tr
 export const AnnouncementsPage: React.FC = () => {
   const { role, user } = useAuth();
 
-  // RBAC Checks
-  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN' ;
+  // RBAC Checks - Chỉ BGH, Quản trị viên và Giáo vụ mới được truy cập trung tâm phát hành thông báo
+  const isBghOrAdmin = role === 'BGH' || role === 'SYSTEM_ADMIN';
   const canPublish = isBghOrAdmin || role === 'GIAO_VU';
+
+  if (role && !['BGH', 'GIAO_VU', 'SYSTEM_ADMIN', 'GIAO_VIEN'].includes(role)) {
+    return <Navigate to="/403" replace />;
+  }
 
   // Announcements state
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -518,9 +523,9 @@ export const AnnouncementsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredAnnouncements.map((ann) => (
+                filteredAnnouncements.map((ann, idx) => (
                   <tr
-                    key={ann.id}
+                    key={ann.id || `ann-${idx}`}
                     className={`hover:bg-slate-50/60 transition-colors ${
                       ann.isRevoked ? 'opacity-50 bg-slate-50' : ''
                     }`}

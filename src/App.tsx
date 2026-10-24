@@ -78,7 +78,7 @@ export const App: React.FC = () => {
           <Route
             path="/announcements"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['BGH', 'GIAO_VU', 'SYSTEM_ADMIN']}>
                 <AnnouncementsPage />
               </ProtectedRoute>
             }

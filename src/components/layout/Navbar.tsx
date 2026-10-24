@@ -1,11 +1,26 @@
-﻿import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getRoleDisplayName, getRoleBadgeColor } from '../../utils/formatters';
-import { LogOut, Bell, User as UserIcon } from 'lucide-react';
+import { LogOut, Bell, User as UserIcon, AlertTriangle, CheckCircle2, Megaphone } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Đóng notification popover khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const canManageAnnouncements = ['BGH', 'GIAO_VU', 'SYSTEM_ADMIN'].includes(role || '');
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/90 px-4 sm:px-6 backdrop-blur-md">
@@ -34,15 +49,119 @@ export const Navbar: React.FC = () => {
           </div>
         )}
 
-        {/* Thông báo */}
-        <Link
-          to="/announcements"
-          aria-label="Thông báo"
-          className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
-        </Link>
+        {/* Thông báo Popover */}
+        <div className="relative" ref={notificationRef}>
+          <button
+            type="button"
+            onClick={() => setIsNotificationOpen((prev) => !prev)}
+            aria-label="Thông báo"
+            className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
+          </button>
+
+          {isNotificationOpen && (
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
+              <div className="p-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-[#275A4E]" />
+                  <span className="text-xs font-bold text-slate-800">Thông Báo & Cảnh Báo</span>
+                </div>
+                <span className="text-[10px] font-bold bg-[#275A4E]/10 text-[#275A4E] px-2 py-0.5 rounded-full">
+                  Hệ thống
+                </span>
+              </div>
+
+              {/* Danh sách thông báo theo phân hệ vai trò */}
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 p-1">
+                {role === 'BEP' ? (
+                  <>
+                    <div className="p-3 hover:bg-slate-50 rounded-xl transition text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          Khóa suất ăn 08:30 AM
+                        </span>
+                        <span className="text-[10px] text-slate-400">08:30</span>
+                      </div>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Đã đóng băng số suất ăn có mặt toàn trường để bếp xuất kho và chia định mức bán trú.
+                      </p>
+                    </div>
+
+                    <div className="p-3 hover:bg-slate-50 rounded-xl transition text-xs space-y-1 bg-amber-50/40">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-amber-800 flex items-center gap-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                          Cảnh báo dị ứng thực phẩm
+                        </span>
+                        <span className="text-[10px] text-amber-600 font-semibold">Hôm nay</span>
+                      </div>
+                      <p className="text-amber-900 text-[11px] leading-relaxed">
+                        Phát hiện học sinh có tiền sử dị ứng đậu phộng/hải sản. Vui lòng chế biến suất ăn cách ly an toàn.
+                      </p>
+                    </div>
+
+                    <div className="p-3 hover:bg-slate-50 rounded-xl transition text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <Megaphone className="h-3.5 w-3.5 text-[#275A4E]" />
+                          Lưu mẫu thực phẩm 24 giờ
+                        </span>
+                        <span className="text-[10px] text-slate-400">11:00</span>
+                      </div>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Nhắc nhở niêm phong mẫu thức ăn từng bữa vào tủ lạnh chuyên dụng ở dải nhiệt độ 2°C - 8°C.
+                      </p>
+                    </div>
+                  </>
+                ) : role === 'KE_TOAN' ? (
+                  <>
+                    <div className="p-3 hover:bg-slate-50 rounded-xl transition text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800">Quyết toán học phí kỳ</span>
+                        <span className="text-[10px] text-slate-400">Tháng này</span>
+                      </div>
+                      <p className="text-slate-600 text-[11px]">
+                        Bảng tính học phí tự động đã sẵn sàng đối soát công nợ và phát hành mã VietQR.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-3 hover:bg-slate-50 rounded-xl transition text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <Megaphone className="h-3.5 w-3.5 text-[#275A4E]" />
+                          Thông báo điều hành nhà trường
+                        </span>
+                        <span className="text-[10px] text-slate-400">Mới</span>
+                      </div>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Bản tin kế hoạch hoạt động giảng dạy và an toàn trường mầm non KIDPRO.
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Liên kết điều hướng dành riêng cho quyền quản lý thông báo */}
+              {canManageAnnouncements && (
+                <div className="p-2.5 border-t border-slate-100 bg-slate-50 text-center">
+                  <Link
+                    to="/announcements"
+                    onClick={() => setIsNotificationOpen(false)}
+                    className="text-xs font-bold text-[#275A4E] hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Mở Trung Tâm Quản Lý Phát Hành Bản Tin</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Thông tin người dùng & Role */}
         {user && (
