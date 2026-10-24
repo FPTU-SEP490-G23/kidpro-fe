@@ -75,17 +75,27 @@ export const EquipmentManagementTab: React.FC = () => {
     try {
       const roomList = await facilityClassroomApi.getAllClassrooms().catch(() => []);
       const classRooms: FacilityClassroom[] = Array.isArray(roomList) ? roomList : [];
+      let uniqueRooms: Array<{ id: string; name: string }> = [];
       if (classRooms && classRooms.length > 0) {
-        const uniqueRooms = classRooms
+        uniqueRooms = classRooms
           .filter((c: FacilityClassroom) => c.classroomId)
           .map((c: FacilityClassroom) => ({
             id: c.classroomId!,
             name: c.roomName + (c.building ? ` (${c.building})` : '')
           }));
-        setRooms(uniqueRooms);
-        if (uniqueRooms.length > 0 && !newRoomId) {
-          setNewRoomId(uniqueRooms[0].id);
-        }
+      }
+      if (uniqueRooms.length === 0) {
+        uniqueRooms = [
+          { id: 'b0000000-0000-0000-0000-000000000001', name: 'Phòng Mầm 1 (P101)' },
+          { id: 'b0000000-0000-0000-0000-000000000002', name: 'Phòng Chồi 1 (P201)' },
+          { id: 'b0000000-0000-0000-0000-000000000003', name: 'Phòng Lá 1 (P301)' },
+          { id: 'b0000000-0000-0000-0000-000000000004', name: 'Phòng Âm Nhạc & Nghệ Thuật' },
+          { id: 'b0000000-0000-0000-0000-000000000005', name: 'Phòng STEAM & Sáng Tạo' },
+        ];
+      }
+      setRooms(uniqueRooms);
+      if (uniqueRooms.length > 0 && !newRoomId) {
+        setNewRoomId(uniqueRooms[0].id);
       }
     } catch (e) {
       console.warn('Could not load classrooms:', e);
