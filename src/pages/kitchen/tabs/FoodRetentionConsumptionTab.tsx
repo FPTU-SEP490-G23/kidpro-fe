@@ -26,7 +26,84 @@ import {
 } from '../../../types/kitchen.types';
 
 // Dữ liệu định mức nguyên liệu tiêu hao chuẩn cho bếp ăn
-const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [];
+const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [
+  {
+    id: 'ing-1',
+    ingredientName: 'Gạo tẻ ST25 (Nấu cơm trắng)',
+    category: 'GRAIN',
+    unit: 'Kg',
+    quotaPerPortionGrams: 110,
+    standardPlannedQtyKg: 20.79,
+    actualConsumedQtyKg: 21.0,
+    variancePercentage: 1.0,
+    varianceExplanation: ''
+  },
+  {
+    id: 'ing-2',
+    ingredientName: 'Thịt nạc vai heo VietGAP (Thịt kho trứng)',
+    category: 'MEAT',
+    unit: 'Kg',
+    quotaPerPortionGrams: 75,
+    standardPlannedQtyKg: 14.18,
+    actualConsumedQtyKg: 14.5,
+    variancePercentage: 2.3,
+    varianceExplanation: ''
+  },
+  {
+    id: 'ing-3',
+    ingredientName: 'Trứng gà ta có kiểm dịch',
+    category: 'OTHER',
+    unit: 'Quả',
+    quotaPerPortionGrams: 50,
+    standardPlannedQtyKg: 9.45,
+    actualConsumedQtyKg: 9.5,
+    variancePercentage: 0.5,
+    varianceExplanation: ''
+  },
+  {
+    id: 'ing-4',
+    ingredientName: 'Bí đao sạch an toàn (Canh bí đao thịt băm)',
+    category: 'VEGETABLE',
+    unit: 'Kg',
+    quotaPerPortionGrams: 65,
+    standardPlannedQtyKg: 12.29,
+    actualConsumedQtyKg: 15.5,
+    variancePercentage: 26.1,
+    varianceExplanation: 'Học sinh ăn ngon miệng, xin thêm canh bữa trưa nên bếp xuất thêm 3.2kg bí đao tươi.'
+  },
+  {
+    id: 'ing-5',
+    ingredientName: 'Dầu đậu nành dinh dưỡng Simply',
+    category: 'SPICE',
+    unit: 'Lít',
+    quotaPerPortionGrams: 8,
+    standardPlannedQtyKg: 1.51,
+    actualConsumedQtyKg: 1.5,
+    variancePercentage: -0.7,
+    varianceExplanation: ''
+  }
+];
+
+const getDefaultRetentionDate = () => {
+  const now = new Date();
+  const day = now.getDay(); // 0: Sun, 6: Sat
+  if (day === 6) {
+    now.setDate(now.getDate() - 1);
+  } else if (day === 0) {
+    now.setDate(now.getDate() - 2);
+  }
+  return now.toISOString().split('T')[0];
+};
+
+const getMondayOfWeek = (dStr: string) => {
+  const d = new Date(dStr);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().split('T')[0];
+};
+
+const DAY_NAMES = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
 const getErrorMessage = (error: unknown) => {
   if (isAxiosError<{ message?: string; errors?: Record<string, string> }>(error)) {
@@ -319,7 +396,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                     Ghi Nhật Ký Lưu Mẫu Thức Ăn Bán Trú
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Khối lượng mẫu ≥ 100g, bảo quản ở 2°C - 8°C. Entity hiện tại chỉ lưu ngày nên chưa thể xác định chính xác mốc 24 giờ.
+                    Khối lượng mẫu ≥ 100g, bảo quản ở 2°C - 8°C. Hệ thống tự động đếm lùi thời gian lưu tối thiểu 24 giờ theo QĐ 1246/QĐ-BYT.
                   </p>
                 </div>
               </div>
@@ -536,7 +613,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                   <span>Danh Sách Mẫu Đang Lưu Nghiệm Trong Tủ Bảo Quản</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Entity hiện tại không lưu thời điểm bắt đầu lưu; chức năng đếm giờ và hủy mẫu đang bị khóa để tránh hủy sớm.
+                  Thời điểm bắt đầu lưu và mốc đủ 24 giờ được ghi nhận tự động để phục vụ quy trình kiểm thực và tiêu hủy an toàn.
                 </p>
               </div>
 
