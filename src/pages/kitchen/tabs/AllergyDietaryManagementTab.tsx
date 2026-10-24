@@ -53,7 +53,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   const [customSubstituteText, setCustomSubstituteText] = useState<string>('');
 
   // 1. Fetch danh sách học sinh dị ứng (GET /api/kitchen/allergy-alerts)
-  const { data: allergyRecords = [], isRefetching, isLoading, isError, error, refetch } = useQuery({
+  const { data: allergyRecords, isRefetching, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['students-by-allergy'],
     queryFn: async () => {
       try {
@@ -68,6 +68,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!allergyRecords || !Array.isArray(allergyRecords)) return;
     setItems(allergyRecords.map((record) => ({
       ...record,
       classId: record.classId ?? '',

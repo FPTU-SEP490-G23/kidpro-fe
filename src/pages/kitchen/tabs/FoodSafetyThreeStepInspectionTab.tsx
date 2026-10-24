@@ -122,7 +122,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   };
   const targetDayNumber = new Date(`${selectedDate}T00:00:00`).getDay() || 7;
   const {
-    data: weeklyMenuItems = [],
+    data: weeklyMenuItems,
     isLoading: isWeeklyMenuLoading,
     isError: isWeeklyMenuError,
     error: weeklyMenuError
@@ -143,7 +143,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   });
   const dayName = ['', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'][targetDayNumber];
   const todaysApprovedDishes = React.useMemo(
-    () => weeklyMenuItems.filter((dish) =>
+    () => (weeklyMenuItems || []).filter((dish) =>
       dish.menuStatus === 'APPROVED' && (
         typeof dish.dayOfWeek === 'number'
           ? dish.dayOfWeek === targetDayNumber
@@ -159,7 +159,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   }, [inspectionLog, selectedDate]);
 
   React.useEffect(() => {
-    if (isInspectionLogLoading || isInspectionLogError || weeklyMenuItems.length === 0) return;
+    if (!weeklyMenuItems || isInspectionLogLoading || isInspectionLogError || weeklyMenuItems.length === 0) return;
     if (todaysApprovedDishes.length === 0) return;
 
     setLocalLog((current) => {

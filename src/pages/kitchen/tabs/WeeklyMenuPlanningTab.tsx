@@ -82,7 +82,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   };
 
   // 1. Fetch weekly menu from backend (GET /api/kitchen/menus?weekStartDate=...)
-  const { data: serverMenus = [], isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
+  const { data: serverMenus, isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
     queryKey: ['weekly-menu', mondayStr],
     queryFn: async () => {
       try {
@@ -98,7 +98,8 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
 
   // Map server dishes to 5-day matrix if available
   useEffect(() => {
-    if (serverMenus && Array.isArray(serverMenus)) {
+    if (!serverMenus) return;
+    if (Array.isArray(serverMenus) && serverMenus.length > 0) {
       const mapped = EMPTY_WEEK_MENU.map((defaultDay) => {
         const dishes = serverMenus.filter((dish: WeeklyMenu) => {
           const dayNumber = typeof dish.dayOfWeek === 'number'
@@ -147,7 +148,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   }, [serverMenus]);
 
   // 2. Fetch students with allergies to cross-reference
-  const { data: rawAllergyStudents = [], isError: allergyQueryError } = useQuery({
+  const { data: rawAllergyStudents, isError: allergyQueryError } = useQuery({
     queryKey: ['kitchen-allergy-students'],
     queryFn: async () => {
       try {
@@ -171,7 +172,8 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   });
 
   const allergicStudents = useMemo(() => {
-    return (rawAllergyStudents || []).map((stu: any) => {
+    if (!rawAllergyStudents || !Array.isArray(rawAllergyStudents)) return [];
+    return rawAllergyStudents.map((stu: any) => {
       const tags: string[] = Array.isArray(stu.allergyTags)
         ? stu.allergyTags
         : (typeof stu.allergyTags === 'string' ? stu.allergyTags.split(',').map((t: string) => t.trim()) : []);
