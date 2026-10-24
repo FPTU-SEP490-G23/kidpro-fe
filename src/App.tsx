@@ -460,6 +460,30 @@ export const App: React.FC = () => {
             }
           />
           <Route
+            path="/academic/announcements"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/surveys"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/academic/medical-bulletins"
+            element={
+              <ProtectedRoute allowedRoles={['GIAO_VU', 'BGH', 'SYSTEM_ADMIN']}>
+                <AcademicPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/academic/moet-reports"
             element={
               <ProtectedRoute allowedRoles={['GIAO_VU', 'SYSTEM_ADMIN']}>

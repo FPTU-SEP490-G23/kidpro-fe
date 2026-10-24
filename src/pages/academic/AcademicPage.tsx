@@ -23,6 +23,8 @@ import {
   FileCheck2,
   UserCheck,
   HeartPulse,
+  Megaphone,
+  ClipboardList,
 } from 'lucide-react';
 import AcademicYearsPage from './years/AcademicYearsPage';
 import { StudentAdmissionTab } from './tabs/StudentAdmissionTab';
@@ -43,6 +45,9 @@ import { ServiceSurveyTab } from '../parent/tabs/ServiceSurveyTab';
 import { HealthReportTab } from './tabs/HealthReportTab';
 import { ClubAssignmentTab } from './tabs/ClubAssignmentTab';
 import { EquipmentManagementTab } from './tabs/EquipmentManagementTab';
+import { AnnouncementManagementTab } from './tabs/AnnouncementManagementTab';
+import { SurveyManagementTab } from './tabs/SurveyManagementTab';
+import { MedicalBulletinTab } from './tabs/MedicalBulletinTab';
 
 export type AcademicTabKey =
   | 'lesson_plans'
@@ -64,7 +69,10 @@ export type AcademicTabKey =
   | 'academic_years'
   | 'health_reports'
   | 'club_assignments'
-  | 'equipment';
+  | 'equipment'
+  | 'announcements'
+  | 'surveys'
+  | 'medical_bulletins';
 
 interface TabMeta {
   uc: string;
@@ -217,6 +225,28 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
     icon: Boxes,
     badge: 'Thiết Bị Mầm Non',
   },
+  announcements: {
+    uc: 'G11-UC-01',
+    title: 'Cổng Truyền Thông & Quản Lý Thông Báo Toàn Trường',
+    description: 'Soạn thảo, phân loại phạm vi theo khối lớp và lên lịch hẹn giờ phát hành thông báo đẩy FCM tới phụ huynh & giáo viên.',
+    icon: Megaphone,
+    badge: 'Thông Báo Toàn Trường',
+  },
+  surveys: {
+    uc: 'G11-UC-06',
+    title: 'Khởi Tạo Phiếu Khảo Sát & Thu Thập Ý Kiến Phụ Huynh',
+    description: 'Xây dựng biểu mẫu khảo sát đa dạng câu hỏi, thu thập phản hồi và theo dõi biểu đồ phân tích tỷ lệ đánh giá theo thời gian thực.',
+    icon: ClipboardList,
+    badge: 'Khảo Sát Ý Kiến',
+  },
+  medical_bulletins: {
+    uc: 'G11-UC-08',
+    title: 'Bản Tin Y Tế Học Đường & Cảnh Báo Dịch Bệnh Theo Mùa',
+    description: 'Đăng tải khuyến cáo sức khỏe mầm non, kích hoạt chế độ cảnh báo khẩn cấp kèm âm thanh báo động y tế và hướng dẫn cách ly dịch bệnh.',
+    icon: ShieldAlert,
+    badge: 'Y Tế & Dịch Bệnh',
+    specialColor: 'allergy',
+  },
 };
 
 const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
@@ -251,6 +281,9 @@ export const AcademicPage: React.FC = () => {
       if (param === 'equipment' || param === 'equipment-inventories') return 'equipment';
       if (param === 'health-reports' || param === 'health_reports' || param === 'health') return 'health_reports';
       if (param === 'club-assignments' || param === 'club_assignments' || param === 'clubs') return 'club_assignments';
+      if (param === 'announcements' || param === 'announcement') return 'announcements';
+      if (param === 'surveys' || param === 'survey') return 'surveys';
+      if (param === 'medical-bulletins' || param === 'medical_bulletins' || param === 'bulletins' || param === 'medical') return 'medical_bulletins';
       if (param === 'moet_attendance' || param === 'moet-reports' || param === 'reports') return 'moet_attendance';
       if (param === 'year_archival' || param === 'year-archival') return 'year_archival';
       if (param === 'lesson_plans' || param === 'lesson-plans') return 'lesson_plans';
@@ -271,6 +304,9 @@ export const AcademicPage: React.FC = () => {
     if (location.pathname === '/academic/health-reports') return 'health_reports';
     if (location.pathname === '/academic/club-assignments') return 'club_assignments';
     if (location.pathname === '/academic/equipment') return 'equipment';
+    if (location.pathname === '/academic/announcements') return 'announcements';
+    if (location.pathname === '/academic/surveys') return 'surveys';
+    if (location.pathname === '/academic/medical-bulletins') return 'medical_bulletins';
     if (location.pathname === '/academic/moet-reports' || location.pathname === '/academic/reports') return 'moet_attendance';
     if (location.pathname === '/academic/year-archival') return 'year_archival';
     if (location.pathname === '/teacher/activities') return 'lesson_plans';
@@ -418,6 +454,9 @@ export const AcademicPage: React.FC = () => {
             className="Các Khối Lớp"
           />
         )}
+        {activeTab === 'announcements' && <AnnouncementManagementTab />}
+        {activeTab === 'surveys' && <SurveyManagementTab />}
+        {activeTab === 'medical_bulletins' && <MedicalBulletinTab />}
         {activeTab === 'academic_years' && <AcademicYearsPage />}
       </div>
     </div>

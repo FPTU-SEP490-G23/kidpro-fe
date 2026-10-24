@@ -70,6 +70,7 @@ import {
   Users,
   Smartphone,
   Link,
+  ClipboardList,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -126,6 +127,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
   Smartphone,
   Link,
+  ClipboardList,
 };
 
 export const SidebarNavigation: React.FC = () => {
