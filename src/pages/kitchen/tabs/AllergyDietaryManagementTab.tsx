@@ -52,10 +52,19 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   const [editSubstituteModalItem, setEditSubstituteModalItem] = useState<DietaryAllergyItem | null>(null);
   const [customSubstituteText, setCustomSubstituteText] = useState<string>('');
 
-  // 1. Fetch danh sách học sinh dị ứng (GET /api/academic/students/by-allergy)
+  // 1. Fetch danh sách học sinh dị ứng (GET /api/kitchen/allergy-alerts)
   const { data: allergyRecords = [], isRefetching, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['students-by-allergy'],
-    queryFn: async () => (await kitchenApi.getStudentsByAllergy()).data
+    queryFn: async () => {
+      try {
+        const res: any = await kitchenApi.getStudentsByAllergy();
+        const data = res?.data ?? res;
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.warn('Failed to fetch allergy records:', e);
+        return [];
+      }
+    }
   });
 
   useEffect(() => {
@@ -90,7 +99,10 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       isolatedAreaConfirmed: boolean;
       allergenMatchConfirmed: boolean;
       safeSubstituteDish?: string;
-    }) => (await kitchenApi.updateDietaryPreparation(payload)).data,
+    }) => {
+      const res: any = await kitchenApi.updateDietaryPreparation(payload);
+      return res?.data ?? res;
+    },
     onSuccess: (updated) => {
       setItems((previous) => previous.map((item) =>
         item.id === updated.id

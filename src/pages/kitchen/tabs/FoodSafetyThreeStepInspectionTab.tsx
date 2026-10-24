@@ -84,8 +84,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   } = useQuery<ThreeStepFoodSafetyInspectionLog>({
     queryKey: ['food-inspection-log', selectedDate],
     queryFn: async () => {
-      const res = await kitchenApi.getThreeStepInspectionLog(selectedDate);
-      return res.status === 204 ? createInitialInspectionLog(selectedDate) : res.data;
+      try {
+        const res: any = await kitchenApi.getThreeStepInspectionLog(selectedDate);
+        const data = res?.data ?? res;
+        return (data && (data.inspectionDate || data.logId)) ? data : createInitialInspectionLog(selectedDate);
+      } catch (e) {
+        console.warn('Failed to fetch food inspection log:', e);
+        return createInitialInspectionLog(selectedDate);
+      }
     },
     retry: false
   });
@@ -122,7 +128,16 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
     error: weeklyMenuError
   } = useQuery({
     queryKey: ['inspection-menu-items', selectedDate],
-    queryFn: async () => (await kitchenApi.getWeeklyMenus(getWeekStartDate(selectedDate))).data,
+    queryFn: async () => {
+      try {
+        const res: any = await kitchenApi.getWeeklyMenus(getWeekStartDate(selectedDate));
+        const data = res?.data ?? res;
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.warn('Failed to fetch inspection weekly menus:', e);
+        return [];
+      }
+    },
     enabled: Boolean(selectedDate),
     retry: false
   });

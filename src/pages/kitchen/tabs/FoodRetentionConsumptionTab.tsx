@@ -42,7 +42,16 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   const queryClient = useQueryClient();
   const foodSamplesQuery = useQuery({
     queryKey: ['food-samples'],
-    queryFn: async () => (await kitchenApi.getFoodSamples()).data
+    queryFn: async () => {
+      try {
+        const res: any = await kitchenApi.getFoodSamples();
+        const data = res?.data ?? res;
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.warn('Failed to fetch food samples:', e);
+        return [];
+      }
+    }
   });
   const storedSamples: FoodSampleRetention[] = foodSamplesQuery.data ?? [];
 
