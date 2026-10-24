@@ -111,7 +111,44 @@ export const EquipmentManagementTab: React.FC = () => {
       if (searchTerm) params.keyword = searchTerm;
 
       const data = await equipmentService.getInventories(params);
-      setInventories(data);
+      const flattened: EquipmentInventoryResponse[] = [];
+      data.forEach((item: any) => {
+        if (Array.isArray(item.allocations) && item.allocations.length > 0) {
+          item.allocations.forEach((alloc: any) => {
+            flattened.push({
+              ...item,
+              allocationId: alloc.allocationId || `${item.equipmentId}-${alloc.roomId}`,
+              roomId: alloc.roomId,
+              roomName: alloc.roomName,
+              quantity: alloc.quantity,
+              status: alloc.status || 'GOOD',
+              statusLabel: alloc.statusLabel || (alloc.status === 'GOOD' ? 'Tốt (Đang dùng)' : alloc.status === 'DAMAGED' ? 'Hỏng hóc' : 'Chờ thanh lý')
+            });
+          });
+        } else {
+          flattened.push({
+            ...item,
+            allocationId: item.allocationId || item.equipmentId,
+            roomId: item.roomId,
+            roomName: item.roomName || 'Chưa gán phòng',
+            quantity: item.quantity !== undefined ? item.quantity : (item.totalQuantity || 0),
+            status: item.status || 'GOOD'
+          });
+        }
+      });
+
+      // Bổ sung phòng học từ các phân bổ vào dropdown nếu chưa có
+      setRooms((prev) => {
+        const map = new Map(prev.map((r) => [r.id, r]));
+        flattened.forEach((it) => {
+          if (it.roomId && it.roomName && it.roomName !== 'Chưa gán phòng') {
+            map.set(it.roomId, { id: it.roomId, name: it.roomName });
+          }
+        });
+        return Array.from(map.values());
+      });
+
+      setInventories(flattened);
     } catch (err: any) {
       console.error('Failed to load equipment inventories:', err);
       showToast('error', 'Không thể tải danh sách trang thiết bị');
