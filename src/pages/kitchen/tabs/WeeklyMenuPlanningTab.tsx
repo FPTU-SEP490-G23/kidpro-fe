@@ -269,8 +269,68 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   };
 
   // Clone from Previous Week action
-  const handleClonePreviousWeek = () => {
-    showToast('success', 'Đã sao chép thực đơn cân đối dinh dưỡng từ tuần trước. Bạn có thể chỉnh sửa các món cho phù hợp.');
+  const handleClonePreviousWeek = async () => {
+    try {
+      const prevMonday = new Date(currentMonday);
+      prevMonday.setDate(prevMonday.getDate() - 7);
+      const prevMondayStr = formatDateISO(prevMonday);
+
+      const res: any = await kitchenApi.getWeeklyMenus(prevMondayStr);
+      const prevDishes: WeeklyMenu[] = (res?.data ?? res) || [];
+
+      if (!Array.isArray(prevDishes) || prevDishes.length === 0) {
+        showToast('warning', `Tuần trước (${formatDayVn(prevMonday)}) chưa có dữ liệu thực đơn để sao chép.`);
+        return;
+      }
+
+      const cloned = EMPTY_WEEK_MENU.map((defaultDay) => {
+        const dishes = prevDishes.filter((dish: WeeklyMenu) => {
+          const dayNumber = typeof dish.dayOfWeek === 'number'
+            ? dish.dayOfWeek
+            : ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].indexOf(String(dish.dayOfWeek)) + 1;
+          return dayNumber === defaultDay.dayOfWeek;
+        });
+        if (dishes.length === 0) return defaultDay;
+
+        const breakfastDish = dishes.find((d: WeeklyMenu) => d.mealType === 'BREAKFAST');
+        const morningSnackDish = dishes.find((d: WeeklyMenu) => d.mealType === 'MORNING_SNACK');
+        const lunchDish = dishes.find((d: WeeklyMenu) => d.mealType === 'LUNCH');
+        const snackDish = dishes.find((d: WeeklyMenu) =>
+          d.mealType === 'SNACK' || d.mealType === 'AFTERNOON_SNACK');
+
+        const totalCalo = lunchDish?.calories || 0;
+        const lunchParts = (lunchDish?.dishName || '').split('|').map((part: string) => part.trim());
+        const allAllergies = Array.from(
+          new Set(
+            dishes
+              .map((d) => d.allergyTags || '')
+              .join(',')
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean)
+          )
+        );
+
+        return {
+          ...defaultDay,
+          breakfast: breakfastDish ? breakfastDish.dishName : defaultDay.breakfast,
+          morningSnack: morningSnackDish ? morningSnackDish.dishName : defaultDay.morningSnack,
+          lunchMainProtein: lunchParts[0] || defaultDay.lunchMainProtein,
+          lunchVegetable: lunchParts[1] || defaultDay.lunchVegetable,
+          lunchSoup: lunchParts[2] || defaultDay.lunchSoup,
+          lunchDessert: lunchParts[3] || defaultDay.lunchDessert,
+          snack: snackDish ? snackDish.dishName : defaultDay.snack,
+          calories: totalCalo,
+          allergyTags: allAllergies.length > 0 ? allAllergies : defaultDay.allergyTags
+        };
+      });
+
+      setMenuDays(cloned);
+      showToast('success', `Đã sao chép thành công thực đơn tuần trước (${formatDayVn(prevMonday)}). Bạn có thể chỉnh sửa trước khi gửi duyệt.`);
+    } catch (err: any) {
+      console.warn('Lỗi khi sao chép thực đơn tuần trước:', err);
+      showToast('error', 'Không thể sao chép thực đơn tuần trước. Vui lòng thử lại.');
+    }
   };
 
   // Submit Publish
