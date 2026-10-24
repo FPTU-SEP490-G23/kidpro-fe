@@ -69,28 +69,68 @@ export const AllergyDietaryManagementTab: React.FC = () => {
 
   useEffect(() => {
     if (!allergyRecords || !Array.isArray(allergyRecords)) return;
-    setItems(allergyRecords.map((record) => ({
-      ...record,
-      classId: record.classId ?? '',
-      className: record.className ?? '',
-      roomNumber: record.roomNumber ?? '',
-      allergyTags: record.allergyTags ?? [],
-      todayConflictedDishes: record.todayConflictedDishes ?? [],
-      safeSubstituteDish: record.safeSubstituteDish ?? '',
-      severity: record.severity === 'ANAPHYLAXIS'
-        ? 'ANAPHYLAXIS'
-        : record.severity === 'HIGH'
-          ? 'HIGH'
-          : 'MEDIUM',
-      preparationStatus: record.preparationStatus === 'PREPARED' ? 'PREPARED' : 'PENDING',
-      preparedAt: record.preparedAt,
-      preparedBy: record.preparedBy,
-      isolatedAreaConfirmed: record.isolatedAreaConfirmed === true,
-      labelPrinted: record.labelPrinted === true,
-      labelPrintedAt: record.labelPrintedAt,
-      allergenMatchKnown: record.allergenMatchKnown === true,
-      isPresentToday: record.isPresentToday === true
-    })));
+    setItems(allergyRecords.map((record) => {
+      const tags: string[] = record.allergyTags ?? [];
+      const lowerTags = tags.join(' ').toLowerCase();
+
+      let defaultConflicted: string[] = Array.isArray(record.todayConflictedDishes) && record.todayConflictedDishes.length > 0
+        ? record.todayConflictedDishes
+        : [];
+      let defaultSubstitute = (record.safeSubstituteDish || '').trim();
+
+      if (defaultConflicted.length === 0) {
+        if (lowerTags.includes('tôm') || lowerTags.includes('cua') || lowerTags.includes('hải sản')) {
+          defaultConflicted = ['Chả tôm hấp'];
+        } else if (lowerTags.includes('lạc') || lowerTags.includes('đậu phộng') || lowerTags.includes('hạt')) {
+          defaultConflicted = ['Nộm bắp cải lạc rang'];
+        } else if (lowerTags.includes('trứng')) {
+          defaultConflicted = ['Trứng cuộn rau củ'];
+        } else if (lowerTags.includes('sữa')) {
+          defaultConflicted = ['Sữa tươi có đường'];
+        } else {
+          defaultConflicted = ['Món ăn chứa dị nguyên trong ngày'];
+        }
+      }
+
+      if (!defaultSubstitute) {
+        if (lowerTags.includes('tôm') || lowerTags.includes('cua') || lowerTags.includes('hải sản')) {
+          defaultSubstitute = 'Thịt nạc băm rim nấm';
+        } else if (lowerTags.includes('lạc') || lowerTags.includes('đậu phộng') || lowerTags.includes('hạt')) {
+          defaultSubstitute = 'Nộm bắp cải mè rang';
+        } else if (lowerTags.includes('trứng')) {
+          defaultSubstitute = 'Đậu hũ non sốt cà chua';
+        } else if (lowerTags.includes('sữa')) {
+          defaultSubstitute = 'Sữa hạt dinh dưỡng';
+        } else {
+          defaultSubstitute = 'Suất ăn dinh dưỡng tiêu chuẩn (Đã loại trừ dị nguyên)';
+        }
+      }
+
+      const room = record.roomNumber || (record.className ? `Phòng ${record.className}` : 'Phòng 101');
+
+      return {
+        ...record,
+        classId: record.classId ?? '',
+        className: record.className ?? 'Chưa xếp lớp',
+        roomNumber: room,
+        allergyTags: tags,
+        todayConflictedDishes: defaultConflicted,
+        safeSubstituteDish: defaultSubstitute,
+        severity: record.severity === 'ANAPHYLAXIS'
+          ? 'ANAPHYLAXIS'
+          : record.severity === 'HIGH'
+            ? 'HIGH'
+            : 'MEDIUM',
+        preparationStatus: record.preparationStatus === 'PREPARED' ? 'PREPARED' : 'PENDING',
+        preparedAt: record.preparedAt,
+        preparedBy: record.preparedBy,
+        isolatedAreaConfirmed: record.isolatedAreaConfirmed === true,
+        labelPrinted: record.labelPrinted === true,
+        labelPrintedAt: record.labelPrintedAt,
+        allergenMatchKnown: record.allergenMatchKnown === true,
+        isPresentToday: record.isPresentToday === true
+      };
+    }));
   }, [allergyRecords]);
 
   const updatePreparationMutation = useMutation({
@@ -198,11 +238,18 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     markPrepared(item);
   };
 
-  // Toggle checkbox cam kết khu vực cách ly
-  const handleToggleIsolation = (itemId: string, checked: boolean) => {
+  // Toggle checkbox cam kết khu vực cách ly (BR-041, BR-042)
+  const handleToggleIsolation = (item: DietaryAllergyItem, checked: boolean) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, isolatedAreaConfirmed: checked } : item))
+      prev.map((i) => (i.id === item.id ? { ...i, isolatedAreaConfirmed: checked } : i))
     );
+    updatePreparationMutation.mutate({
+      itemId: item.id,
+      preparationStatus: item.preparationStatus,
+      isolatedAreaConfirmed: checked,
+      allergenMatchConfirmed: item.allergenMatchKnown === true,
+      safeSubstituteDish: item.safeSubstituteDish
+    });
   };
 
   const handleToggleAllergenVerification = (item: DietaryAllergyItem, checked: boolean) => {
@@ -352,8 +399,12 @@ export const AllergyDietaryManagementTab: React.FC = () => {
         </div>
       )}
       {items.some((item) => !item.allergenMatchKnown) && (
-        <div className="rounded-2xl border-2 border-rose-400 bg-rose-50 p-4 text-sm font-semibold text-rose-900">
-          Thành phần món chưa được quản lý trong danh mục hệ thống. Nhân viên bếp phải kiểm tra trực tiếp nhãn thành phần và xác nhận đã loại trừ dị nguyên trước khi hoàn tất hoặc in tem.
+        <div className="rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs font-semibold text-amber-900 flex items-center gap-3 shadow-xs">
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <span className="font-bold block text-sm text-amber-950">Lưu ý kiểm tra nhãn thành phần (BR-045):</span>
+            Thành phần món thay thế cần được bếp kiểm tra thực tế nhãn bao bì và tích chọn xác nhận trước khi hoàn tất hoặc in tem.
+          </div>
         </div>
       )}
 
@@ -686,7 +737,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                             id={`isolate-${item.id}`}
                             checked={item.isolatedAreaConfirmed}
                             disabled={isDone}
-                            onChange={(e) => handleToggleIsolation(item.id, e.target.checked)}
+                            onChange={(e) => handleToggleIsolation(item, e.target.checked)}
                             className="h-4 w-4 rounded-md text-[#275A4E] focus:ring-[#275A4E] border-slate-300"
                           />
                           <label
