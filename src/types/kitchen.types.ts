@@ -31,9 +31,11 @@ export interface KitchenDailySummary {
 
 export interface WeeklyMenu {
   id?: string;
+  itemId?: number;
+  menuStatus?: 'DRAFT' | 'APPROVED' | 'REJECTED';
   weekStartDate?: string;
   dayOfWeek: number; // 1 = Thứ 2 ... 7 = Chủ Nhật
-  mealType: 'BREAKFAST' | 'LUNCH' | 'SNACK';
+  mealType: 'BREAKFAST' | 'MORNING_SNACK' | 'LUNCH' | 'AFTERNOON_SNACK' | 'SNACK';
   dishName: string;
   nutritionNotes?: string;
   allergyTags?: string;
@@ -44,6 +46,7 @@ export interface DayMenuPlan {
   dayOfWeek: number; // 1 (T2) to 5 (T6)
   dayName: string;
   breakfast: string;
+  morningSnack: string;
   lunchMainProtein: string;
   lunchVegetable: string;
   lunchSoup: string;
@@ -60,6 +63,7 @@ export interface WeeklyMenuPayload {
   days: {
     dayOfWeek: number;
     breakfast: string;
+    morningSnack: string;
     lunch: string;
     snack: string;
     calories: number;
@@ -71,7 +75,7 @@ export interface WeeklyMenuPayload {
 // ==========================================
 // UC-030: KHÓA SỐ SUẤT ĂN 08:30 (MEAL HEADCOUNT LOCK)
 // ==========================================
-export type AgeGroupType = 'NURSERY' | 'MAM' | 'CHOI' | 'LA';
+export type AgeGroupType = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
 
 export interface ClassMealHeadcountBreakdown {
   classId: string;
@@ -95,9 +99,6 @@ export interface MealHeadcountSnapshot {
   isLocked: boolean;
   lockedAt?: string | null;
   lockType?: 'AUTO' | 'MANUAL';
-  extendedUntil?: string | null; // Mốc giờ đã gia hạn (vd: 09:00:00)
-  extendedMinutes?: number;
-  extensionReason?: string;
   totalMealsToPrepare: number;
   regularRiceCount: number;
   porridgeCount: number;
@@ -105,20 +106,14 @@ export interface MealHeadcountSnapshot {
   totalPresent: number;
   totalAbsentPermitted: number;
   totalAbsentUnpermitted: number;
+  attendanceBreakdownAvailable?: boolean;
+  mealPackageBreakdownAvailable?: boolean;
   classBreakdowns: ClassMealHeadcountBreakdown[];
 }
 
 export interface LockHeadcountRequest {
   date: string;
-  lockedBy?: string;
-  reason?: string;
-}
-
-export interface ExtendLockRequest {
-  date: string;
-  extensionMinutes: number; // Tối đa 30 phút
-  reason: string; // Bắt buộc lý do điều hành
-  extendedBy?: string;
+  forceLock?: boolean;
 }
 
 // ==========================================
@@ -145,13 +140,14 @@ export interface DietaryAllergyItem {
   labelPrintedAt?: string;
   isPresentToday: boolean;
   parentNotes?: string;
+  allergenMatchKnown?: boolean;
 }
 
 export interface DietaryPreparationUpdatePayload {
   itemId: string;
   preparationStatus: 'PENDING' | 'PREPARED';
   isolatedAreaConfirmed: boolean;
-  preparedBy?: string;
+  allergenMatchConfirmed: boolean;
   safeSubstituteDish?: string;
 }
 
@@ -166,13 +162,13 @@ export interface FoodSampleRetention {
   date: string; // YYYY-MM-DD
   mealSession: MealSessionType;
   dishName: string;
-  sampleWeightGrams: number; // >= 100g (hoặc >= 150ml đối với canh)
+  sampleWeightGrams: number | null; // >= 100g khi được ghi nhận
   sealCode: string; // Mã tem niêm phong dùng 1 lần (vd: NP-20261009-01)
-  storageTemperatureCelsius: number; // 2°C - 8°C
+  storageTemperatureCelsius: number | null; // 2°C - 8°C khi được ghi nhận
   photoUrl?: string; // Ảnh hũ thủy tinh dán tem cất tủ lạnh
-  savedAt: string; // Thời điểm lưu mẫu (ISO)
+  savedAt?: string;
   savedBy: string; // Người thực hiện lưu mẫu
-  timerExpiresAt: string; // savedAt + 24 giờ
+  timerExpiresAt?: string; // Chỉ có khi backend lưu được thời điểm tạo chính xác
   status: FoodSampleStatus;
   disposedAt?: string;
   disposedBy?: string;
@@ -188,14 +184,10 @@ export interface FoodSampleCreatePayload {
   sealCode: string;
   storageTemperatureCelsius: number;
   photoUrl?: string;
-  savedBy: string;
 }
 
-export interface FoodSampleDisposePayload {
-  sampleId: string;
-  disposedBy: string;
-  disposalNotes?: string;
-  noPoisoningIncidentConfirmed: boolean;
+export interface FoodSampleDisposalPayload {
+  noFoodSafetyIncidentConfirmed: boolean;
 }
 
 export type IngredientCategory = 'MEAT' | 'FISH' | 'VEGETABLE' | 'GRAIN' | 'SPICE' | 'OTHER';
@@ -240,6 +232,7 @@ export interface RawMaterialInspectionItem {
   isFrozenOrChilled: boolean;
   isRejected: boolean; // Từ chối lô hàng (nếu không đạt)
   rejectionReason?: string; // Biên bản vi phạm nhà cung cấp
+  invoicePhotoPath?: string;
 }
 
 export interface CookingTemperatureInspectionItem {

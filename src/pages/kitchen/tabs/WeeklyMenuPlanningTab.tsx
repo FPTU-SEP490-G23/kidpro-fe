@@ -46,87 +46,29 @@ const ALLERGEN_OPTIONS = [
   { id: 'soy', label: 'Đậu nành', color: '#059669' }
 ];
 
-// Initial 5-day menu template
-const DEFAULT_5_DAYS_MENU: DayMenuPlan[] = [
-  {
-    dayOfWeek: 1,
-    dayName: 'Thứ Hai',
-    breakfast: 'Bún bò Huế giò nạc + Sữa tươi tiệt trùng 180ml',
-    lunchMainProtein: 'Thịt heo rim nước dừa tươi',
-    lunchVegetable: 'Bắp cải thảo xào cà rốt',
-    lunchSoup: 'Canh bí đỏ hầm sườn non',
-    lunchRice: 'Cơm tám thơm dẻo',
-    lunchDessert: 'Dưa hấu tươi mát',
-    snack: 'Cháo sườn búp sen + Nước cam vắt',
-    calories: 780,
-    nutritionNotes: 'Giàu đạm, chất sắt và vitamin C tự nhiên',
-    allergyTags: ['dairy']
-  },
-  {
-    dayOfWeek: 2,
-    dayName: 'Thứ Ba',
-    breakfast: 'Cháo gà ác đậu xanh + Sữa chua men sống',
-    lunchMainProtein: 'Cá hồi Na Uy sốt cam mật ong',
-    lunchVegetable: 'Bông cải xanh luộc sốt mè',
-    lunchSoup: 'Canh rong biển đậu hũ non thịt bằm',
-    lunchRice: 'Cơm gạo Nhật dẻo',
-    lunchDessert: 'Chuối tiêu tiêu chuẩn VietGAP',
-    snack: 'Bánh flan caramen sữa trứng + Trái cây dầm',
-    calories: 810,
-    nutritionNotes: 'Dồi dào Omega-3 và Canxi hỗ trợ phát triển chiều cao',
-    allergyTags: ['seafood', 'eggs', 'dairy']
-  },
-  {
-    dayOfWeek: 3,
-    dayName: 'Thứ Tư',
-    breakfast: 'Phở bò Hà Nội thanh ngọt + Nước ép ổi',
-    lunchMainProtein: 'Gà ta rang lá chanh mật mía',
-    lunchVegetable: 'Su su xào nấm đông cô',
-    lunchSoup: 'Canh cua đồng mồng tơi mướp hương',
-    lunchRice: 'Cơm tấm thơm mềm',
-    lunchDessert: 'Thanh long ruột đỏ',
-    snack: 'Súp cua bắp non gà xé + Sữa tươi',
-    calories: 790,
-    nutritionNotes: 'Bổ sung khoáng vi lượng, đạm thực vật và kẽm',
-    allergyTags: ['seafood', 'dairy']
-  },
-  {
-    dayOfWeek: 4,
-    dayName: 'Thứ Năm',
-    breakfast: 'Bánh mì sandwich phô mai kẹp chả lụa + Sữa hạt óc chó',
-    lunchMainProtein: 'Tôm sú rim thịt ba chỉ',
-    lunchVegetable: 'Cải bó xôi xào tỏi non',
-    lunchSoup: 'Canh sườn nấu chua dứa cà chua',
-    lunchRice: 'Cơm trắng hạt ngọc',
-    lunchDessert: 'Đu đủ chín ngọt dịu',
-    snack: 'Chè đậu đỏ hạt sen nước cốt dừa',
-    calories: 820,
-    nutritionNotes: 'Chất xơ cao, hỗ trợ hệ tiêu hóa và nhuận tràng',
-    allergyTags: ['seafood', 'peanuts', 'gluten']
-  },
-  {
-    dayOfWeek: 5,
-    dayName: 'Thứ Sáu',
-    breakfast: 'Mì Quảng tôm thịt nạc + Sữa bắp non thanh mát',
-    lunchMainProtein: 'Bò hầm củ quả sốt vang mềm',
-    lunchVegetable: 'Đậu cove xào thịt thăn',
-    lunchSoup: 'Canh rau ngót nấu thịt bằm',
-    lunchRice: 'Cơm trắng dẻo thơm',
-    lunchDessert: 'Táo Envy gọt sẵn ngâm nước muối loãng',
-    snack: 'Bánh bông lan trứng muối + Sữa đậu nành',
-    calories: 760,
-    nutritionNotes: 'Đầy đủ 4 nhóm chất: Đạm, Béo, Bột đường, Vitamin',
-    allergyTags: ['dairy', 'eggs', 'gluten']
-  }
-];
+const WEEKDAY_NAMES = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu'];
+const EMPTY_WEEK_MENU: DayMenuPlan[] = WEEKDAY_NAMES.map((dayName, index) => ({
+  dayOfWeek: index + 1,
+  dayName,
+  breakfast: '',
+  morningSnack: '',
+  lunchMainProtein: '',
+  lunchVegetable: '',
+  lunchSoup: '',
+  lunchRice: '',
+  lunchDessert: '',
+  snack: '',
+  calories: 0,
+  nutritionNotes: '',
+  allergyTags: []
+}));
 
 export const WeeklyMenuPlanningTab: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Current Monday anchor
   const [currentMonday, setCurrentMonday] = useState<Date>(() => getMonday(new Date()));
-  const [ageGroupStandard, setAgeGroupStandard] = useState<'NURSERY' | 'KINDERGARTEN'>('KINDERGARTEN');
-  const [menuDays, setMenuDays] = useState<DayMenuPlan[]>(DEFAULT_5_DAYS_MENU);
+  const [menuDays, setMenuDays] = useState<DayMenuPlan[]>(EMPTY_WEEK_MENU);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
   // Edit Day Modal
@@ -140,35 +82,31 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   };
 
   // 1. Fetch weekly menu from backend (GET /api/kitchen/menus?weekStartDate=...)
-  const { data: serverMenus } = useQuery({
+  const { data: serverMenus, isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
     queryKey: ['weekly-menu', mondayStr],
-    queryFn: async () => {
-      try {
-        const res = await kitchenApi.getWeeklyMenus(mondayStr);
-        const data = (res as any)?.data || res;
-        if (Array.isArray(data) && data.length > 0) {
-          return data;
-        }
-      } catch {
-        // Fallback
-      }
-      return null;
-    }
+    queryFn: async () => (await kitchenApi.getWeeklyMenus(mondayStr)).data
   });
 
   // Map server dishes to 5-day matrix if available
   useEffect(() => {
-    if (serverMenus && Array.isArray(serverMenus) && serverMenus.length > 0) {
-      // Group dishes by dayOfWeek (1 to 5)
-      const mapped = DEFAULT_5_DAYS_MENU.map((defaultDay) => {
-        const dishes = serverMenus.filter((d: WeeklyMenu) => d.dayOfWeek === defaultDay.dayOfWeek);
+    if (serverMenus && Array.isArray(serverMenus)) {
+      const mapped = EMPTY_WEEK_MENU.map((defaultDay) => {
+        const dishes = serverMenus.filter((dish: WeeklyMenu) => {
+          const dayNumber = typeof dish.dayOfWeek === 'number'
+            ? dish.dayOfWeek
+            : ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].indexOf(String(dish.dayOfWeek)) + 1;
+          return dayNumber === defaultDay.dayOfWeek;
+        });
         if (dishes.length === 0) return defaultDay;
 
         const breakfastDish = dishes.find((d: WeeklyMenu) => d.mealType === 'BREAKFAST');
+        const morningSnackDish = dishes.find((d: WeeklyMenu) => d.mealType === 'MORNING_SNACK');
         const lunchDish = dishes.find((d: WeeklyMenu) => d.mealType === 'LUNCH');
-        const snackDish = dishes.find((d: WeeklyMenu) => d.mealType === 'SNACK');
+        const snackDish = dishes.find((d: WeeklyMenu) =>
+          d.mealType === 'SNACK' || d.mealType === 'AFTERNOON_SNACK');
 
-        const totalCalo = dishes.reduce((acc, d) => acc + (d.calories || 0), 0) || defaultDay.calories;
+        const totalCalo = lunchDish?.calories || 0;
+        const lunchParts = (lunchDish?.dishName || '').split('|').map((part) => part.trim());
         const allAllergies = Array.from(
           new Set(
             dishes
@@ -183,26 +121,28 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
         return {
           ...defaultDay,
           breakfast: breakfastDish ? breakfastDish.dishName : defaultDay.breakfast,
-          lunchMainProtein: lunchDish ? lunchDish.dishName : defaultDay.lunchMainProtein,
+          morningSnack: morningSnackDish ? morningSnackDish.dishName : defaultDay.morningSnack,
+          lunchMainProtein: lunchParts[0] || defaultDay.lunchMainProtein,
+          lunchVegetable: lunchParts[1] || defaultDay.lunchVegetable,
+          lunchSoup: lunchParts[2] || defaultDay.lunchSoup,
+          lunchDessert: lunchParts[3] || defaultDay.lunchDessert,
           snack: snackDish ? snackDish.dishName : defaultDay.snack,
           calories: totalCalo,
           allergyTags: allAllergies.length > 0 ? allAllergies : defaultDay.allergyTags
         };
       });
       setMenuDays(mapped);
+    } else {
+      setMenuDays(EMPTY_WEEK_MENU);
     }
   }, [serverMenus]);
 
   // 2. Fetch students with allergies to cross-reference (GET /api/academic/students/by-allergy)
-  const { data: allergicStudents = [] } = useQuery({
+  const { data: allergicStudents = [], isError: allergyQueryError } = useQuery({
     queryKey: ['students-by-allergy'],
     queryFn: async () => {
-      try {
-        const res = await studentAnalyticsApi.getStudents({ hasAllergyOnly: true });
-        return Array.isArray(res) ? res : ((res as any)?.data || []);
-      } catch {
-        return [];
-      }
+      const res = await studentAnalyticsApi.getStudents({ hasAllergyOnly: true });
+      return Array.isArray(res) ? res : ((res as any)?.data || []);
     }
   });
 
@@ -225,18 +165,18 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
         countMap[protein] = (countMap[protein] || 0) + 1;
       }
     });
-    return Object.keys(countMap).filter((p) => countMap[p] > 1);
+    return Object.keys(countMap).filter((p) => countMap[p] > 2);
   }, [menuDays]);
 
-  // Check Out of Range Calories for Any Day (BR-040, MSG-120)
-  // Nursery: 600 - 700 kcal. Kindergarten: 700 - 850 kcal.
-  const caloStandardRange = ageGroupStandard === 'NURSERY' ? { min: 600, max: 700 } : { min: 700, max: 850 };
-
-  const outOfRangeDays = useMemo(() => {
-    return menuDays.filter(
-      (day) => day.calories < caloStandardRange.min || day.calories > caloStandardRange.max
-    );
-  }, [menuDays, caloStandardRange]);
+  const incompleteDays = menuDays.filter((day) =>
+    !day.breakfast.trim() ||
+    !day.morningSnack.trim() ||
+    !day.lunchMainProtein.trim() ||
+    !day.lunchVegetable.trim() ||
+    !day.lunchSoup.trim() ||
+    !day.lunchDessert.trim() ||
+    !day.snack.trim()
+  );
 
   // 3. Save & Publish Menu Mutation (POST /api/kitchen/menus)
   const saveWeeklyMenuMutation = useMutation({
@@ -245,28 +185,23 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       if (duplicateProteins.length > 0) {
         throw new Error('DUPLICATE_PROTEIN');
       }
-      if (outOfRangeDays.length > 0) {
-        throw new Error('CALORIE_OUT_OF_RANGE');
+      if (incompleteDays.length > 0) {
+        throw new Error('MENU_INCOMPLETE');
       }
 
-      try {
-        await kitchenApi.saveWeeklyMenuPlan(payload);
-      } catch (err: any) {
-        console.warn('API error, saving locally:', err);
-      }
-      return payload;
+      return await kitchenApi.saveWeeklyMenuPlan(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weekly-menu'] });
-      showToast('success', 'MSG-119: Ban hành thực đơn bán trú tuần thành công');
+      showToast('success', 'MSG-098: Đã gửi thực đơn tuần để Ban Giám hiệu phê duyệt.');
     },
     onError: (err: any) => {
       if (err.message === 'DUPLICATE_PROTEIN') {
-        showToast('error', 'MSG-122: Chính sách đa dạng món ăn: Món đạm chính không nên lặp lại quá 1 lần trong tuần.');
-      } else if (err.message === 'CALORIE_OUT_OF_RANGE') {
-        showToast('error', `MSG-120: Tổng mức năng lượng khẩu phần nằm ngoài khoảng khuyến nghị của Bộ GD&ĐT (${caloStandardRange.min} - ${caloStandardRange.max} kcal). Vui lòng điều chỉnh lại định lượng.`);
+        showToast('error', 'MSG-122: Món đạm chính không được lặp lại quá 2 lần trong tuần.');
+      } else if (err.message === 'MENU_INCOMPLETE') {
+        showToast('error', 'Vui lòng nhập đầy đủ món ăn cho cả 5 ngày trước khi gửi duyệt.');
       } else {
-        showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+        showToast('error', err.response?.data?.message || err.message || 'Không thể gửi thực đơn. Vui lòng thử lại.');
       }
     }
   });
@@ -300,6 +235,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       days: menuDays.map((d) => ({
         dayOfWeek: d.dayOfWeek,
         breakfast: d.breakfast,
+        morningSnack: d.morningSnack,
         lunch: `${d.lunchMainProtein} | ${d.lunchVegetable} | ${d.lunchSoup} | ${d.lunchDessert}`,
         snack: d.snack,
         calories: d.calories,
@@ -322,13 +258,12 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-sm font-semibold transition-all duration-300 animate-slide-down ${
-            toastMessage.type === 'success'
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-sm font-semibold transition-all duration-300 animate-slide-down ${toastMessage.type === 'success'
               ? 'bg-[#EBF7F4] text-[#1E4D40] border-[#78C2AD]'
               : toastMessage.type === 'warning'
-              ? 'bg-[#FEF9EE] text-[#9A6B1F] border-[#E5A93C]'
-              : 'bg-[#FDF2F2] text-[#DC2626] border-[#F87171]'
-          }`}
+                ? 'bg-[#FEF9EE] text-[#9A6B1F] border-[#E5A93C]'
+                : 'bg-[#FDF2F2] text-[#DC2626] border-[#F87171]'
+            }`}
         >
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="h-5 w-5 text-[#275A4E] shrink-0" />
@@ -400,13 +335,23 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
 
           <button
             onClick={handlePublishMenu}
-            disabled={saveWeeklyMenuMutation.isPending}
+            disabled={saveWeeklyMenuMutation.isPending || isMenuLoading}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#275A4E] text-white text-xs font-bold hover:bg-[#1E4D40] active:scale-95 transition shadow-sm min-h-[44px]"
           >
             <Send className="h-4 w-4 text-[#78C2AD]" />
             <span>{saveWeeklyMenuMutation.isPending ? 'Đang gửi...' : 'Lưu & Ban Hành Thực Đơn'}</span>
           </button>
         </div>
+        {isMenuError && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            Không thể tải thực đơn tuần: {menuError instanceof Error ? menuError.message : 'Vui lòng thử lại.'}
+          </div>
+        )}
+        {allergyQueryError && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Không thể tải danh sách học sinh dị ứng. Không dùng danh sách trống để kết luận thực đơn an toàn.
+          </div>
+        )}
       </div>
 
       {/* Week Title & Age Group Standard Toggle */}
@@ -437,61 +382,18 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Standard selector */}
-        <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
-          <span className="text-xs font-semibold text-slate-500 pl-2">Độ tuổi áp dụng:</span>
-          <button
-            onClick={() => setAgeGroupStandard('NURSERY')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-              ageGroupStandard === 'NURSERY'
-                ? 'bg-[#275A4E] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Nhà trẻ (600 - 700 kcal)
-          </button>
-          <button
-            onClick={() => setAgeGroupStandard('KINDERGARTEN')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-              ageGroupStandard === 'KINDERGARTEN'
-                ? 'bg-[#275A4E] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Mẫu giáo (700 - 850 kcal)
-          </button>
-        </div>
       </div>
 
-      {/* Quality Control & Calorie Range Indicator Bar */}
+      {/* Menu variety and allergy controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Calorie standards overview */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-            <span className="flex items-center gap-1.5 text-slate-700">
-              <Flame className="h-4 w-4 text-amber-500" />
-              Định Mức Calorie Bộ GD&ĐT (BR-040)
-            </span>
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">
-              {caloStandardRange.min} - {caloStandardRange.max} kcal/ngày
-            </span>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <Flame className="h-4 w-4 text-amber-500" />
+            Thông tin năng lượng
           </div>
-
           <p className="text-xs text-slate-500 leading-relaxed">
-            Năng lượng bữa ăn học đường tại trường mầm non phải đáp ứng 50 - 55% nhu cầu năng lượng cả ngày của trẻ theo Thông tư 28/2016/TT-BGDĐT.
+            Kcal được lưu cùng món trưa để tham khảo; UC này không chặn gửi duyệt theo ngưỡng kcal hoặc tỷ lệ P:L:C.
           </p>
-
-          {outOfRangeDays.length > 0 ? (
-            <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-              <span>Có {outOfRangeDays.length} ngày chưa đạt chuẩn năng lượng. Vui lòng điều chỉnh định lượng món!</span>
-            </div>
-          ) : (
-            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-              <span>Cả 5 ngày trong tuần đều nằm trong khoảng năng lượng chuẩn của Bộ GD&ĐT.</span>
-            </div>
-          )}
         </div>
 
         {/* Protein Diversity Check (MSG-122) */}
@@ -502,12 +404,12 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
               Chính Sách Đa Dạng Món Đạm (MSG-122)
             </span>
             <span className="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md font-bold">
-              Tối đa 1 lần/tuần
+              Tối đa 2 lần/tuần
             </span>
           </div>
 
           <p className="text-xs text-slate-500 leading-relaxed">
-            Không lặp lại món đạm chính (Thịt heo, Cá, Tôm, Bò, Gà) để đảm bảo trẻ được tiếp cận đầy đủ các nhóm axit amin thiết yếu.
+            Mỗi món đạm chính (Thịt heo, Cá, Tôm, Bò, Gà) được lặp lại tối đa 2 lần trong tuần.
           </p>
 
           {duplicateProteins.length > 0 ? (
@@ -518,7 +420,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           ) : (
             <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-              <span>Thực đơn đạt chuẩn đa dạng: 5 món đạm khác nhau từ Thứ 2 đến Thứ 6.</span>
+              <span>Mỗi món đạm chính xuất hiện không quá 2 lần trong tuần.</span>
             </div>
           )}
         </div>
@@ -556,7 +458,6 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 <th className="p-4 w-48 text-slate-500">Bữa ăn / Tiêu chí</th>
                 {menuDays.map((day) => {
                   const dayDate = new Date(currentMonday.getTime() + (day.dayOfWeek - 1) * 24 * 60 * 60 * 1000);
-                  const isCaloOk = day.calories >= caloStandardRange.min && day.calories <= caloStandardRange.max;
 
                   return (
                     <th key={day.dayOfWeek} className="p-4 border-l border-slate-200 min-w-[200px]">
@@ -577,11 +478,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                       {/* Calorie Gauge Badge */}
                       <div className="mt-2 flex items-center gap-1.5">
                         <span
-                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                            isCaloOk
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-rose-100 text-rose-800 border border-rose-300'
-                          }`}
+                          className="text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 bg-slate-100 text-slate-700"
                         >
                           <Flame className="h-3 w-3" />
                           {day.calories} kcal
@@ -606,6 +503,20 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 {menuDays.map((day) => (
                   <td key={day.dayOfWeek} className="p-4 border-l border-slate-100 align-top">
                     <p className="font-semibold text-slate-800 leading-snug">{day.breakfast}</p>
+                  </td>
+                ))}
+              </tr>
+
+              <tr className="hover:bg-slate-50/50 transition">
+                <td className="p-4 font-bold text-slate-700 bg-slate-50/30">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                    <span>Bữa Phụ Sáng</span>
+                  </div>
+                </td>
+                {menuDays.map((day) => (
+                  <td key={day.dayOfWeek} className="p-4 border-l border-slate-100 align-top">
+                    <p className="font-semibold text-slate-800 leading-snug">{day.morningSnack}</p>
                   </td>
                 ))}
               </tr>
@@ -784,6 +695,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 const updated: DayMenuPlan = {
                   ...editingDay,
                   breakfast: formData.get('breakfast') as string,
+                  morningSnack: formData.get('morningSnack') as string,
                   lunchMainProtein: formData.get('lunchMainProtein') as string,
                   lunchVegetable: formData.get('lunchVegetable') as string,
                   lunchSoup: formData.get('lunchSoup') as string,
@@ -804,6 +716,19 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                   type="text"
                   name="breakfast"
                   defaultValue={editingDay.breakfast}
+                  required
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Bữa Phụ Sáng: <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="morningSnack"
+                  defaultValue={editingDay.morningSnack}
                   required
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
                 />
@@ -882,20 +807,15 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Tổng Năng Lượng (kcal): <span className="text-rose-500">*</span>
+                    Kcal (tham khảo):
                   </label>
                   <input
                     type="number"
                     name="calories"
                     defaultValue={editingDay.calories}
-                    min="500"
-                    max="1000"
-                    required
+                    min="0"
                     className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Chuẩn {ageGroupStandard === 'NURSERY' ? 'Nhà trẻ' : 'Mẫu giáo'}: {caloStandardRange.min} - {caloStandardRange.max} kcal
-                  </p>
                 </div>
 
                 <div>
@@ -922,11 +842,10 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                     return (
                       <label
                         key={opt.id}
-                        className={`flex items-center gap-2 p-2 rounded-xl text-xs cursor-pointer border transition ${
-                          isChecked
+                        className={`flex items-center gap-2 p-2 rounded-xl text-xs cursor-pointer border transition ${isChecked
                             ? 'bg-rose-50 border-rose-300 font-bold text-rose-900'
                             : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ShieldAlert,
   AlertTriangle,
@@ -20,12 +20,11 @@ import {
 import { kitchenApi } from '../../../api/kitchenApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { DietaryAllergyItem } from '../../../types/kitchen.types';
+import { QRCodeSVG } from 'qrcode.react';
 
 // Dữ liệu mẫu chuẩn đối chiếu xung đột dị ứng hôm nay
-const DEFAULT_DIETARY_ITEMS: DietaryAllergyItem[] = [];
-
 export const AllergyDietaryManagementTab: React.FC = () => {
-  const { role, user } = useAuth();
+  const { role } = useAuth();
   const queryClient = useQueryClient();
 
   const isParentOrTeacher = role === 'PHU_HUYNH' || role === 'GIAO_VIEN';
@@ -54,70 +53,89 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   const [customSubstituteText, setCustomSubstituteText] = useState<string>('');
 
   // 1. Fetch danh sách học sinh dị ứng (GET /api/academic/students/by-allergy)
-  const { isRefetching, refetch } = useQuery({
+  const { data: allergyRecords = [], isRefetching, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['students-by-allergy'],
-    queryFn: async () => {
-      try {
-        const res: any = await kitchenApi.getStudentsByAllergy();
-        if (res && Array.isArray(res) && res.length > 0) {
-          // Kết hợp danh sách
-        }
-        return res;
-      } catch (err: any) {
-        console.warn('API /api/academic/students/by-allergy fallback:', err.message);
-        return [];
-      }
+    queryFn: async () => (await kitchenApi.getStudentsByAllergy()).data
+  });
+
+  useEffect(() => {
+    setItems(allergyRecords.map((record) => ({
+      ...record,
+      classId: record.classId ?? '',
+      className: record.className ?? '',
+      roomNumber: record.roomNumber ?? '',
+      allergyTags: record.allergyTags ?? [],
+      todayConflictedDishes: record.todayConflictedDishes ?? [],
+      safeSubstituteDish: record.safeSubstituteDish ?? '',
+      severity: record.severity === 'ANAPHYLAXIS'
+        ? 'ANAPHYLAXIS'
+        : record.severity === 'HIGH'
+          ? 'HIGH'
+          : 'MEDIUM',
+      preparationStatus: record.preparationStatus === 'PREPARED' ? 'PREPARED' : 'PENDING',
+      preparedAt: record.preparedAt,
+      preparedBy: record.preparedBy,
+      isolatedAreaConfirmed: record.isolatedAreaConfirmed === true,
+      labelPrinted: record.labelPrinted === true,
+      labelPrintedAt: record.labelPrintedAt,
+      allergenMatchKnown: record.allergenMatchKnown === true,
+      isPresentToday: record.isPresentToday === true
+    })));
+  }, [allergyRecords]);
+
+  const updatePreparationMutation = useMutation({
+    mutationFn: async (payload: {
+      itemId: string;
+      preparationStatus: 'PENDING' | 'PREPARED';
+      isolatedAreaConfirmed: boolean;
+      allergenMatchConfirmed: boolean;
+      safeSubstituteDish?: string;
+    }) => (await kitchenApi.updateDietaryPreparation(payload)).data,
+    onSuccess: (updated) => {
+      setItems((previous) => previous.map((item) =>
+        item.id === updated.id
+          ? {
+              ...item,
+              preparationStatus: updated.preparationStatus,
+              isolatedAreaConfirmed: updated.isolatedAreaConfirmed,
+              allergenMatchKnown: updated.allergenMatchKnown,
+              safeSubstituteDish: updated.safeSubstituteDish
+            }
+          : item
+      ));
+      queryClient.invalidateQueries({ queryKey: ['students-by-allergy'] });
+      setToastMessage({
+        type: 'success',
+        text: 'Đã lưu món thay thế đề xuất và trạng thái kiểm soát vào nhật ký hệ thống.'
+      });
+    },
+    onError: (mutationError: any) => {
+      setToastMessage({
+        type: 'error',
+        text: mutationError.response?.data?.message || mutationError.message || 'Không thể lưu trạng thái suất ăn dị ứng.'
+      });
     }
   });
 
-  // Mutation: Xác nhận chuẩn bị suất ăn đặc biệt (MSG-127)
-  const prepareMutation = useMutation({
-    mutationFn: async ({
-      itemId,
-      isolatedAreaConfirmed,
-      safeSubstituteDish
-    }: {
-      itemId: string;
-      isolatedAreaConfirmed: boolean;
-      safeSubstituteDish: string;
-    }) => {
-      return await kitchenApi.updateDietaryPreparation({
-        itemId,
-        preparationStatus: 'PREPARED',
-        isolatedAreaConfirmed,
-        preparedBy: user?.fullName || 'Nhân viên Bếp',
-        safeSubstituteDish
-      });
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['students-by-allergy'] });
-      setItems((prev) =>
-        prev.map((item) => {
-          if (item.id === variables.itemId) {
-            return {
-              ...item,
-              preparationStatus: 'PREPARED',
-              preparedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-              preparedBy: user?.fullName || 'Nhân viên Bếp',
-              isolatedAreaConfirmed: variables.isolatedAreaConfirmed,
-              safeSubstituteDish: variables.safeSubstituteDish || item.safeSubstituteDish
-            };
-          }
-          return item;
-        })
-      );
-      setToastMessage({
-        type: 'success',
-        text: 'MSG-127: Xác nhận chuẩn bị suất ăn đặc biệt cho trẻ có nhu cầu dinh dưỡng riêng thành công.'
-      });
-    },
-    onError: () => {
-      setToastMessage({
-        type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.'
-      });
-    }
-  });
+  const markPrepared = (item: DietaryAllergyItem) => {
+    updatePreparationMutation.mutate({
+      itemId: item.id,
+      preparationStatus: 'PREPARED',
+      isolatedAreaConfirmed: item.isolatedAreaConfirmed,
+      allergenMatchConfirmed: item.allergenMatchKnown === true,
+      safeSubstituteDish: item.safeSubstituteDish
+    });
+  };
+
+  const checkAllergenConflict = (dish: string, tags: string[]): string[] => {
+    if (!dish || !tags || tags.length === 0) return [];
+    const lowerDish = dish.toLowerCase();
+    return tags.filter((tag) => {
+      if (!tag) return false;
+      const lowerTag = tag.trim().toLowerCase();
+      return lowerDish.includes(lowerTag) || lowerTag.includes(lowerDish);
+    });
+  };
 
   // Xử lý xác nhận chuẩn bị suất ăn
   const handleConfirmPrepared = (item: DietaryAllergyItem) => {
@@ -130,6 +148,32 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       return;
     }
 
+    if (!item.safeSubstituteDish.trim()) {
+      setToastMessage({
+        type: 'error',
+        text: 'Vui lòng chọn món thay thế trước khi xác nhận chuẩn bị.'
+      });
+      return;
+    }
+
+    // Tự động kiểm tra xung đột dị nguyên (BR-045)
+    const conflicts = checkAllergenConflict(item.safeSubstituteDish, item.allergyTags);
+    if (conflicts.length > 0) {
+      setToastMessage({
+        type: 'error',
+        text: `MSG-312: CẢNH BÁO SỐC PHẢN VỆ: Món thay thế '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}] của bé! Không thể xác nhận.`
+      });
+      return;
+    }
+
+    if (!item.allergenMatchKnown) {
+      setToastMessage({
+        type: 'error',
+        text: 'Vui lòng xác nhận đã kiểm tra thành phần món thay thế và loại trừ dị nguyên trước khi hoàn tất.'
+      });
+      return;
+    }
+
     // Cảnh báo sốc phản vệ nếu có
     if (item.severity === 'ANAPHYLAXIS') {
       setToastMessage({
@@ -138,11 +182,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       });
     }
 
-    prepareMutation.mutate({
-      itemId: item.id,
-      isolatedAreaConfirmed: item.isolatedAreaConfirmed,
-      safeSubstituteDish: item.safeSubstituteDish
-    });
+    markPrepared(item);
   };
 
   // Toggle checkbox cam kết khu vực cách ly
@@ -150,6 +190,27 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     setItems((prev) =>
       prev.map((item) => (item.id === itemId ? { ...item, isolatedAreaConfirmed: checked } : item))
     );
+  };
+
+  const handleToggleAllergenVerification = (item: DietaryAllergyItem, checked: boolean) => {
+    if (checked) {
+      const conflicts = checkAllergenConflict(item.safeSubstituteDish, item.allergyTags);
+      if (conflicts.length > 0) {
+        setToastMessage({
+          type: 'error',
+          text: `MSG-312: Món '${item.safeSubstituteDish}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}]! Không thể đánh dấu an toàn.`
+        });
+        return;
+      }
+    }
+
+    updatePreparationMutation.mutate({
+      itemId: item.id,
+      preparationStatus: 'PENDING',
+      isolatedAreaConfirmed: item.isolatedAreaConfirmed,
+      allergenMatchConfirmed: checked,
+      safeSubstituteDish: item.safeSubstituteDish
+    });
   };
 
   // Xử lý in nhãn khay ăn dị ứng (MSG-129)
@@ -161,27 +222,35 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       });
       return;
     }
+    if (!item.safeSubstituteDish.trim() || !item.allergenMatchKnown) {
+      setToastMessage({
+        type: 'error',
+        text: 'Cần nhập món thay thế và xác nhận đã kiểm tra thành phần, loại trừ dị nguyên trước khi in nhãn.'
+      });
+      return;
+    }
+    const conflicts = checkAllergenConflict(item.safeSubstituteDish, item.allergyTags);
+    if (conflicts.length > 0) {
+      setToastMessage({
+        type: 'error',
+        text: `MSG-312: Món '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}]! Không được in nhãn giao cho lớp.`
+      });
+      return;
+    }
     setPrintLabelModalItem(item);
   };
 
   const handleExecutePrint = () => {
     if (!printLabelModalItem) return;
-    // Đánh dấu đã in nhãn
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === printLabelModalItem.id
-          ? {
-              ...i,
-              labelPrinted: true,
-              labelPrintedAt: new Date().toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })
-            }
-          : i
-      )
-    );
+    const cleanupPrintMode = () => document.body.classList.remove('kitchen-label-print');
+    window.addEventListener('afterprint', cleanupPrintMode, { once: true });
+    document.body.classList.add('kitchen-label-print');
     window.print();
+    setPrintLabelModalItem(null);
+    setToastMessage({
+      type: 'warning',
+      text: 'Đã gửi lệnh in cho trình duyệt; hệ thống không đánh dấu “đã in” vì không xác nhận được kết quả từ máy in.'
+    });
   };
 
   // Mở modal sửa món thay thế
@@ -192,18 +261,22 @@ export const AllergyDietaryManagementTab: React.FC = () => {
 
   const handleSaveSubstitute = () => {
     if (!editSubstituteModalItem || !customSubstituteText.trim()) return;
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === editSubstituteModalItem.id
-          ? { ...i, safeSubstituteDish: customSubstituteText.trim() }
-          : i
-      )
-    );
-    setEditSubstituteModalItem(null);
-    setToastMessage({
-      type: 'success',
-      text: 'Đã cập nhật món ăn thay thế an toàn cho bé thành công.'
+    const conflicts = checkAllergenConflict(customSubstituteText.trim(), editSubstituteModalItem.allergyTags);
+    if (conflicts.length > 0) {
+      setToastMessage({
+        type: 'error',
+        text: `MSG-312: CẢNH BÁO: Món '${customSubstituteText}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}] của bé!`
+      });
+      return;
+    }
+    updatePreparationMutation.mutate({
+      itemId: editSubstituteModalItem.id,
+      preparationStatus: 'PENDING',
+      isolatedAreaConfirmed: editSubstituteModalItem.isolatedAreaConfirmed,
+      allergenMatchConfirmed: false,
+      safeSubstituteDish: customSubstituteText.trim()
     });
+    setEditSubstituteModalItem(null);
   };
 
   // Lọc danh sách học sinh
@@ -253,6 +326,21 @@ export const AllergyDietaryManagementTab: React.FC = () => {
           >
             Đóng
           </button>
+        </div>
+      )}
+      {isError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          Không thể tải hồ sơ dị ứng: {error instanceof Error ? error.message : 'Vui lòng thử lại.'}
+        </div>
+      )}
+      {isLoading && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+          Đang tải danh sách hồ sơ dị ứng và điểm danh hôm nay...
+        </div>
+      )}
+      {items.some((item) => !item.allergenMatchKnown) && (
+        <div className="rounded-2xl border-2 border-rose-400 bg-rose-50 p-4 text-sm font-semibold text-rose-900">
+          Thành phần món chưa được quản lý trong danh mục hệ thống. Nhân viên bếp phải kiểm tra trực tiếp nhãn thành phần và xác nhận đã loại trừ dị nguyên trước khi hoàn tất hoặc in tem.
         </div>
       )}
 
@@ -563,8 +651,17 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                                 </button>
                               )}
                             </div>
-                            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900">
-                              {item.safeSubstituteDish}
+                            <div className={`p-2.5 rounded-xl border text-xs font-bold ${
+                              checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0
+                                ? 'bg-rose-50 border-rose-300 text-rose-900'
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                            }`}>
+                              {item.safeSubstituteDish || '(Chưa chọn món thay thế)'}
+                              {checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0 && (
+                                <span className="block mt-1 text-[11px] text-rose-700 font-bold">
+                                  ⚠️ CẢNH BÁO TRÙNG DỊ NGUYÊN: {checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).join(', ')}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -584,6 +681,22 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                             className="text-xs text-slate-700 font-medium cursor-pointer select-none"
                           >
                             Cam kết chế biến tại <strong>khu vực khử khuẩn tách biệt</strong> để tránh lây nhiễm chéo dị nguyên (BR-041, BR-042).
+                          </label>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            id={`allergen-verified-${item.id}`}
+                            checked={item.allergenMatchKnown === true}
+                            disabled={isDone || updatePreparationMutation.isPending || !item.safeSubstituteDish.trim() || checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0}
+                            onChange={(event) => handleToggleAllergenVerification(item, event.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded-md text-[#275A4E] focus:ring-[#275A4E] border-slate-300"
+                          />
+                          <label
+                            htmlFor={`allergen-verified-${item.id}`}
+                            className="text-xs text-slate-700 font-medium cursor-pointer select-none"
+                          >
+                            Đã kiểm tra thành phần thực tế của món thay thế và xác nhận không chứa dị nguyên cần tránh.
                           </label>
                         </div>
                       </div>
@@ -622,7 +735,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                         {!isDone ? (
                           <button
                             onClick={() => handleConfirmPrepared(item)}
-                            disabled={prepareMutation.isPending}
+                            disabled={false}
                             className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white py-2 px-3 text-xs font-bold shadow-md shadow-emerald-900/10 min-h-[44px] active:scale-95 transition"
                           >
                             <Check className="h-4 w-4" />
@@ -734,34 +847,38 @@ export const AllergyDietaryManagementTab: React.FC = () => {
               </button>
             </div>
 
-            {/* MÔ PHỎNG NHÃN NHIỆT / STICKER KHAY ĂN (KÍCH THƯỚC CHUẨN 80x50mm) */}
-            <div className="mt-4 p-5 rounded-2xl border-2 border-dashed border-slate-300 bg-amber-50/20 text-slate-800 space-y-3 font-mono">
-              <div className="text-center border-b border-slate-300 pb-2">
-                <span className="text-[11px] font-bold tracking-widest text-[#275A4E] block">
-                  KIDPRO MEAL SYSTEM • KHAY ĂN DỊ ỨNG
-                </span>
-                <h2 className="text-lg font-black text-slate-900 uppercase mt-1">
-                  {printLabelModalItem.studentName}
-                </h2>
-                <p className="text-xs font-bold text-slate-700">
-                  Lớp: {printLabelModalItem.className} • {printLabelModalItem.roomNumber}
-                </p>
-              </div>
-
-              <div className="space-y-1.5 text-xs">
-                <div className="p-2 rounded-xl bg-red-100 border border-red-300 text-red-900 font-bold">
-                  ⛔ CẤM DỊ NGUYÊN: {printLabelModalItem.allergyTags.join(', ')}
+            <div
+              id="kitchen-allergy-label"
+              className="mt-4 w-[50mm] h-[30mm] mx-auto p-1.5 border border-red-700 bg-white text-slate-900 flex gap-1.5 font-sans"
+            >
+              <div className="min-w-0 flex-1 flex flex-col justify-between">
+                <div>
+                  <p className="text-[8px] leading-tight font-black text-red-700">CẢNH BÁO DỊ ỨNG</p>
+                  <h2 className="text-[10px] leading-tight font-black uppercase truncate">
+                    {printLabelModalItem.studentName}
+                  </h2>
+                  <p className="text-[8px] leading-tight font-bold truncate">
+                    {printLabelModalItem.className} · {printLabelModalItem.roomNumber}
+                  </p>
                 </div>
-
-                <div className="p-2 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold">
-                  🍲 MÓN THAY THẾ: {printLabelModalItem.safeSubstituteDish}
+                <div className="text-[7px] leading-tight">
+                  <p><strong>TRÁNH:</strong> {printLabelModalItem.allergyTags.join(', ')}</p>
+                  <p className="font-bold"><strong>MÓN:</strong> {printLabelModalItem.safeSubstituteDish}</p>
+                  <p>{new Date().toLocaleDateString('vi-VN')}</p>
                 </div>
               </div>
-
-              <div className="pt-2 border-t border-slate-300 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Ngày: {new Date().toLocaleDateString('vi-VN')}</span>
-                <span>Bếp: {printLabelModalItem.preparedBy || 'Tổ Dinh Dưỡng'}</span>
-              </div>
+              <QRCodeSVG
+                value={JSON.stringify({
+                  sid: printLabelModalItem.studentId,
+                  name: printLabelModalItem.studentName,
+                  class: printLabelModalItem.className,
+                  sub: printLabelModalItem.safeSubstituteDish,
+                  date: new Date().toISOString().slice(0, 10)
+                })}
+                size={82}
+                level="M"
+                className="self-center shrink-0"
+              />
             </div>
 
             <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">

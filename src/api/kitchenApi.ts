@@ -4,13 +4,13 @@ import {
   WeeklyMenu,
   MealHeadcountSnapshot,
   LockHeadcountRequest,
-  ExtendLockRequest,
   FoodSampleRetention,
   FoodSampleCreatePayload,
-  FoodSampleDisposePayload,
+  FoodSampleDisposalPayload,
   FoodConsumptionReport,
   DietaryPreparationUpdatePayload,
   ThreeStepFoodSafetyInspectionLog,
+  WeeklyMenuPayload,
 } from '../types/kitchen.types';
 
 export const kitchenApi = {
@@ -23,28 +23,23 @@ export const kitchenApi = {
     return axiosClient.get<KitchenDailySummary>(`/kitchen/daily-summary${query}`);
   },
 
-  // Lấy báo cáo tổng hợp snapshot suất ăn đã chốt (Cơm thường, Cháo, Tránh dị ứng)
+  // Lấy snapshot số học sinh có mặt theo lớp
   getMealHeadcounts: (date?: string) => {
     const query = date ? `?date=${date}` : '';
     return axiosClient.get<MealHeadcountSnapshot>(`/kitchen/meal-headcounts${query}`);
   },
 
-  // Kích hoạt lệnh chốt đóng băng suất ăn thủ công ngay lập tức
+  // Lưu snapshot số học sinh có mặt theo lớp
   lockMealHeadcounts: (payload?: LockHeadcountRequest) => {
     return axiosClient.post<MealHeadcountSnapshot>('/kitchen/meal-headcounts/lock', payload || {});
-  },
-
-  // Gia hạn thời gian khóa sổ báo ăn khẩn cấp (Chỉ quyền BGH)
-  extendLockMealHeadcounts: (payload: ExtendLockRequest) => {
-    return axiosClient.post<MealHeadcountSnapshot>('/kitchen/meal-headcounts/extend', payload);
   },
 
   // ==========================================
   // UC-031: QUẢN LÝ DỊ ỨNG & CHẾ ĐỘ ĂN RIÊNG
   // ==========================================
   // Lấy danh sách học sinh có thẻ cảnh báo dị ứng thực phẩm kèm thông tin lớp
-  getStudentsByAllergy: () => {
-    return axiosClient.get<any[]>('/academic/students/by-allergy');
+  getStudentsByAllergy: (date?: string) => {
+    return axiosClient.get<any[]>('/kitchen/allergy-alerts', { params: date ? { date } : {} });
   },
 
   // Cập nhật trạng thái chuẩn bị suất ăn dị ứng cách ly & in nhãn
@@ -74,7 +69,7 @@ export const kitchenApi = {
     return axiosClient.delete(`/kitchen/menus/${id}`);
   },
 
-  saveWeeklyMenuPlan: (data: any) => {
+  saveWeeklyMenuPlan: (data: WeeklyMenuPayload) => {
     return axiosClient.post('/kitchen/menus', data);
   },
 
@@ -86,20 +81,14 @@ export const kitchenApi = {
     return axiosClient.post<FoodSampleRetention>('/kitchen/food-samples', data);
   },
 
-  // Xác nhận hủy mẫu thực phẩm an toàn sau khi đã lưu đủ 24 giờ
-  disposeFoodSample: (id: string, data: FoodSampleDisposePayload) => {
-    return axiosClient.put<FoodSampleRetention>(`/kitchen/food-samples/${id}/dispose`, data);
-  },
-
-  // Lấy danh sách các mẫu thức ăn đã vượt quá 24h nhưng chưa thực hiện thủ tục hủy
-  getOverdueFoodSamples: () => {
-    return axiosClient.get<FoodSampleRetention[]>('/kitchen/food-samples/overdue');
-  },
-
   // Lấy danh sách mẫu thức ăn đang lưu trong tủ theo ngày
   getFoodSamples: (date?: string) => {
     const query = date ? `?date=${date}` : '';
     return axiosClient.get<FoodSampleRetention[]>(`/kitchen/food-samples${query}`);
+  },
+
+  disposeFoodSample: (id: string, payload: FoodSampleDisposalPayload) => {
+    return axiosClient.put<FoodSampleRetention>(`/kitchen/food-samples/${id}/disposal`, payload);
   },
 
   // Lưu báo cáo tiêu hao nguyên liệu & kiểm thực

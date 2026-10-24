@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import {
   Thermometer,
   Clock,
@@ -11,11 +12,10 @@ import {
   Trash2,
   Plus,
   Archive,
-  Hourglass,
   Check,
   Scale,
   FileCheck,
-  X
+  X,
 } from 'lucide-react';
 import { kitchenApi } from '../../../api/kitchenApi';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -25,94 +25,26 @@ import {
   FoodConsumptionItem
 } from '../../../types/kitchen.types';
 
-// Dữ liệu mẫu ban đầu cho danh sách lưu mẫu thức ăn 24h
-const getInitialStoredSamples = (): FoodSampleRetention[] => {
-  const now = Date.now();
-  return [
-    {
-      id: 'sample-01',
-      date: new Date(now - 25 * 3600 * 1000).toISOString().split('T')[0], // Đã lưu hơn 24h -> Sẵn sàng hủy
-      mealSession: 'LUNCH',
-      dishName: 'Cơm tám thơm dẻo',
-      sampleWeightGrams: 150,
-      sealCode: 'NP-20261008-01',
-      storageTemperatureCelsius: 4.2,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
-      savedAt: new Date(now - 25 * 3600 * 1000).toISOString(),
-      savedBy: 'Bếp trưởng Nguyễn Thị Lan',
-      timerExpiresAt: new Date(now - 1 * 3600 * 1000).toISOString(),
-      status: 'READY_FOR_DISPOSAL',
-      noPoisoningIncidentConfirmed: false
-    },
-    {
-      id: 'sample-02',
-      date: new Date(now - 25 * 3600 * 1000).toISOString().split('T')[0],
-      mealSession: 'LUNCH',
-      dishName: 'Thịt kho trứng cút nước dừa',
-      sampleWeightGrams: 120,
-      sealCode: 'NP-20261008-02',
-      storageTemperatureCelsius: 3.8,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
-      savedAt: new Date(now - 25 * 3600 * 1000).toISOString(),
-      savedBy: 'Bếp trưởng Nguyễn Thị Lan',
-      timerExpiresAt: new Date(now - 1 * 3600 * 1000).toISOString(),
-      status: 'READY_FOR_DISPOSAL',
-      noPoisoningIncidentConfirmed: false
-    },
-    {
-      id: 'sample-03',
-      date: new Date(now - 28 * 3600 * 1000).toISOString().split('T')[0], // Quá hạn > 24h chưa hủy
-      mealSession: 'SNACK',
-      dishName: 'Cháo sườn búp sen',
-      sampleWeightGrams: 160,
-      sealCode: 'NP-20261008-03',
-      storageTemperatureCelsius: 4.0,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
-      savedAt: new Date(now - 28 * 3600 * 1000).toISOString(),
-      savedBy: 'Bếp phó Lê Thị Mai',
-      timerExpiresAt: new Date(now - 4 * 3600 * 1000).toISOString(),
-      status: 'EXPIRED', // Quá hạn MSG cảnh báo
-      noPoisoningIncidentConfirmed: false
-    },
-    {
-      id: 'sample-04',
-      date: new Date().toISOString().split('T')[0], // Bữa hôm nay đang lưu
-      mealSession: 'LUNCH',
-      dishName: 'Thịt heo rim nước dừa tươi',
-      sampleWeightGrams: 125,
-      sealCode: 'NP-20261009-01',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
-      savedAt: new Date(now - 2 * 3600 * 1000).toISOString(),
-      savedBy: 'Bếp trưởng Nguyễn Thị Lan',
-      timerExpiresAt: new Date(now + 22 * 3600 * 1000).toISOString(),
-      status: 'STORING',
-      noPoisoningIncidentConfirmed: false
-    },
-    {
-      id: 'sample-05',
-      date: new Date().toISOString().split('T')[0],
-      mealSession: 'LUNCH',
-      dishName: 'Canh bí đỏ hầm sườn non',
-      sampleWeightGrams: 180, // Canh >= 150ml
-      sealCode: 'NP-20261009-02',
-      storageTemperatureCelsius: 4.5,
-      photoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80',
-      savedAt: new Date(now - 2 * 3600 * 1000).toISOString(),
-      savedBy: 'Bếp trưởng Nguyễn Thị Lan',
-      timerExpiresAt: new Date(now + 22 * 3600 * 1000).toISOString(),
-      status: 'STORING',
-      noPoisoningIncidentConfirmed: false
-    }
-  ];
-};
-
 // Dữ liệu định mức nguyên liệu tiêu hao chuẩn cho bếp ăn
 const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [];
+
+const getErrorMessage = (error: unknown) => {
+  if (isAxiosError<{ message?: string; errors?: Record<string, string> }>(error)) {
+    const response = error.response?.data;
+    const validationMessages = Object.values(response?.errors ?? {});
+    return response?.message || validationMessages.join(' ') || error.message;
+  }
+  return error instanceof Error ? error.message : 'Vui lòng thử lại sau.';
+};
 
 export const FoodRetentionConsumptionTab: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const foodSamplesQuery = useQuery({
+    queryKey: ['food-samples'],
+    queryFn: async () => (await kitchenApi.getFoodSamples()).data
+  });
+  const storedSamples: FoodSampleRetention[] = foodSamplesQuery.data ?? [];
 
   const [activeSubTab, setActiveSubTab] = useState<'RETENTION_24H' | 'CONSUMPTION_REPORT'>(
     'RETENTION_24H'
@@ -134,14 +66,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0); // Bắt buộc 2°C - 8°C (BR-043)
   const [samplesToSave, setSamplesToSave] = useState<{ dishName: string; weightGrams: number; sealCode: string }[]>([]);
 
-  // Danh sách các hũ mẫu đang lưu trong tủ
-  const [storedSamples, setStoredSamples] = useState<FoodSampleRetention[]>(getInitialStoredSamples());
-
-  // Modal Xác Nhận Hủy Mẫu An Toàn
-  const [disposeModalSample, setDisposeModalSample] = useState<FoodSampleRetention | null>(null);
-  const [noPoisoningConfirmed, setNoPoisoningConfirmed] = useState<boolean>(false);
-  const [disposalReason, setDisposalReason] = useState<string>('Hết hạn lưu nghiệm 24h theo TT 47/2010/TT-BYT, trường không có sự cố.');
-
   // ==========================================
   // KHỐI 2: TIÊU HAO THỰC PHẨM & QUYẾT TOÁN KHO
   // ==========================================
@@ -151,31 +75,13 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   );
   const [isExportInspectionModalOpen, setIsExportInspectionModalOpen] = useState<boolean>(false);
 
-  // Hook tính đồng hồ đếm ngược 24h thời gian thực cho từng hũ mẫu
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Format countdown hh:mm:ss
-  const formatCountdown = (expiresAt: string) => {
-    const diff = new Date(expiresAt).getTime() - currentTime;
-    if (diff <= 0) {
-      return { text: '00:00:00 (ĐỦ 24H)', isDone: true };
-    }
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
-    return {
-      text: `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`,
-      isDone: false
-    };
-  };
-
   // Mutation: Lưu mẫu thức ăn 24h (POST /api/kitchen/food-samples)
   const saveSampleMutation = useMutation({
     mutationFn: async () => {
+      if (samplesToSave.length === 0) {
+        throw new Error('Vui lòng thêm ít nhất một món ăn trước khi lưu mẫu.');
+      }
+
       // Validate BR-043: Nhiệt độ bắt buộc 2°C - 8°C (MSG-132)
       if (fridgeTemperature < 2 || fridgeTemperature > 8) {
         throw new Error(
@@ -193,6 +99,11 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
         }
       }
 
+      const sealCodes = samplesToSave.map((item) => item.sealCode.trim().toLowerCase());
+      if (new Set(sealCodes).size !== sealCodes.length) {
+        throw new Error('Mỗi mẫu phải sử dụng một mã niêm phong khác nhau.');
+      }
+
       const promises = samplesToSave.map((s) =>
         kitchenApi.createFoodSample({
           date: retentionDate,
@@ -201,91 +112,51 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
           sampleWeightGrams: s.weightGrams,
           sealCode: s.sealCode,
           storageTemperatureCelsius: fridgeTemperature,
-          savedBy: user?.fullName || 'Nhân viên Bếp'
         })
       );
-      return await Promise.all(promises);
+      const results = await Promise.allSettled(promises);
+      const failures = results.filter((result) => result.status === 'rejected');
+      if (failures.length > 0) {
+        const successfulCount = results.length - failures.length;
+        const firstFailure = failures[0];
+        const reason = firstFailure.status === 'rejected'
+          ? getErrorMessage(firstFailure.reason)
+          : 'Vui lòng thử lại sau.';
+        throw new Error(`Đã lưu ${successfulCount}/${results.length} mẫu; một số mẫu chưa lưu được. ${reason}`);
+      }
+      return results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['food-samples'] });
-      // Thêm các mẫu mới vào state
-      const now = Date.now();
-      const newItems: FoodSampleRetention[] = samplesToSave.map((s, idx) => ({
-        id: `sample-new-${now}-${idx}`,
-        date: retentionDate,
-        mealSession: selectedMealSession,
-        dishName: s.dishName,
-        sampleWeightGrams: s.weightGrams,
-        sealCode: s.sealCode,
-        storageTemperatureCelsius: fridgeTemperature,
-        savedAt: new Date(now).toISOString(),
-        savedBy: user?.fullName || 'Nhân viên Bếp',
-        timerExpiresAt: new Date(now + 24 * 3600 * 1000).toISOString(),
-        status: 'STORING',
-        noPoisoningIncidentConfirmed: false
-      }));
-
-      setStoredSamples((prev) => [...newItems, ...prev]);
+      setSamplesToSave([]);
       setToastMessage({
         type: 'success',
-        text: 'MSG-131: Ghi nhận tiêu hao thực phẩm và lưu mẫu thức ăn 24h thành công.'
+        text: 'Đã lưu mẫu thức ăn vào sổ lưu mẫu.'
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['food-samples'] });
     },
     onError: (err: any) => {
       setToastMessage({
         type: 'error',
-        text: err.message || 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.'
+        text: getErrorMessage(err)
       });
     }
   });
 
-  // Mutation: Xác nhận hủy mẫu an toàn (PUT /api/kitchen/food-samples/{id}/dispose)
-  const disposeMutation = useMutation({
-    mutationFn: async ({
-      sampleId,
-      notes,
-      noPoisoning
-    }: {
-      sampleId: string;
-      notes: string;
-      noPoisoning: boolean;
-    }) => {
-      if (!noPoisoning) {
-        throw new Error('Bắt buộc cam kết không có sự cố ngộ độc thực phẩm trong trường theo BR-044!');
-      }
-      return await kitchenApi.disposeFoodSample(sampleId, {
-        sampleId,
-        disposedBy: user?.fullName || 'Bếp trưởng',
-        disposalNotes: notes,
-        noPoisoningIncidentConfirmed: noPoisoning
-      });
-    },
-    onSuccess: (_, variables) => {
+  const disposeSampleMutation = useMutation({
+    mutationFn: async (sampleId: string) => kitchenApi.disposeFoodSample(sampleId, {
+      noFoodSafetyIncidentConfirmed: true
+    }),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['food-samples'] });
-      setStoredSamples((prev) =>
-        prev.map((item) =>
-          item.id === variables.sampleId
-            ? {
-                ...item,
-                status: 'DISPOSED',
-                disposedAt: new Date().toLocaleTimeString('vi-VN'),
-                disposedBy: user?.fullName || 'Bếp trưởng',
-                disposalNotes: variables.notes
-              }
-            : item
-        )
-      );
-      setDisposeModalSample(null);
       setToastMessage({
         type: 'success',
-        text: 'Đã hoàn tất quy trình tiêu hủy mẫu thức ăn an toàn và lưu biên bản kiểm thực.'
+        text: 'Đã ghi nhận tiêu hủy mẫu lưu và lưu nhật ký kiểm toán.'
       });
     },
-    onError: (err: any) => {
-      setToastMessage({
-        type: 'error',
-        text: err.message || 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.'
-      });
+    onError: (error: unknown) => {
+      setToastMessage({ type: 'error', text: getErrorMessage(error) });
     }
   });
 
@@ -350,10 +221,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   );
 
   // Mẫu quá hạn chưa hủy
-  const overdueSamples = storedSamples.filter(
-    (s) => s.status === 'EXPIRED' || (s.status === 'READY_FOR_DISPOSAL' && new Date(s.timerExpiresAt).getTime() < currentTime - 2 * 3600 * 1000)
-  );
-
   return (
     <div className="space-y-6">
       {/* Toast Notification Box */}
@@ -383,26 +250,9 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
           </button>
         </div>
       )}
-
-      {/* CẢNH BÁO MẪU QUÁ HẠN 24H CHƯA HỦY */}
-      {overdueSamples.length > 0 && (
-        <div className="rounded-3xl border-2 border-amber-500 bg-amber-50/90 p-5 shadow-md flex items-start gap-4">
-          <div className="p-3 rounded-2xl bg-amber-600 text-white shrink-0">
-            <Hourglass className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h4 className="font-extrabold text-amber-900 text-base">
-                CẢNH BÁO MẪU THỨC ĂN QUÁ HẠN 24 GIỜ CHƯA TIÊU HỦY
-              </h4>
-              <span className="bg-amber-600 text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
-                {overdueSamples.length} MẪU
-              </span>
-            </div>
-            <p className="text-xs text-amber-800 leading-relaxed">
-              Theo quy định <strong>TT 47/2010/TT-BYT</strong> và <strong>BR-044</strong>, mẫu lưu nghiệm đã qua 24 giờ phải được tiến hành hủy an toàn và lập biên bản kiểm thực 3 bước để giải phóng vị trí tủ bảo quản.
-            </p>
-          </div>
+      {foodSamplesQuery.isError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          Không thể tải sổ lưu mẫu: {getErrorMessage(foodSamplesQuery.error)}
         </div>
       )}
 
@@ -418,7 +268,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
             }`}
           >
             <Thermometer className="h-4 w-4" />
-            <span>Lưu Mẫu Thức Ăn 24 Giờ & Niêm Phong Tủ Lạnh</span>
+            <span>Sổ Lưu Mẫu Thức Ăn</span>
           </button>
 
           <button
@@ -457,10 +307,10 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-slate-800 text-base">
-                    Ghi Nhật Ký Lưu Mẫu Thức Ăn Bán Trú 24 Giờ
+                    Ghi Nhật Ký Lưu Mẫu Thức Ăn Bán Trú
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Tuân thủ Thông tư 47/2010/TT-BYT: Khối lượng mẫu ≥ 100g, canh ≥ 150ml; bảo quản ở 2°C - 8°C
+                    Khối lượng mẫu ≥ 100g, bảo quản ở 2°C - 8°C. Entity hiện tại chỉ lưu ngày nên chưa thể xác định chính xác mốc 24 giờ.
                   </p>
                 </div>
               </div>
@@ -647,12 +497,12 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Nút Ký Duyệt & Bắt Đầu Đếm Ngược 24 Giờ */}
+            {/* Ghi nhận mẫu vào sổ lưu */}
             <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Camera className="h-4 w-4 text-slate-400" />
                 <span>
-                  Đã tự động đính kèm ảnh tem niêm phong và ghi nhận chữ ký điện tử của: <strong>{user?.fullName || 'Bếp trưởng'}</strong>.
+                  Người lưu được xác định từ tài khoản đăng nhập: <strong>{user?.fullName || 'Nhân viên bếp'}</strong>. Entity hiện tại không lưu ảnh niêm phong.
                 </span>
               </div>
 
@@ -663,7 +513,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                 className="px-6 py-3 rounded-2xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-extrabold shadow-md shadow-emerald-900/10 min-h-[44px] flex items-center justify-center gap-2 active:scale-95 transition"
               >
                 <Clock className="h-4 w-4 text-[#78C2AD]" />
-                <span>{saveSampleMutation.isPending ? 'Đang lưu...' : 'Ký Duyệt & Bắt Đầu Đếm Ngược 24 Giờ (MSG-131)'}</span>
+                <span>{saveSampleMutation.isPending ? 'Đang lưu...' : 'Lưu mẫu vào sổ'}</span>
               </button>
             </div>
           </div>
@@ -677,7 +527,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                   <span>Danh Sách Mẫu Đang Lưu Nghiệm Trong Tủ Bảo Quản</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Theo dõi thời gian đếm ngược 24 giờ. Chỉ thực hiện hủy khi đủ 24h và trường không có sự cố (BR-044).
+                  Entity hiện tại không lưu thời điểm bắt đầu lưu; chức năng đếm giờ và hủy mẫu đang bị khóa để tránh hủy sớm.
                 </p>
               </div>
 
@@ -695,13 +545,19 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                     <th className="py-3 px-3 text-center">Mã Niêm Phong</th>
                     <th className="py-3 px-3 text-center">Khối Lượng</th>
                     <th className="py-3 px-3 text-center">Nhiệt Độ Tủ</th>
-                    <th className="py-3 px-3 text-center">Thời Gian Còn Lại (24h Timer)</th>
+                    <th className="py-3 px-3 text-center">Thời điểm lưu</th>
                     <th className="py-3 px-3 text-center">Trạng Thái</th>
                     <th className="py-3 px-3 text-center">Thao Tác Hủy</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {storedSamples.length === 0 ? (
+                  {foodSamplesQuery.isLoading ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        Đang tải sổ lưu mẫu...
+                      </td>
+                    </tr>
+                  ) : storedSamples.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-8 text-center text-slate-400">
                         Chưa có mẫu thức ăn nào đang lưu trong tủ bảo quản.
@@ -709,9 +565,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                     </tr>
                   ) : (
                     storedSamples.map((sample) => {
-                    const countdown = formatCountdown(sample.timerExpiresAt);
                     const isDisposed = sample.status === 'DISPOSED';
-                    const isReady = sample.status === 'READY_FOR_DISPOSAL' || countdown.isDone;
                     const isExpired = sample.status === 'EXPIRED';
 
                     return (
@@ -719,7 +573,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         <td className="py-3 px-3 font-bold text-slate-800">
                           {sample.dishName}
                           <span className="block text-[10px] text-slate-400 font-normal">
-                            Lưu lúc: {new Date(sample.savedAt).toLocaleTimeString('vi-VN')} ({sample.date})
+                            Ngày lưu: {sample.date} · Người lưu: {sample.savedBy}
                           </span>
                         </td>
 
@@ -738,23 +592,22 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         </td>
 
                         <td className="py-3 px-3 text-center font-semibold text-slate-700">
-                          {sample.sampleWeightGrams}g
+                          {sample.sampleWeightGrams == null ? '—' : `${sample.sampleWeightGrams}g`}
                         </td>
 
                         <td className="py-3 px-3 text-center font-bold text-teal-700">
-                          {sample.storageTemperatureCelsius}°C
+                          {sample.storageTemperatureCelsius == null
+                            ? '—'
+                            : `${sample.storageTemperatureCelsius}°C`}
                         </td>
 
                         <td className="py-3 px-3 text-center font-mono font-extrabold">
-                          {isDisposed ? (
-                            <span className="text-slate-400 text-xs">Đã hủy xong</span>
-                          ) : (
-                            <span
-                              className={`text-xs ${
-                                countdown.isDone ? 'text-emerald-700' : 'text-amber-600'
-                              }`}
-                            >
-                              {countdown.text}
+                          {sample.savedAt
+                            ? new Date(sample.savedAt).toLocaleString('vi-VN')
+                            : 'Không xác định'}
+                          {!isDisposed && sample.timerExpiresAt && (
+                            <span className="block text-[10px] text-slate-400">
+                              Đủ 24h: {new Date(sample.timerExpiresAt).toLocaleString('vi-VN')}
                             </span>
                           )}
                         </td>
@@ -764,43 +617,36 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                             <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
                               Đã tiêu hủy
                             </span>
-                          ) : isExpired ? (
+                          ) : isExpired || sample.status === 'READY_FOR_DISPOSAL' ? (
                             <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-bold animate-pulse">
-                              Quá hạn 24h
-                            </span>
-                          ) : isReady ? (
-                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-                              Đủ 24h - Sẵn sàng hủy
+                              Đủ thời gian lưu 24h
                             </span>
                           ) : (
-                            <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">
-                              Đang lưu nghiệm
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
+                              Chưa xác định đủ 24 giờ
                             </span>
                           )}
                         </td>
 
                         <td className="py-3 px-3 text-center">
-                          {!isDisposed ? (
+                          {!isDisposed && sample.status === 'READY_FOR_DISPOSAL' ? (
                             <button
                               type="button"
+                              disabled={disposeSampleMutation.isPending}
                               onClick={() => {
-                                setDisposeModalSample(sample);
-                                setNoPoisoningConfirmed(false);
+                                const confirmed = window.confirm(
+                                  'Xác nhận mẫu đã lưu đủ 24 giờ và không có sự cố an toàn thực phẩm trong thời gian lưu?'
+                                );
+                                if (confirmed) disposeSampleMutation.mutate(sample.id);
                               }}
-                              disabled={!isReady && !isExpired}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition min-h-[36px] ${
-                                isReady || isExpired
-                                  ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-xs active:scale-95'
-                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                              }`}
-                              title={
-                                isReady || isExpired
-                                  ? 'Xác nhận tiêu hủy an toàn theo BR-044'
-                                  : 'Chưa đủ 24 giờ lưu nghiệm'
-                              }
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold transition min-h-[36px] bg-rose-700 text-white hover:bg-rose-800 disabled:opacity-50"
                             >
-                              Xác Nhận Hủy Mẫu
+                              Xác nhận tiêu hủy
                             </button>
+                          ) : !isDisposed ? (
+                            <span className="text-[11px] text-amber-700">
+                              Chờ đủ 24 giờ
+                            </span>
                           ) : (
                             <span className="text-[11px] text-slate-400">
                               Hủy lúc {sample.disposedAt}
@@ -972,91 +818,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                 className="px-5 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold shadow-md min-h-[44px]"
               >
                 Lưu Báo Cáo Quyết Toán Kho
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL XÁC NHẬN HỦY MẪU AN TOÀN (BR-044) */}
-      {disposeModalSample && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-rose-600">
-                <Trash2 className="h-5 w-5" />
-                <h3 className="text-base font-bold text-slate-800">
-                  Xác Nhận Hủy Mẫu Thức Ăn An Toàn
-                </h3>
-              </div>
-              <button
-                onClick={() => setDisposeModalSample(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-2xl text-xs space-y-1.5">
-              <p>
-                <strong>Món ăn:</strong> {disposeModalSample.dishName}
-              </p>
-              <p>
-                <strong>Mã niêm phong:</strong> {disposeModalSample.sealCode}
-              </p>
-              <p>
-                <strong>Thời gian lưu:</strong> Đã lưu nghiệm đủ 24 giờ kể từ {new Date(disposeModalSample.savedAt).toLocaleString('vi-VN')}.
-              </p>
-            </div>
-
-            {/* Checkbox cam kết không ngộ độc (BR-044) */}
-            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={noPoisoningConfirmed}
-                  onChange={(e) => setNoPoisoningConfirmed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded-md text-emerald-600 focus:ring-emerald-500 border-slate-300"
-                />
-                <span className="text-xs text-amber-950 font-semibold leading-relaxed">
-                  Cam kết <strong>không có trường hợp ngộ độc thực phẩm</strong> hay bất thường tiêu hóa nào xảy ra trong toàn trường trong suốt 24 giờ qua (BR-044).
-                </span>
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Ghi chú biên bản tiêu hủy:
-              </label>
-              <textarea
-                rows={2}
-                value={disposalReason}
-                onChange={(e) => setDisposalReason(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-[#275A4E] focus:outline-hidden"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setDisposeModalSample(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 min-h-[44px]"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                disabled={!noPoisoningConfirmed || disposeMutation.isPending}
-                onClick={() =>
-                  disposeMutation.mutate({
-                    sampleId: disposeModalSample.id,
-                    notes: disposalReason,
-                    noPoisoning: noPoisoningConfirmed
-                  })
-                }
-                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white text-xs font-bold shadow-md min-h-[44px]"
-              >
-                {disposeMutation.isPending ? 'Đang tiêu hủy...' : 'Ký Biên Bản & Tiêu Hủy'}
               </button>
             </div>
           </div>
