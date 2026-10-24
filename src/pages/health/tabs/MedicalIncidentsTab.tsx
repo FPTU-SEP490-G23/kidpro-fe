@@ -689,7 +689,7 @@ export const MedicalIncidentsTab: React.FC = () => {
                   <div className="relative">
                     <input
                       type="number"
-                      step="0.1"
+                      step="any"
                       {...register('temperatureCelsius', { valueAsNumber: true })}
                       className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#275A4E]/30 focus:border-[#275A4E]"
                       placeholder="vd: 38.5"
@@ -936,7 +936,7 @@ export const MedicalIncidentsTab: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  step="0.1"
+                  step="any"
                   defaultValue={selectedIncidentForUpdate.temperatureCelsius}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#275A4E]"
                 />

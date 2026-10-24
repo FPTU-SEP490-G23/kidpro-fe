@@ -355,8 +355,8 @@ export const FeeCatalogTab: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="1"
-                  step="1000"
+                  min={0}
+                  step="any"
                   placeholder="Ví dụ: 3200000"
                   value={unitPrice || ''}
                   onChange={(e) => setUnitPrice(Number(e.target.value))}

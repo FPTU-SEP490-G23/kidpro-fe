@@ -114,6 +114,14 @@ export const financeApi = {
     return axiosClient.post<InvoiceDto>(`/finance/invoices/${invoiceId}/items`, data);
   },
 
+  updateIncidentalFee: (invoiceId: string, itemId: number, data: AddInvoiceItemRequestDto) => {
+    return axiosClient.put<InvoiceDto>('/finance/invoices/' + invoiceId + '/items/' + itemId, data);
+  },
+
+  deleteIncidentalFee: (invoiceId: string, itemId: number) => {
+    return axiosClient.delete<InvoiceDto>('/finance/invoices/' + invoiceId + '/items/' + itemId);
+  },
+
   // ==========================================
   // G8-UC-06: PHÊ DUYỆT BẢNG TỔNG HỢP HỌC PHÍ TOÀN TRƯỜNG
   // ==========================================

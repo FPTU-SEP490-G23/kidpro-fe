@@ -515,7 +515,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                 <div className="relative">
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     min="1"
                     max="10"
                     value={fridgeTemperature}
@@ -902,7 +902,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         <td className="py-3 px-3 text-center">
                           <input
                             type="number"
-                            step="0.1"
+                            step="any"
                             value={item.actualConsumedQtyKg}
                             onChange={(e) =>
                               handleUpdateActualConsumed(

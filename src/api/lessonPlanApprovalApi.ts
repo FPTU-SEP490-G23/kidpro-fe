@@ -1,4 +1,4 @@
-﻿import axiosClient from './axiosClient';
+import axiosClient from './axiosClient';
 
 export interface LessonPlanApprovalDto {
   id: string;
@@ -36,6 +36,10 @@ export const lessonPlanApprovalApi = {
 
   requestRevision: async (id: string, reason: string) => {
     return axiosClient.post<LessonPlanApprovalDto>(`/bgh/lesson-plans/approvals/${id}/request-revision`, { reason });
+  },
+
+  resetPending: async (id: string) => {
+    return axiosClient.post<LessonPlanApprovalDto>(`/bgh/lesson-plans/approvals/${id}/reset-pending`);
   },
 };
 

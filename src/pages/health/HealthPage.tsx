@@ -1359,7 +1359,7 @@ export const HealthPage: React.FC = () => {
                 <div className="relative">
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     min="3"
                     max="80"
                     required
@@ -2201,7 +2201,7 @@ export const HealthPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     required
                     min={50}
                     max={150}
@@ -2216,7 +2216,7 @@ export const HealthPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     required
                     min={5}
                     max={60}

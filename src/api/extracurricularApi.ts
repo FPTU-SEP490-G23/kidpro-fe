@@ -1,4 +1,4 @@
-﻿import axiosClient from './axiosClient';
+import axiosClient from './axiosClient';
 
 export interface ExtracurricularClassDto {
   extracurricularClassId: string;
@@ -27,6 +27,15 @@ export interface ExtracurricularClassCreatePayload {
   tuitionFee: number;
 }
 
+export interface ExtracurricularClassUpdatePayload {
+  className: string;
+  classroomId?: string;
+  scheduleDescription: string;
+  maxCapacity: number;
+  externalInstructorName?: string;
+  tuitionFee: number;
+}
+
 export const extracurricularApi = {
   getClasses: async (params?: { academicYearId?: string; activeOnly?: boolean }) => {
     return axiosClient.get<ExtracurricularClassDto[]>('/bgh/extracurricular-classes', { params });
@@ -40,8 +49,16 @@ export const extracurricularApi = {
     return axiosClient.post<ExtracurricularClassDto>('/bgh/extracurricular-classes', payload);
   },
 
+  updateClass: async (id: string, payload: ExtracurricularClassUpdatePayload) => {
+    return axiosClient.put<ExtracurricularClassDto>(`/bgh/extracurricular-classes/${id}`, payload);
+  },
+
   toggleStatus: async (id: string) => {
     return axiosClient.patch<ExtracurricularClassDto>(`/bgh/extracurricular-classes/${id}/toggle-status`);
+  },
+
+  updateTuitionFee: async (id: string, tuitionFee: number) => {
+    return axiosClient.patch<ExtracurricularClassDto>(`/bgh/extracurricular-classes/${id}/tuition-fee`, { tuitionFee });
   },
 };
 

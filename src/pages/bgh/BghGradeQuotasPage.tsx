@@ -186,7 +186,7 @@ export const BghGradeQuotasPage: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  max="50"
+                  max="100"
                   value={newCapacity}
                   onChange={(e) => {
                     setNewCapacity(Number(e.target.value));

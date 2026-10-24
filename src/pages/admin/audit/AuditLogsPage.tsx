@@ -73,44 +73,61 @@ export const AuditLogsPage: React.FC = () => {
   };
 
   const getActionBadge = (action: AuditAction) => {
-    switch (action) {
-      case 'CREATE':
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            CREATE
-          </span>
-        );
-      case 'UPDATE':
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-[#1E4D40] border border-amber-300">
-            UPDATE
-          </span>
-        );
-      case 'DELETE':
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-300">
-            DELETE
-          </span>
-        );
-      case 'LOGIN':
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 border border-blue-300">
-            LOGIN
-          </span>
-        );
-      case 'VERIFY':
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-300">
-            VERIFY
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
-            {action}
-          </span>
-        );
+    const act = (action || '').toUpperCase();
+    
+    // Bản đồ nhãn chi tiết tiếng Việt
+    const ACTION_MAP: Record<string, { label: string; color: string; border: string }> = {
+      'PUBLISH_INVOICES': { label: 'Phát hành HĐ', color: 'bg-purple-100 text-purple-800', border: 'border-purple-300' },
+      'SEND_DEBT_REMINDER': { label: 'Nhắc nợ học phí', color: 'bg-amber-100 text-amber-800', border: 'border-amber-300' },
+      'ADD_INCIDENTAL_FEE': { label: 'Thêm phụ phí', color: 'bg-blue-100 text-blue-800', border: 'border-blue-300' },
+      'UPDATE_INVOICE_ITEM': { label: 'Sửa phụ phí', color: 'bg-indigo-100 text-indigo-800', border: 'border-indigo-300' },
+      'DELETE_INVOICE_ITEM': { label: 'Xóa phụ phí', color: 'bg-rose-100 text-rose-800', border: 'border-rose-300' },
+      'RECORD_CASH_PAYMENT': { label: 'Thu tiền mặt', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-300' },
+      'APPROVE_LESSON_PLAN': { label: 'Duyệt giáo án', color: 'bg-teal-100 text-teal-800', border: 'border-teal-300' },
+      'REJECT_LESSON_PLAN': { label: 'Từ chối giáo án', color: 'bg-red-100 text-red-800', border: 'border-red-300' },
+      'APPROVE_WEEKLY_TIMETABLE': { label: 'Duyệt TKB', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-300' },
+      'APPROVE_WEEKLY_MENU': { label: 'Duyệt thực đơn', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-300' },
+      'REJECT_WEEKLY_MENU': { label: 'Từ chối thực đơn', color: 'bg-red-100 text-red-800', border: 'border-red-300' },
+      'CREATE_STAFF': { label: 'Tạo nhân viên', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-300' },
+      'UPDATE_STAFF': { label: 'Sửa nhân viên', color: 'bg-amber-100 text-amber-800', border: 'border-amber-300' },
+      'LOCK_STAFF_ACCOUNT': { label: 'Khóa tài khoản', color: 'bg-red-100 text-red-800', border: 'border-red-300' },
+      'UNLOCK_STAFF_ACCOUNT': { label: 'Mở tài khoản', color: 'bg-teal-100 text-teal-800', border: 'border-teal-300' },
+      'UPDATE_STAFF_ROLE': { label: 'Đổi vai trò', color: 'bg-purple-100 text-purple-800', border: 'border-purple-300' },
+      'PUBLISH_ANNOUNCEMENT': { label: 'Đăng thông báo', color: 'bg-indigo-100 text-indigo-800', border: 'border-indigo-300' },
+      'EXPORT_DEVELOPMENT_REPORT': { label: 'Xuất báo cáo', color: 'bg-cyan-100 text-cyan-800', border: 'border-cyan-300' },
+      'CREATE': { label: 'CREATE', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-300' },
+      'UPDATE': { label: 'UPDATE', color: 'bg-amber-100 text-[#1E4D40]', border: 'border-amber-300' },
+      'DELETE': { label: 'DELETE', color: 'bg-red-100 text-red-700', border: 'border-red-300' },
+      'LOGIN': { label: 'LOGIN', color: 'bg-blue-100 text-blue-700', border: 'border-blue-300' },
+      'VERIFY': { label: 'VERIFY', color: 'bg-teal-100 text-teal-800', border: 'border-teal-300' },
+    };
+
+    if (ACTION_MAP[act]) {
+      const info = ACTION_MAP[act];
+      return (
+        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${info.color} ${info.border} inline-flex items-center gap-1`} title={action}>
+          <span>{info.label}</span>
+          <span className="text-[9px] opacity-70 font-mono">({action})</span>
+        </span>
+      );
     }
+
+    let colorClass = 'bg-slate-100 text-slate-700 border-slate-300';
+    if (act.includes('DELETE') || act.includes('REMOVE') || act.includes('REJECT') || act.includes('LOCK')) {
+      colorClass = 'bg-red-100 text-red-700 border-red-300';
+    } else if (act.includes('CREATE') || act.includes('ADD') || act.includes('INSERT') || act.includes('APPROVE')) {
+      colorClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    } else if (act.includes('UPDATE') || act.includes('EDIT')) {
+      colorClass = 'bg-amber-100 text-amber-800 border-amber-300';
+    } else if (act.includes('PUBLISH') || act.includes('SEND')) {
+      colorClass = 'bg-purple-100 text-purple-800 border-purple-300';
+    }
+
+    return (
+      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${colorClass}`} title={action}>
+        {action}
+      </span>
+    );
   };
 
   return (
@@ -270,9 +287,16 @@ export const AuditLogsPage: React.FC = () => {
                           <p className="font-bold text-slate-800 truncate" title={log.userName}>
                             {log.userName}
                           </p>
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            {log.userRole}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                              {log.userRole}
+                            </span>
+                            {log.userId && (
+                              <span className="text-[10px] text-slate-400 font-mono" title={`Account ID: ${log.userId}`}>
+                                ID: {log.userId.slice(0, 8)}...
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>

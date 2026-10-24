@@ -1,4 +1,4 @@
-﻿import axiosClient from './axiosClient';
+import axiosClient from './axiosClient';
 
 export interface MenuItemDto {
   itemId: number;
@@ -38,6 +38,10 @@ export const weeklyMenuApprovalApi = {
 
   rejectMenu: async (menuId: number, reason: string) => {
     return axiosClient.post<WeeklyMenuApprovalDto>(`/bgh/menus/approvals/${menuId}/reject`, { reason });
+  },
+
+  resetPendingMenu: async (menuId: number) => {
+    return axiosClient.post<WeeklyMenuApprovalDto>(`/bgh/menus/approvals/${menuId}/reset-pending`);
   },
 };
 

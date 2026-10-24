@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   Cpu,
+  Pencil,
+  Trash2,
+  AlertTriangle,
   Plus,
   Search,
   Filter,
@@ -20,6 +23,7 @@ import axiosClient from '../../../api/axiosClient';
 import { formatCurrency } from '../../../utils/formatters';
 import {
   InvoiceDto,
+  ServiceDto,
   GenerateBillingRequestDto,
   AddInvoiceItemRequestDto,
 } from '../../../types/finance.types';
@@ -40,11 +44,96 @@ export const TuitionCalculationTab: React.FC = () => {
   const [viewingInvoice, setViewingInvoice] = useState<InvoiceDto | null>(null);
 
   const [isIncidentalModalOpen, setIsIncidentalModalOpen] = useState<boolean>(false);
+  const [voluntaryServices, setVoluntaryServices] = useState<ServiceDto[]>([]);
+  const [feeMode, setFeeMode] = useState<'VOLUNTARY' | 'CUSTOM'>('VOLUNTARY');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [targetInvoiceForFee, setTargetInvoiceForFee] = useState<InvoiceDto | null>(null);
   const [feeDescription, setFeeDescription] = useState<string>('');
   const [feeAmount, setFeeAmount] = useState<number>(0);
   const [feeReason, setFeeReason] = useState<string>('');
   const [submittingFee, setSubmittingFee] = useState<boolean>(false);
+
+  // States for CRUD incidental fees
+  const [editingItem, setEditingItem] = useState<{ invoice: InvoiceDto; item: any } | null>(null);
+  const [editFeeDescription, setEditFeeDescription] = useState<string>('');
+  const [editFeeAmount, setEditFeeAmount] = useState<number>(0);
+  const [editFeeReason, setEditFeeReason] = useState<string>('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+
+  const openEditFeeModal = (invoice: InvoiceDto, item: any) => {
+    setEditingItem({ invoice, item });
+    let desc = item.itemDescription || '';
+    let reason = '';
+    if (desc.includes(' - Lý do: ')) {
+      const parts = desc.split(' - Lý do: ');
+      desc = parts[0];
+      reason = parts.slice(1).join(' - Lý do: ');
+    } else if (desc.includes(' (')) {
+      const parts = desc.split(' (');
+      desc = parts[0];
+      reason = parts[1].replace(/\)$/, '');
+    }
+    setEditFeeDescription(desc);
+    setEditFeeAmount(item.amount || 0);
+    setEditFeeReason(reason);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateIncidentalFee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !editingItem.item.itemId) return;
+    if (!editFeeDescription.trim()) {
+      showToast('error', 'MSG-165: Bỏ trống mô tả khoản phụ phí.');
+      return;
+    }
+    if (editFeeAmount <= 0) {
+      showToast('error', 'MSG-164: Số tiền phát sinh phải lớn hơn 0 VNĐ.');
+      return;
+    }
+
+    const payload: AddInvoiceItemRequestDto = {
+      itemDescription: editFeeDescription.trim(),
+      amount: editFeeAmount,
+      reason: editFeeReason.trim() || undefined,
+    };
+
+    try {
+      setSubmittingFee(true);
+      await financeApi.updateIncidentalFee(editingItem.invoice.invoiceId, editingItem.item.itemId, payload);
+      showToast('success', 'Cập nhật khoản phụ phí thành công.');
+      setIsEditModalOpen(false);
+      setEditingItem(null);
+      if (viewingInvoice && viewingInvoice.invoiceId === editingItem.invoice.invoiceId) {
+        // Refresh viewing invoice details
+        const refreshed = await financeApi.getInvoiceById(editingItem.invoice.invoiceId);
+        setViewingInvoice((refreshed as any)?.data || refreshed);
+      }
+      fetchInvoices();
+    } catch (err: any) {
+      showToast('error', err?.response?.data?.message || 'Không thể cập nhật phụ phí.');
+    } finally {
+      setSubmittingFee(false);
+    }
+  };
+
+  const handleDeleteFee = async (invoice: InvoiceDto, item: any) => {
+    if (!item.itemId) return;
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa khoản phụ phí "${item.itemDescription}" (${formatCurrency(item.amount)}) của học sinh ${invoice.studentName}?\n\nSố tiền này sẽ được khấu trừ ra khỏi tổng hóa đơn.`)) {
+      return;
+    }
+
+    try {
+      await financeApi.deleteIncidentalFee(invoice.invoiceId, item.itemId);
+      showToast('success', 'Đã xóa khoản phụ phí và cập nhật lại hóa đơn thành công.');
+      if (viewingInvoice && viewingInvoice.invoiceId === invoice.invoiceId) {
+        const refreshed = await financeApi.getInvoiceById(invoice.invoiceId);
+        setViewingInvoice((refreshed as any)?.data || refreshed);
+      }
+      fetchInvoices();
+    } catch (err: any) {
+      showToast('error', err?.response?.data?.message || 'Không thể xóa phụ phí.');
+    }
+  };
 
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -90,6 +179,14 @@ export const TuitionCalculationTab: React.FC = () => {
     fetchInvoices();
   }, [selectedMonth, selectedYear, selectedClassId, statusFilter]);
 
+  useEffect(() => {
+    financeApi.getServices().then((res: any) => {
+      const list: ServiceDto[] = Array.isArray(res) ? res : (res?.data || []);
+      const voluntary = list.filter(s => !s.isMandatory || s.serviceName.includes('CLB') || s.serviceName.toLowerCase().includes('buýt') || s.serviceName.toLowerCase().includes('xe'));
+      setVoluntaryServices(voluntary);
+    }).catch(() => {});
+  }, []);
+
   const handleGenerateBilling = async () => {
     try {
       setGenerating(true);
@@ -114,10 +211,26 @@ export const TuitionCalculationTab: React.FC = () => {
 
   const openIncidentalModal = (inv: InvoiceDto) => {
     setTargetInvoiceForFee(inv);
+    setFeeMode('VOLUNTARY');
+    setSelectedServiceId('');
     setFeeDescription('');
     setFeeAmount(0);
     setFeeReason('');
     setIsIncidentalModalOpen(true);
+  };
+
+  const handleSelectVoluntaryService = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const found = voluntaryServices.find(s => s.serviceId === serviceId);
+    if (found) {
+      setFeeDescription(found.serviceName);
+      setFeeAmount(found.unitPrice || 0);
+      setFeeReason('Đăng ký tự nguyện theo biểu phí hệ thống');
+    } else {
+      setFeeDescription('');
+      setFeeAmount(0);
+      setFeeReason('');
+    }
   };
 
   const handleSaveIncidentalFee = async (e: React.FormEvent) => {
@@ -316,6 +429,72 @@ export const TuitionCalculationTab: React.FC = () => {
                     <td className="py-3.5 px-4">
                       <p className="font-semibold text-slate-800">{inv.studentName}</p>
                       <p className="text-xs text-slate-500">Mã: {inv.studentCode} | Lớp: {inv.className || 'Chưa phân lớp'}</p>
+                      {/* Hiển thị chi tiết phụ phí phát sinh & các khoản tự nguyện ở màn hình chính */}
+                      {(() => {
+                        const isMandatoryOrDiscount = (desc: string) => {
+                          const d = (desc || '').toLowerCase();
+                          return d.includes('học phí chính khóa') ||
+                                 d.includes('học phí tiêu chuẩn') ||
+                                 d.includes('học phí') ||
+                                 d.includes('tiền ăn') ||
+                                 d.includes('bán trú') ||
+                                 d.includes('chăm sóc') ||
+                                 d.includes('giảm trừ') ||
+                                 d.includes('miễn giảm');
+                        };
+
+                        const incidentalItems = (inv.items || []).filter(item => {
+                          const desc = item.itemDescription || '';
+                          if (isMandatoryOrDiscount(desc)) return false;
+                          return true;
+                        });
+                        if (incidentalItems.length === 0) return null;
+                        return (
+                          <div className="mt-2 space-y-1">
+                            {incidentalItems.map((itm, itmIdx) => {
+                              const isVoluntary = itm.itemDescription.includes('CLB') || itm.itemDescription.includes('buýt') || itm.itemDescription.includes('tự nguyện');
+                              return (
+                                <div
+                                  key={itm.itemId || itmIdx}
+                                  className={`flex items-center gap-1.5 p-1.5 px-2 rounded-lg text-xs group shadow-2xs ${
+                                    isVoluntary
+                                      ? 'bg-purple-50/90 border border-purple-200/90 text-purple-900'
+                                      : 'bg-amber-50/90 border border-amber-200/90 text-amber-900'
+                                  }`}
+                                >
+                                  {isVoluntary ? (
+                                    <Sparkles className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                                  ) : (
+                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                                  )}
+                                  <div className="flex-1 truncate">
+                                    <span className="font-bold">+{formatCurrency(itm.amount)}: </span>
+                                    <span>{itm.itemDescription}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditFeeModal(inv, itm)}
+                                      className="p-1 hover:bg-slate-200 text-indigo-700 rounded transition"
+                                      title="Sửa khoản này"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteFee(inv, itm)}
+                                      className="p-1 hover:bg-rose-200 text-rose-700 rounded transition"
+                                      title="Xóa khoản ghi nhầm"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="py-3.5 px-4 text-xs text-slate-600">
                       <p className="font-medium text-slate-700">{inv.parentName || '—'}</p>
@@ -418,12 +597,45 @@ export const TuitionCalculationTab: React.FC = () => {
                 <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Các khoản mục chi tiết</h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {viewingInvoice.items && viewingInvoice.items.length > 0 ? (
-                    viewingInvoice.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-slate-200/80 rounded-xl text-sm">
-                        <span className="text-slate-700 font-medium">{item.itemDescription}</span>
-                        <span className="font-semibold text-slate-900">{formatCurrency(item.amount)}</span>
-                      </div>
-                    ))
+                    viewingInvoice.items.map((item, idx) => {
+                      const isIncidental = item.itemDescription.includes('Lý do:') ||
+                        item.itemDescription.includes('Phụ phí') ||
+                        item.itemDescription.includes('Phạt') ||
+                        item.itemDescription.includes('Đền bù') ||
+                        item.itemDescription.includes('CLB') ||
+                        (!item.itemDescription.includes('Học phí') && !item.itemDescription.includes('Tiền ăn'));
+
+                      return (
+                        <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-slate-200/80 rounded-xl text-sm">
+                          <div className="flex-1 mr-3">
+                            <span className="text-slate-700 font-medium block">{item.itemDescription}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900">{formatCurrency(item.amount)}</span>
+                            {isIncidental && item.itemId && (
+                              <div className="flex items-center gap-1 ml-2 border-l pl-2 border-slate-200">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditFeeModal(viewingInvoice, item)}
+                                  className="p-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded"
+                                  title="Chỉnh sửa phụ phí"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteFee(viewingInvoice, item)}
+                                  className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded"
+                                  title="Xóa phụ phí"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
                     <p className="text-xs text-slate-400 italic">Chưa có chi tiết khoản mục.</p>
                   )}
@@ -475,48 +687,139 @@ export const TuitionCalculationTab: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveIncidentalFee} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-                  Tên / Mô tả khoản phát sinh <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Đền bù hỏng bàn học / Mua thêm đồng phục"
-                  value={feeDescription}
-                  onChange={(e) => setFeeDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                />
+              {/* Chọn chế độ khoản thu */}
+              <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeeMode('VOLUNTARY');
+                    setFeeDescription('');
+                    setFeeAmount(0);
+                    setFeeReason('');
+                    setSelectedServiceId('');
+                  }}
+                  className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${
+                    feeMode === 'VOLUNTARY'
+                      ? 'bg-white text-indigo-700 shadow-sm font-bold'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  ⭐ Khoản tự nguyện có sẵn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeeMode('CUSTOM');
+                    setFeeDescription('');
+                    setFeeAmount(0);
+                    setFeeReason('');
+                    setSelectedServiceId('');
+                  }}
+                  className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${
+                    feeMode === 'CUSTOM'
+                      ? 'bg-white text-indigo-700 shadow-sm font-bold'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  ⚠️ Phụ phí / Phạt phát sinh
+                </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-                  Số tiền phát sinh (VNĐ) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="1000"
-                  step="1000"
-                  placeholder="Ví dụ: 150000"
-                  value={feeAmount || ''}
-                  onChange={(e) => setFeeAmount(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                />
-              </div>
+              {feeMode === 'VOLUNTARY' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Chọn dịch vụ tự nguyện / CLB Ngoại khóa <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={selectedServiceId}
+                      onChange={(e) => handleSelectVoluntaryService(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer"
+                    >
+                      <option value="">-- Chọn dịch vụ tự nguyện từ biểu phí --</option>
+                      {voluntaryServices.map((svc) => (
+                        <option key={svc.serviceId} value={svc.serviceId}>
+                          {svc.serviceName} ({formatCurrency(svc.unitPrice)})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Hệ thống tự động tra cứu từ danh mục dịch vụ tự nguyện & lớp CLB ngoại khóa sẵn có.
+                    </p>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-                  Lý do chi tiết & Căn cứ chứng từ (BR-037)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Ví dụ: Biên bản xử lý tài sản lớp Mầm 1 ngày 22/10/2026"
-                  value={feeReason}
-                  onChange={(e) => setFeeReason(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Đơn giá tự động cộng vào hóa đơn (VNĐ)
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formatCurrency(feeAmount)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-100 font-bold text-indigo-700 border border-slate-200 rounded-xl cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Ghi chú / Căn cứ đăng ký
+                    </label>
+                    <input
+                      type="text"
+                      value={feeReason}
+                      onChange={(e) => setFeeReason(e.target.value)}
+                      placeholder="Ví dụ: Đăng ký tự nguyện theo phiếu thỏa thuận phụ huynh"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Tên / Mô tả khoản phát sinh <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ví dụ: Đền bù hỏng bàn học / Phí phạt đón muộn sau 18h"
+                      value={feeDescription}
+                      onChange={(e) => setFeeDescription(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Số tiền phát sinh (VNĐ) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      step="any"
+                      placeholder="Ví dụ: 150000"
+                      value={feeAmount || ''}
+                      onChange={(e) => setFeeAmount(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                      Lý do chi tiết & Căn cứ chứng từ (BR-037) <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      placeholder="Ví dụ: Biên bản xử lý tài sản lớp Mầm 1 ngày 22/10/2026"
+                      value={feeReason}
+                      onChange={(e) => setFeeReason(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800">
                 <strong>Quy tắc BR-037:</strong> Khoản phát sinh sẽ được cộng dồn trực tiếp vào tổng công nợ tháng của học sinh và cập nhật lại mã VietQR.
@@ -536,6 +839,91 @@ export const TuitionCalculationTab: React.FC = () => {
                   className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm"
                 >
                   {submittingFee ? 'Đang lưu...' : 'Ghi nhận phát sinh'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Chỉnh Sửa Phụ Phí (G8-UC-05) */}
+      {isEditModalOpen && editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-800">[G8-UC-05] Chỉnh Sửa Phụ Phí / Phạt Phát Sinh</h3>
+                <p className="text-xs text-slate-500">Học sinh: {editingItem.invoice.studentName} ({editingItem.invoice.invoiceCode})</p>
+              </div>
+              <button
+                onClick={() => { setIsEditModalOpen(false); setEditingItem(null); }}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateIncidentalFee} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Tên / Mô tả khoản phát sinh <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Đền bù hỏng bàn học / Mua thêm đồng phục"
+                  value={editFeeDescription}
+                  onChange={(e) => setEditFeeDescription(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Số tiền phát sinh (VNĐ) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  step="any"
+                  placeholder="Ví dụ: 150000"
+                  value={editFeeAmount || ''}
+                  onChange={(e) => setEditFeeAmount(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Lý do chi tiết & Căn cứ chứng từ (BR-037)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ví dụ: Biên bản xử lý tài sản lớp Mầm 1 ngày 22/10/2026"
+                  value={editFeeReason}
+                  onChange={(e) => setEditFeeReason(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                />
+              </div>
+
+              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800">
+                <strong>Chỉnh sửa trường hợp ghi nhầm:</strong> Số tiền chênh lệch sẽ được tự động cộng/trừ vào tổng hóa đơn và cập nhật lại mã VietQR tương ứng.
+              </div>
+
+              <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => { setIsEditModalOpen(false); setEditingItem(null); }}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingFee}
+                  className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm"
+                >
+                  {submittingFee ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </button>
               </div>
             </form>

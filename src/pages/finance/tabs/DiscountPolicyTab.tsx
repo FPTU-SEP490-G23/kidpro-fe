@@ -457,7 +457,7 @@ export const DiscountPolicyTab: React.FC = () => {
                   type="number"
                   min="0"
                   max="100"
-                  step="0.5"
+                  step="any"
                   placeholder="Ví dụ: 10 (tương đương giảm 10%)"
                   value={discountPercentage || ''}
                   onChange={(e) => setDiscountPercentage(Number(e.target.value))}
@@ -472,7 +472,7 @@ export const DiscountPolicyTab: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  step="10000"
+                  step="any"
                   placeholder="Ví dụ: 500000"
                   value={discountAmount || ''}
                   onChange={(e) => setDiscountAmount(Number(e.target.value))}

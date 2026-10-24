@@ -1,464 +1,428 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import lessonPlanApprovalApi, { LessonPlanApprovalDto } from '../../api/lessonPlanApprovalApi';
+import { useToast } from '../../contexts/ToastContext';
 import {
-  BookOpenCheck,
+  BookOpen,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   Clock,
-  ShieldCheck,
-  AlertTriangle,
-  RefreshCw,
-  Search,
-  Filter,
-  Check,
-  X,
-  Eye,
-  Calendar,
-  Layers,
   Sparkles,
-  BookOpen,
+  School,
+  Eye,
+  RefreshCw,
+  Filter,
+  X,
+  RotateCcw,
+  User,
+  Layers,
 } from 'lucide-react';
-import lessonPlanApprovalApi, {
-  LessonPlanApprovalDto,
-} from '../../api/lessonPlanApprovalApi';
-import classApprovalApi, { ClassApprovalItem } from '../../api/classApprovalApi';
 
 export const BghLessonPlanApprovalsPage: React.FC = () => {
-  const [plans, setPlans] = useState<LessonPlanApprovalDto[]>([]);
-  const [classes, setClasses] = useState<ClassApprovalItem[]>([]);
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [weekNumber, setWeekNumber] = useState<number>(42);
-  const [loading, setLoading] = useState<boolean>(true);
+  const queryClient = useQueryClient();
+  const { success, error } = useToast();
 
-  // Selected Detail & Modals
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REVISION_REQUESTED'>('PENDING');
   const [selectedPlan, setSelectedPlan] = useState<LessonPlanApprovalDto | null>(null);
-  const [approveModalOpen, setApproveModalOpen] = useState<boolean>(false);
-  const [revisionModalOpen, setRevisionModalOpen] = useState<boolean>(false);
-  const [actionPlan, setActionPlan] = useState<LessonPlanApprovalDto | null>(null);
-  const [note, setNote] = useState<string>('');
-  const [revisionReason, setRevisionReason] = useState<string>('');
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [revisingPlan, setRevisingPlan] = useState<LessonPlanApprovalDto | null>(null);
+  const [revisionNotes, setRevisionNotes] = useState('');
+  const [validationError, setValidationError] = useState('');
 
-  // Alert toast
-  const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  // Fetch lesson plans list
+  const { data: plansResponse, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ['lesson-plan-approvals-bgh', statusFilter],
+    queryFn: () => lessonPlanApprovalApi.getLessonPlans({ status: statusFilter }),
+  });
 
-  const fetchClasses = async () => {
-    try {
-      const res = await classApprovalApi.getApprovals('ALL');
-      setClasses(Array.isArray(res) ? res : ((res as any)?.data || []));
-    } catch (err) {
-      console.error('Lỗi khi tải danh sách lớp:', err);
-    }
+  const plans: LessonPlanApprovalDto[] = Array.isArray(plansResponse)
+    ? plansResponse
+    : ((plansResponse as any)?.data || []);
+
+  // Approve mutation
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => lessonPlanApprovalApi.approve(id),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-plan-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'MSG-270: Kế hoạch giáo án đã được thẩm định và phê duyệt thành công.');
+      setSelectedPlan(null);
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể phê duyệt giáo án');
+    },
+  });
+
+  // Request revision mutation
+  const revisionMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      lessonPlanApprovalApi.requestRevision(id, reason),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-plan-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'Đã gửi yêu cầu chỉnh sửa bài giảng tới giáo viên bộ môn thành công.');
+      closeRevisionModal();
+      setSelectedPlan(null);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể yêu cầu chỉnh sửa giáo án';
+      setValidationError(msg);
+      error(msg);
+    },
+  });
+
+  // Reset to pending mutation
+  const resetMutation = useMutation({
+    mutationFn: (id: string) => lessonPlanApprovalApi.resetPending(id),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-plan-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'Đã khôi phục kế hoạch giáo án về trạng thái Chờ phê duyệt (PENDING) thành công.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể khôi phục trạng thái giáo án');
+    },
+  });
+
+  const openRevisionModal = (p: LessonPlanApprovalDto) => {
+    setRevisingPlan(p);
+    setRevisionNotes('');
+    setValidationError('');
   };
 
-  const fetchPlans = async () => {
-    try {
-      setLoading(true);
-      const res = await lessonPlanApprovalApi.getLessonPlans({
-        classId: selectedClassId || undefined,
-        weekNumber: weekNumber || undefined,
-        status: statusFilter !== 'ALL' ? statusFilter : undefined,
-      });
-      const data = Array.isArray(res) ? res : ((res as any)?.data || []);
-      setPlans(data);
-      if (data.length > 0 && !selectedPlan) {
-        setSelectedPlan(data[0]);
-      }
-    } catch (err) {
-      console.error('Lỗi khi tải danh sách giáo án:', err);
-    } finally {
-      setLoading(false);
-    }
+  const closeRevisionModal = () => {
+    setRevisingPlan(null);
+    setRevisionNotes('');
+    setValidationError('');
   };
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  useEffect(() => {
-    fetchPlans();
-  }, [selectedClassId, weekNumber, statusFilter]);
-
-  const handleApprove = async () => {
-    if (!actionPlan) return;
-    try {
-      setSubmitting(true);
-      const res = await lessonPlanApprovalApi.approve(actionPlan.id, note);
-      setAlertInfo({
-        type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Kế hoạch giáo án đã được thẩm định và phê duyệt thành công. Lịch hoạt động học tập đã được ban hành (MSG-270).',
-      });
-      setApproveModalOpen(false);
-      setNote('');
-      fetchPlans();
-    } catch (err: any) {
-      setAlertInfo({ type: 'error', message: err?.response?.data?.message || 'Lỗi khi phê duyệt giáo án.' });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleRequestRevision = async () => {
-    if (!actionPlan) return;
-    if (!revisionReason.trim()) {
-      setAlertInfo({
-        type: 'error',
-        message: 'MSG-272: Vui lòng nhập đầy đủ nội dung góp ý chuyên môn hoặc yêu cầu điều chỉnh khi trả lại giáo án.',
-      });
+  const handleConfirmRevision = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revisionNotes.trim()) {
+      setValidationError('MSG-272: Vui lòng nhập đầy đủ nội dung góp ý chuyên môn hoặc yêu cầu điều chỉnh khi trả lại giáo án.');
       return;
     }
-    try {
-      setSubmitting(true);
-      const res = await lessonPlanApprovalApi.requestRevision(actionPlan.id, revisionReason.trim());
-      setAlertInfo({
-        type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Đã gửi yêu cầu chỉnh sửa bài giảng tới giáo viên bộ môn thành công.',
-      });
-      setRevisionModalOpen(false);
-      setRevisionReason('');
-      fetchPlans();
-    } catch (err: any) {
-      setAlertInfo({ type: 'error', message: err?.response?.data?.message || 'Lỗi khi yêu cầu chỉnh sửa.' });
-    } finally {
-      setSubmitting(false);
-    }
+    if (!revisingPlan) return;
+    revisionMutation.mutate({ id: revisingPlan.id, reason: revisionNotes.trim() });
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <div className="space-y-6 p-6">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl bg-gradient-to-r from-[#275A4E] to-[#1E4D40] p-8 text-white shadow-xl shadow-[#275A4E]/20">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#275A4E]/10 flex items-center justify-center text-[#275A4E]">
-              <BookOpenCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">
-                [UC-077] Phê Duyệt Kế Hoạch Giáo Án Tháng / Tuần
-              </h1>
-              <p className="text-sm text-slate-500">
-                Thẩm tra mục tiêu đào tạo, hoạt động giảng dạy, giáo cụ sư phạm và ban hành lịch học tập (BR-114, BR-115)
-              </p>
-            </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
+            <span>UC-077 • Ban Giám Hiệu</span>
           </div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Kế Hoạch Giáo Án Tháng</h1>
+          <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
+            Thẩm định tính sư phạm, mục tiêu phát triển và đồ dùng học liệu của giáo án tuần/tháng (BR-114, BR-115). Dữ liệu được lưu trực tiếp vào bảng academic.lesson_plan.
+          </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchPlans}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors text-sm"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Làm mới
-          </button>
-        </div>
-      </div>
-
-      {/* Alert toast */}
-      {alertInfo && (
-        <div
-          className={`p-4 rounded-xl flex items-center justify-between border ${
-            alertInfo.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="self-start sm:self-center inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition cursor-pointer"
         >
-          <div className="flex items-center gap-2">
-            {alertInfo.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 text-rose-600" />
-            )}
-            <span className="text-sm font-medium">{alertInfo.message}</span>
-          </div>
-          <button onClick={() => setAlertInfo(null)} className="text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Làm mới</span>
+        </button>
+      </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap items-center gap-4 justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Lớp:</span>
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-semibold text-slate-700"
-            >
-              <option value="">Tất cả các lớp</option>
-              {classes.map((cls) => (
-                <option key={cls.classId} value={cls.classId}>
-                  {cls.className} ({cls.gradeLevel})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Tuần:</span>
-            <input
-              type="number"
-              min={1}
-              max={52}
-              value={weekNumber}
-              onChange={(e) => setWeekNumber(Number(e.target.value))}
-              className="w-16 px-2 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-semibold text-slate-700"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Trạng thái:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-semibold text-slate-700"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="PENDING">Chờ BGH duyệt</option>
-              <option value="APPROVED">Đã phê duyệt</option>
-              <option value="REVISION_REQUESTED">Cần chỉnh sửa</option>
-            </select>
-          </div>
+      {/* Bộ lọc trạng thái */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+          <Filter className="w-4 h-4 text-[#275A4E]" />
+          <span>Lọc danh sách giáo án:</span>
         </div>
 
-        <div className="text-xs text-slate-500">
-          Tổng số: <strong>{plans.length}</strong> giáo án tuần
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: 'PENDING' as const, label: 'Chờ phê duyệt (PENDING)' },
+            { id: 'APPROVED' as const, label: 'Đã phê duyệt (APPROVED)' },
+            { id: 'REVISION_REQUESTED' as const, label: 'Cần chỉnh sửa (REVISION_REQUESTED)' },
+            { id: 'ALL' as const, label: 'Tất cả giáo án' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                statusFilter === tab.id
+                  ? 'bg-[#275A4E] text-white shadow-2xs'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Lesson Plan List */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-          <h2 className="font-bold text-slate-800 text-sm">Danh Sách Giáo Án Chờ Phê Duyệt</h2>
-
-          <div className="space-y-2">
-            {loading ? (
-              <div className="text-center py-8 text-slate-400 text-xs">Đang tải giáo án...</div>
-            ) : plans.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-xs">Không tìm thấy giáo án nào</div>
-            ) : (
-              plans.map((p) => {
-                const isSelected = selectedPlan?.id === p.id;
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedPlan(p)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[#275A4E] bg-[#275A4E]/5 shadow-sm'
-                        : 'border-slate-100 hover:border-slate-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-bold text-xs text-slate-800">{p.className}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.status === 'APPROVED'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : p.status === 'REVISION_REQUESTED'
-                            ? 'bg-rose-100 text-rose-700'
-                            : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {p.status === 'APPROVED'
-                          ? 'Đã Duyệt'
-                          : p.status === 'REVISION_REQUESTED'
-                          ? 'Cần Sửa'
-                          : 'Chờ Duyệt'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs font-semibold text-slate-700 line-clamp-1">{p.title}</p>
-                    <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{p.topic}</p>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[11px] text-slate-400">
-                      <span>GV: {p.teacherName}</span>
-                      <span>Tuần {p.weekNumber}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+      {/* Grid Danh Sách Giáo Án */}
+      {plans.length === 0 ? (
+        <div className="rounded-3xl bg-white border border-slate-200 p-12 text-center text-slate-400">
+          <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#275A4E]" />
+          <p className="text-base font-bold text-slate-700">Chưa có kế hoạch giáo án nào cần thẩm định</p>
+          <p className="text-xs mt-1">Giáo viên phụ trách lớp sẽ nộp giáo án tuần trước khi bắt đầu hoạt động</p>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {plans.map((p) => {
+            const isApproved = p.status === 'APPROVED';
+            const isRevision = p.status === 'REVISION_REQUESTED';
+            const isPending = p.status === 'PENDING';
 
-        {/* Right: Selected Lesson Plan Detail */}
-        <div className="lg:col-span-2">
-          {selectedPlan ? (
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            return (
+              <div
+                key={p.id}
+                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs hover:shadow-md hover:border-[#78C2AD] transition-all duration-200 flex flex-col justify-between"
+              >
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#275A4E]/10 text-[#275A4E]">
-                      {selectedPlan.className}
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono">Mã: {selectedPlan.id}</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#78C2AD]/15 text-[#275A4E] flex items-center justify-center font-bold">
+                      <BookOpen className="w-6 h-6" />
+                    </div>
+                    <div>
+                      {isApproved && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>ĐÃ DUYỆT</span>
+                        </span>
+                      )}
+                      {isRevision && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>CẦN SỬA ĐỔI</span>
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                          <span>CHỜ DUYỆT</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <h2 className="text-lg font-bold text-slate-800 mt-1">{selectedPlan.title}</h2>
-                  <p className="text-xs text-slate-500">{selectedPlan.topic} • GV: {selectedPlan.teacherName}</p>
+
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    {p.title}
+                  </h3>
+
+                  <p className="text-xs font-semibold text-[#275A4E] mt-0.5">
+                    {p.topic}
+                  </p>
+
+                  <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Giáo viên soạn:</span>
+                      <strong className="text-slate-800 font-bold">{p.teacherName}</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Lớp học:</span>
+                      <strong className="text-slate-800 font-bold">{p.className}</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Hạn phê duyệt:</span>
+                      <strong className="text-slate-800 font-bold">{p.deadlineDate}</strong>
+                    </div>
+                  </div>
+
+                  {/* Nhận xét chỉ đạo nếu có */}
+                  {isRevision && p.reviewNotes && (
+                    <div className="mt-3 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                      <strong>Góp ý chuyên môn:</strong> {p.reviewNotes}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {selectedPlan.status !== 'APPROVED' ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setActionPlan(selectedPlan);
-                          setApproveModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#275A4E] text-white rounded-xl text-xs font-bold hover:bg-[#1E4D40] transition-colors shadow-sm"
-                      >
-                        <Check className="w-4 h-4" />
-                        Phê Duyệt Giáo Án
-                      </button>
-                      <button
-                        onClick={() => {
-                          setActionPlan(selectedPlan);
-                          setRevisionModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 border border-rose-300 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-50 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                        Yêu Cầu Chỉnh Sửa
-                      </button>
-                    </>
-                  ) : (
-                    <span className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold">
-                      <ShieldCheck className="w-4 h-4" />
-                      Đã Thẩm Định & Ban Hành
-                    </span>
+                {/* Nút hành động */}
+                <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan(p)}
+                    className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Xem giáo án</span>
+                  </button>
+
+                  {!isApproved && (
+                    <button
+                      type="button"
+                      onClick={() => approveMutation.mutate(p.id)}
+                      disabled={approveMutation.isPending}
+                      className="py-2 px-3 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Phê duyệt</span>
+                    </button>
+                  )}
+
+                  {!isRevision && (
+                    <button
+                      type="button"
+                      onClick={() => openRevisionModal(p)}
+                      className="py-2 px-3 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                    >
+                      Cần chỉnh sửa
+                    </button>
+                  )}
+
+                  {/* Nút Khôi phục Chờ duyệt khi đã duyệt hoặc yêu cầu chỉnh sửa */}
+                  {(isApproved || isRevision) && (
+                    <button
+                      type="button"
+                      onClick={() => resetMutation.mutate(p.id)}
+                      disabled={resetMutation.isPending}
+                      title="Khôi phục giáo án về trạng thái Chờ phê duyệt (PENDING)"
+                      className="py-2 px-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Khôi phục</span>
+                    </button>
                   )}
                 </div>
               </div>
-
-              {selectedPlan.reviewNotes && (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
-                  <span className="font-bold">Ý kiến chỉ đạo chuyên môn của BGH: </span>
-                  {selectedPlan.reviewNotes}
-                </div>
-              )}
-
-              {/* Detail Content Blocks */}
-              <div className="space-y-4 text-xs">
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2">
-                  <h3 className="font-bold text-[#275A4E] flex items-center gap-1.5 text-xs">
-                    <BookOpen className="w-4 h-4" />
-                    1. Mục Tiêu Đào Tạo (Kiến Thức - Kỹ Năng - Thái Độ)
-                  </h3>
-                  <p className="text-slate-700 leading-relaxed">{selectedPlan.objectives}</p>
-                </div>
-
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2">
-                  <h3 className="font-bold text-[#275A4E] flex items-center gap-1.5 text-xs">
-                    <Layers className="w-4 h-4" />
-                    2. Nội Dung Hoạt Động & Tiến Trình Giảng Dạy
-                  </h3>
-                  <p className="text-slate-700 leading-relaxed">{selectedPlan.activities}</p>
-                </div>
-
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2">
-                  <h3 className="font-bold text-[#275A4E] flex items-center gap-1.5 text-xs">
-                    <Sparkles className="w-4 h-4" />
-                    3. Giáo Cụ & Phương Tiện Dạy Học
-                  </h3>
-                  <p className="text-slate-700 leading-relaxed">{selectedPlan.materials}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-400">
-                <span>Ngày nộp: {selectedPlan.submittedDate}</span>
-                <span>Hạn chót thẩm định: {selectedPlan.deadlineDate} (BR-114)</span>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm text-center text-slate-400">
-              Vui lòng chọn một giáo án để thẩm định nội dung
-            </div>
-          )}
+            );
+          })}
         </div>
-      </div>
+      )}
 
-      {/* Modal Phê Duyệt */}
-      {approveModalOpen && actionPlan && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full rounded-2xl p-6 shadow-xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-slate-800">
-              Phê Duyệt Kế Hoạch Giáo Án: {actionPlan.title}
-            </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-114</strong>, sau khi Ban Giám hiệu ký duyệt, lịch hoạt động học tập tuần của lớp sẽ chính thức công bố trên Sổ liên lạc điện tử cho Phụ huynh theo dõi.
-            </p>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1 block">
-                Ghi chú chỉ đạo sư phạm (Tùy chọn)
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Nhập ghi chú cho giáo viên đứng lớp..."
-                rows={3}
-                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-              />
+      {/* Modal Chi Tiết Kế Hoạch Giáo Án */}
+      {selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-[#275A4E] to-[#1E4D40] text-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-[#78C2AD]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">{selectedPlan.title}</h3>
+                  <p className="text-xs text-[#78C2AD]">Giáo viên: {selectedPlan.teacherName} • Lớp: {selectedPlan.className}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedPlan(null)} className="p-1 rounded-full text-white/80 hover:bg-white/10">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                onClick={() => setApproveModalOpen(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={handleApprove}
-                disabled={submitting}
-                className="px-5 py-2 bg-[#275A4E] text-white rounded-xl text-sm font-semibold hover:bg-[#1E4D40]"
-              >
-                {submitting ? 'Đang duyệt...' : 'Đồng Ý Phê Duyệt'}
-              </button>
+
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <h4 className="text-xs font-bold text-[#275A4E] uppercase tracking-wider mb-1">Chủ đề bài học</h4>
+                <p className="text-sm font-semibold text-slate-800">{selectedPlan.topic}</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">1. Mục tiêu đào tạo (Objectives)</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{selectedPlan.objectives}</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">2. Tiến trình hoạt động (Activities)</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{selectedPlan.activities}</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">3. Đồ dùng & Học liệu chuẩn bị (Materials)</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{selectedPlan.materials}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <span className="text-xs text-slate-500">
+                Trạng thái: <strong className="text-slate-800">{selectedPlan.status}</strong>
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openRevisionModal(selectedPlan)}
+                  className="px-4 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition"
+                >
+                  Yêu cầu chỉnh sửa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => approveMutation.mutate(selectedPlan.id)}
+                  disabled={approveMutation.isPending}
+                  className="px-5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-sm"
+                >
+                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt giáo án (MSG-270)'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Yêu Cầu Chỉnh Sửa */}
-      {revisionModalOpen && actionPlan && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full rounded-2xl p-6 shadow-xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-rose-700">
-              Yêu Cầu Chỉnh Sửa Giáo Án: {actionPlan.title}
-            </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-115</strong>, Ban Giám hiệu bắt buộc phải nêu rõ phần chưa đạt (Mục tiêu, Kỹ năng, Hoạt động, Giáo cụ) để giáo viên hoàn thiện trước khi lên lớp.
-            </p>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 mb-1 block">
-                Nội dung yêu cầu điều chỉnh <span className="text-rose-500">*</span>
-              </label>
-              <textarea
-                value={revisionReason}
-                onChange={(e) => setRevisionReason(e.target.value)}
-                placeholder="Ví dụ: Cần bổ sung giáo cụ trực quan an toàn; Hoạt động ngoài trời cần phương án dự phòng thời tiết..."
-                rows={4}
-                className="w-full text-sm p-3 border border-rose-200 rounded-xl focus:outline-none focus:border-rose-500"
-              />
-            </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
+      {/* Modal Yêu Cầu Chỉnh Sửa Giáo Án */}
+      {revisingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Yêu Cầu Chỉnh Sửa Giáo Án</h3>
+                  <p className="text-xs text-slate-500">Giáo viên: {revisingPlan.teacherName} • BR-115</p>
+                </div>
+              </div>
               <button
-                onClick={() => setRevisionModalOpen(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm"
+                type="button"
+                onClick={closeRevisionModal}
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={handleRequestRevision}
-                disabled={submitting}
-                className="px-5 py-2 bg-rose-600 text-white rounded-xl text-sm font-semibold hover:bg-rose-700"
-              >
-                {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu Sửa'}
+                <X className="w-5 h-5" />
               </button>
             </div>
+
+            <form onSubmit={handleConfirmRevision} className="space-y-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Nội dung góp ý chuyên môn hoặc yêu cầu điều chỉnh <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={revisionNotes}
+                  onChange={(e) => {
+                    setRevisionNotes(e.target.value);
+                    setValidationError('');
+                  }}
+                  placeholder="Ví dụ: Hoạt động tạo hình cần bổ sung hướng dẫn an toàn khi sử dụng kéo, thời lượng tiết âm nhạc kéo dài 35 phút là quá sức với trẻ 3 tuổi..."
+                  className="w-full text-sm p-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:border-[#275A4E] focus:ring-2 focus:ring-[#78C2AD]/20"
+                />
+                {validationError && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {validationError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeRevisionModal}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={revisionMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
+                >
+                  {revisionMutation.isPending ? 'Đang gửi...' : 'Gửi chỉ đạo chỉnh sửa (MSG-272)'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

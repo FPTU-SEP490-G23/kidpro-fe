@@ -15,7 +15,7 @@ import {
   Users,
   Calendar,
   X,
-  MessageSquare,
+  RotateCcw,
 } from 'lucide-react';
 
 export const BghClassApprovalsPage: React.FC = () => {
@@ -61,6 +61,18 @@ export const BghClassApprovalsPage: React.FC = () => {
     },
   });
 
+  // Reset to pending mutation
+  const resetMutation = useMutation({
+    mutationFn: (classId: string) => classApprovalApi.resetPendingClass(classId),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
+      success(res?.message || 'Đã khôi phục kế hoạch mở lớp về trạng thái Chờ phê duyệt (PENDING) thành công.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể khôi phục trạng thái lớp');
+    },
+  });
+
   const openRejectModal = (c: ClassApprovalItem) => {
     setRejectingClass(c);
     setRejectionReason('');
@@ -85,10 +97,10 @@ export const BghClassApprovalsPage: React.FC = () => {
 
   const formatGradeLevel = (lvl?: string) => {
     switch (lvl) {
-      case 'INFANT': return 'Nhà trẻ (18 - 24 tháng)';
-      case 'TODDLER': return 'Nhà trẻ (24 - 36 tháng)';
+      case 'INFANT': return 'Nhà trẻ nhỏ (3 - 12 tháng)';
+      case 'TODDLER': return 'Nhà trẻ (12 - 36 tháng)';
       case 'NURSERY': return 'Khối Mầm (3 - 4 tuổi)';
-      case 'KINDERGARTEN': return 'Khối Lá (5 - 6 tuổi)';
+      case 'KINDERGARTEN': return 'Khối Chồi & Lá (4 - 6 tuổi)';
       default: return lvl || 'Mẫu giáo';
     }
   };
@@ -104,7 +116,7 @@ export const BghClassApprovalsPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Mở Lớp Học Mới</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Xem xét và ký duyệt hoặc từ chối kế hoạch mở lớp học do Cán bộ Giáo vụ trình duyệt theo quy chuẩn BR-011.
+            Xem xét và ký duyệt hoặc từ chối kế hoạch mở lớp học do Cán bộ Giáo vụ trình duyệt theo quy chuẩn BR-011. Dữ liệu được lưu trực tiếp vào bảng academic.classes.
           </p>
         </div>
         <button
@@ -203,7 +215,7 @@ export const BghClassApprovalsPage: React.FC = () => {
 
                   <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Sĩ số tối đa:</span>
+                      <span className="text-slate-400">Sĩ số định mức:</span>
                       <strong className="text-slate-800 font-bold">{c.maxCapacity || 25} trẻ</strong>
                     </div>
 
@@ -214,7 +226,7 @@ export const BghClassApprovalsPage: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Niên khóa:</span>
-                      <strong className="text-slate-800 font-bold">{c.academicYearName || '2026-2027'}</strong>
+                      <strong className="text-slate-800 font-bold">{c.academicYearName || '2025-2026'}</strong>
                     </div>
                   </div>
 
@@ -226,14 +238,14 @@ export const BghClassApprovalsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Nút Phê duyệt / Từ chối (Dành cho trạng thái PENDING hoặc REJECTED cần duyệt lại) */}
-                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                {/* Nút Phê duyệt / Từ chối / Khôi phục Chờ duyệt */}
+                <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
                   {!isApproved && (
                     <button
                       type="button"
                       onClick={() => approveMutation.mutate(c.classId)}
                       disabled={approveMutation.isPending}
-                      className="flex-1 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                      className="flex-1 min-w-[100px] py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Phê duyệt</span>
@@ -244,9 +256,23 @@ export const BghClassApprovalsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => openRejectModal(c)}
-                      className="px-4 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                      className="px-3 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
                     >
                       Từ chối
+                    </button>
+                  )}
+
+                  {/* Nút Khôi phục Chờ duyệt khi đã phê duyệt hoặc từ chối */}
+                  {(isApproved || isRejected) && (
+                    <button
+                      type="button"
+                      onClick={() => resetMutation.mutate(c.classId)}
+                      disabled={resetMutation.isPending}
+                      title="Khôi phục trạng thái về Chờ phê duyệt (PENDING) trong trường hợp duyệt nhầm"
+                      className="px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Khôi phục Chờ duyệt</span>
                     </button>
                   )}
                 </div>
@@ -258,63 +284,65 @@ export const BghClassApprovalsPage: React.FC = () => {
 
       {/* Modal Từ Chối Kế Hoạch Mở Lớp (Rẽ nhánh A1) */}
       {rejectingClass && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-rose-600">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
-                  <XCircle className="w-5 h-5 text-rose-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <XCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Từ chối kế hoạch mở lớp</h3>
-                  <p className="text-xs text-slate-500">Lớp học: {rejectingClass.className}</p>
+                  <h3 className="text-lg font-bold text-slate-800">Từ Chối Kế Hoạch Mở Lớp</h3>
+                  <p className="text-xs text-slate-500">Lớp: {rejectingClass.className} • BR-011</p>
                 </div>
               </div>
-              <button onClick={closeRejectModal} className="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+              <button
+                type="button"
+                onClick={closeRejectModal}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Theo quy tắc <strong>BR-011</strong>, khi Ban Giám hiệu từ chối mở lớp, bắt buộc phải nêu rõ lý do hoặc nội dung chỉ đạo điều chỉnh gửi về Cán bộ Giáo vụ.
-            </p>
-
-            <form onSubmit={handleConfirmReject} className="space-y-3">
-              {validationError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{validationError}</span>
-                </div>
-              )}
-
+            <form onSubmit={handleConfirmReject} className="space-y-4 mt-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Lý do từ chối / Yêu cầu điều chỉnh *
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Lý do từ chối & Yêu cầu Cán bộ Giáo vụ điều chỉnh <span className="text-rose-500">*</span>
                 </label>
                 <textarea
-                  rows={3}
                   required
+                  rows={4}
                   value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Ví dụ: Phòng học chỉ định đang trong diện sửa chữa cơ sở vật chất, đề nghị bố trí sang phòng học P102..."
-                  className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-xl focus:border-[#275A4E] outline-none"
+                  onChange={(e) => {
+                    setRejectionReason(e.target.value);
+                    setValidationError('');
+                  }}
+                  placeholder="Ví dụ: Phòng học 201 hiện đang sửa chữa chưa đủ điều kiện an toàn, đề nghị chuyển lớp sang phòng 104..."
+                  className="w-full text-sm p-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:border-[#275A4E] focus:ring-2 focus:ring-[#78C2AD]/20"
                 />
+                {validationError && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {validationError}
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={closeRejectModal}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={rejectMutation.isPending}
-                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối (MSG-032)'}
                 </button>
               </div>
             </form>

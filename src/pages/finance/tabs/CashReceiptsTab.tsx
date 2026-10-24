@@ -339,8 +339,8 @@ export const CashReceiptsTab: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="1"
-                  step="1000"
+                  min={0}
+                  step="any"
                   value={amountPaid}
                   onChange={(e) => setAmountPaid(Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 text-base font-bold text-emerald-600 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"

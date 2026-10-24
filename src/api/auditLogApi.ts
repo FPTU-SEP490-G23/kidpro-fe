@@ -22,13 +22,15 @@ function mapAction(actionStr: string): AuditAction {
 }
 
 function mapToAuditLogEntry(item: any): AuditLogEntry {
+  const role = item.role || (item.accountId ? 'USER' : 'SYSTEM');
+  const actionRaw = item.action ? String(item.action).trim() : 'UPDATE';
   return {
     id: String(item.logId || item.id || ''),
     userId: String(item.accountId || ''),
-    userName: item.fullName || item.username || 'Hệ thống',
-    userEmail: item.email || (item.username ? `${item.username}@kidpro.edu.vn` : 'system@kidpro.edu.vn'),
-    userRole: item.role || 'BOARD_OF_DIRECTORS',
-    action: mapAction(item.action),
+    userName: item.fullName || item.username || (item.accountId ? 'Người dùng #' + String(item.accountId).slice(0, 8) : 'Hệ thống'),
+    userEmail: item.email || (item.username && item.username !== 'Hệ thống' ? `${item.username}@kidpro.edu.vn` : 'system@kidpro.edu.vn'),
+    userRole: role,
+    action: actionRaw,
     tableName: item.targetEntity || 'System',
     recordId: String(item.logId || ''),
     ipAddress: item.ipAddress || '127.0.0.1',

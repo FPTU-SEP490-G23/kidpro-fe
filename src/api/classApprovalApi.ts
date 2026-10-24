@@ -23,13 +23,19 @@ export const classApprovalApi = {
 
   // Phê duyệt mở lớp (BR-011)
   approveClass: async (classId: string): Promise<{ message: string; data: ClassApprovalItem }> => {
-    const res: any = await axiosClient.patch(`/bgh/classes/${classId}/approve`);
+    const res: any = await axiosClient.post(`/bgh/classes/${classId}/approve`);
     return res?.data || res;
   },
 
   // Từ chối mở lớp kèm lý do bắt buộc (MSG-033)
   rejectClass: async (classId: string, reason: string): Promise<{ message: string; data: ClassApprovalItem }> => {
-    const res: any = await axiosClient.patch(`/bgh/classes/${classId}/reject`, { reason });
+    const res: any = await axiosClient.post(`/bgh/classes/${classId}/reject`, { reason });
+    return res?.data || res;
+  },
+
+  // Khôi phục trạng thái về Chờ phê duyệt (PENDING) khi duyệt/từ chối nhầm
+  resetPendingClass: async (classId: string): Promise<{ message: string; data: ClassApprovalItem }> => {
+    const res: any = await axiosClient.post(`/bgh/classes/${classId}/reset-pending`);
     return res?.data || res;
   },
 };

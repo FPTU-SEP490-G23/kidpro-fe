@@ -665,7 +665,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="number"
-                                step="0.5"
+                                step="any"
                                 value={dish.coreTemperatureCelsius}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value) || 0;
@@ -798,7 +798,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                           <div className="flex items-center gap-1.5">
                             <input
                               type="number"
-                              step="0.1"
+                              step="any"
                               value={sample.storageTemperatureCelsius}
                               onChange={(e) => {
                                 const val = parseFloat(e.target.value) || 0;

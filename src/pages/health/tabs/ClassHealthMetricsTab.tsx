@@ -519,7 +519,7 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
                         <div className="relative">
                           <input
                             type="number"
-                            step="0.1"
+                            step="any"
                             min="60"
                             max="140"
                             {...register(`records.${index}.heightCm`, {
@@ -560,7 +560,7 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
                         <div className="relative">
                           <input
                             type="number"
-                            step="0.1"
+                            step="any"
                             min="7"
                             max="45"
                             {...register(`records.${index}.weightKg`, {

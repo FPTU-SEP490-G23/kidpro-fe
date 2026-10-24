@@ -347,7 +347,7 @@ export const BghClassroomsPage: React.FC = () => {
                   <input
                     type="number"
                     min="1"
-                    max="60"
+                    max="150"
                     value={capacity}
                     onChange={(e) => setCapacity(Number(e.target.value))}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E] text-sm font-bold transition outline-none"

@@ -1,494 +1,449 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import weeklyMenuApprovalApi, { WeeklyMenuApprovalDto } from '../../api/weeklyMenuApprovalApi';
+import { useToast } from '../../contexts/ToastContext';
 import {
-  UtensilsCrossed,
+  Utensils,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   Clock,
-  ShieldCheck,
-  AlertTriangle,
-  RefreshCw,
-  Search,
+  Sparkles,
+  Calendar,
+  Coffee,
   Eye,
-  Check,
+  RefreshCw,
+  Filter,
   X,
   Flame,
-  PieChart,
-  Calendar,
-  Layers,
+  Award,
+  RotateCcw,
 } from 'lucide-react';
-import weeklyMenuApprovalApi, {
-  WeeklyMenuApprovalDto,
-} from '../../api/weeklyMenuApprovalApi';
 
 export const BghWeeklyMenuApprovalsPage: React.FC = () => {
-  const [menus, setMenus] = useState<WeeklyMenuApprovalDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const queryClient = useQueryClient();
+  const { success, error } = useToast();
+
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'DRAFT' | 'APPROVED' | 'REJECTED'>('DRAFT');
   const [selectedMenu, setSelectedMenu] = useState<WeeklyMenuApprovalDto | null>(null);
+  const [rejectingMenu, setRejectingMenu] = useState<WeeklyMenuApprovalDto | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [validationError, setValidationError] = useState('');
 
-  // Modals
-  const [approveModalOpen, setApproveModalOpen] = useState<boolean>(false);
-  const [rejectModalOpen, setRejectModalOpen] = useState<boolean>(false);
-  const [actionMenu, setActionMenu] = useState<WeeklyMenuApprovalDto | null>(null);
-  const [note, setNote] = useState<string>('');
-  const [rejectReason, setRejectReason] = useState<string>('');
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  // Fetch menu approvals
+  const { data: menuResponse, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ['weekly-menu-approvals-bgh', statusFilter],
+    queryFn: () => weeklyMenuApprovalApi.getMenus({ status: statusFilter }),
+  });
 
-  // Toast alert
-  const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const menus: WeeklyMenuApprovalDto[] = Array.isArray(menuResponse)
+    ? menuResponse
+    : ((menuResponse as any)?.data || []);
 
-  const fetchMenus = async () => {
-    try {
-      setLoading(true);
-      const res = await weeklyMenuApprovalApi.getMenus({
-        status: statusFilter !== 'ALL' ? statusFilter : undefined,
-      });
-      const data = Array.isArray(res) ? res : (res?.data || []);
-      setMenus(data);
-      if (data.length > 0 && !selectedMenu) {
-        setSelectedMenu(data[0]);
-      }
-    } catch (err: any) {
-      console.error('Lỗi khi tải danh sách thực đơn:', err);
-    } finally {
-      setLoading(false);
-    }
+  // Approve mutation
+  const approveMutation = useMutation({
+    mutationFn: (menuId: number) => weeklyMenuApprovalApi.approveMenu(menuId),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['weekly-menu-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'MSG-108: Thực đơn tuần đã được phê duyệt và ban hành thành công lên ứng dụng toàn trường.');
+      setSelectedMenu(null);
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể phê duyệt thực đơn tuần');
+    },
+  });
+
+  // Reject mutation
+  const rejectMutation = useMutation({
+    mutationFn: ({ menuId, reason }: { menuId: number; reason: string }) =>
+      weeklyMenuApprovalApi.rejectMenu(menuId, reason),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['weekly-menu-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'MSG-109: Đã từ chối thực đơn tuần. Lý do và yêu cầu điều chỉnh đã được chuyển đến bộ phận Bếp bán trú.');
+      closeRejectModal();
+      setSelectedMenu(null);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể từ chối thực đơn';
+      setValidationError(msg);
+      error(msg);
+    },
+  });
+
+  // Reset to pending mutation
+  const resetMutation = useMutation({
+    mutationFn: (menuId: number) => weeklyMenuApprovalApi.resetPendingMenu(menuId),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['weekly-menu-approvals-bgh'] });
+      success(res?.data?.message || res?.message || 'Đã khôi phục thực đơn tuần về trạng thái Chờ duyệt (DRAFT).');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể khôi phục trạng thái thực đơn');
+    },
+  });
+
+  const openRejectModal = (m: WeeklyMenuApprovalDto) => {
+    setRejectingMenu(m);
+    setRejectionReason('');
+    setValidationError('');
   };
 
-  useEffect(() => {
-    fetchMenus();
-  }, [statusFilter]);
-
-  const handleApprove = async () => {
-    if (!actionMenu) return;
-    try {
-      setSubmitting(true);
-      const res = await weeklyMenuApprovalApi.approveMenu(actionMenu.menuId, note);
-      setAlertInfo({
-        type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Thực đơn tuần đã được phê duyệt và ban hành thành công lên ứng dụng toàn trường.',
-      });
-      setApproveModalOpen(false);
-      setNote('');
-      fetchMenus();
-    } catch (err: any) {
-      setAlertInfo({
-        type: 'error',
-        message: err?.response?.data?.message || 'Có lỗi xảy ra khi phê duyệt thực đơn.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+  const closeRejectModal = () => {
+    setRejectingMenu(null);
+    setRejectionReason('');
+    setValidationError('');
   };
 
-  const handleReject = async () => {
-    if (!actionMenu) return;
-    if (!rejectReason.trim()) {
-      setAlertInfo({
-        type: 'error',
-        message: 'MSG-111: Vui lòng nhập lý do từ chối phê duyệt thực đơn để bộ phận Bếp có căn cứ chỉnh sửa.',
-      });
+  const handleConfirmReject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectionReason.trim()) {
+      setValidationError('MSG-111: Vui lòng nhập lý do từ chối phê duyệt thực đơn để bộ phận Bếp có căn cứ chỉnh sửa.');
       return;
     }
-    try {
-      setSubmitting(true);
-      const res = await weeklyMenuApprovalApi.rejectMenu(actionMenu.menuId, rejectReason.trim());
-      setAlertInfo({
-        type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Đã từ chối thực đơn tuần. Lý do và yêu cầu điều chỉnh đã được chuyển đến bộ phận Bếp bán trú.',
-      });
-      setRejectModalOpen(false);
-      setRejectReason('');
-      fetchMenus();
-    } catch (err: any) {
-      setAlertInfo({
-        type: 'error',
-        message: err?.response?.data?.message || 'Có lỗi xảy ra khi từ chối thực đơn.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    if (!rejectingMenu) return;
+    rejectMutation.mutate({ menuId: rejectingMenu.menuId, reason: rejectionReason.trim() });
   };
 
-  const dayOfWeekNames: Record<string, string> = {
-    MONDAY: 'Thứ Hai',
-    TUESDAY: 'Thứ Ba',
-    WEDNESDAY: 'Thứ Tư',
-    THURSDAY: 'Thứ Năm',
-    FRIDAY: 'Thứ Sáu',
-  };
-
-  const mealTypeNames: Record<string, string> = {
-    BREAKFAST: 'Bữa Sáng (07:30)',
-    LUNCH: 'Bữa Trưa (11:00)',
-    SNACK: 'Bữa Xế (14:30)',
-  };
+  const daysOfWeek = [
+    { key: 'MONDAY', label: 'Thứ Hai' },
+    { key: 'TUESDAY', label: 'Thứ Ba' },
+    { key: 'WEDNESDAY', label: 'Thứ Tư' },
+    { key: 'THURSDAY', label: 'Thứ Năm' },
+    { key: 'FRIDAY', label: 'Thứ Sáu' },
+  ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <div className="space-y-6 p-6">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl bg-gradient-to-r from-[#275A4E] to-[#1E4D40] p-8 text-white shadow-xl shadow-[#275A4E]/20">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#275A4E]/10 flex items-center justify-center text-[#275A4E]">
-              <UtensilsCrossed className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">
-                [UC-041] Phê Duyệt & Ban Hành Thực Đơn Tuần
-              </h1>
-              <p className="text-sm text-slate-500">
-                Thẩm định cơ cấu dinh dưỡng P-L-G, định mức Kcal và ban hành thực đơn bán trú toàn trường (BR-041, BR-042)
-              </p>
-            </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
+            <span>UC-041 • Ban Giám Hiệu</span>
           </div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt & Ban Hành Thực Đơn Tuần</h1>
+          <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
+            Thẩm định cơ cấu dinh dưỡng (Kcal, tỷ lệ P-L-G) theo chuẩn Bộ GD&ĐT (BR-041), ký duyệt ban hành hoặc gửi chỉ đạo điều chỉnh tới Bếp bán trú. Dữ liệu lưu vào bảng catering.weekly_menus.
+          </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchMenus}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Làm mới
-          </button>
-        </div>
-      </div>
-
-      {/* Alert toast */}
-      {alertInfo && (
-        <div
-          className={`p-4 rounded-xl flex items-center justify-between border ${
-            alertInfo.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="self-start sm:self-center inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition cursor-pointer"
         >
-          <div className="flex items-center gap-2">
-            {alertInfo.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 text-rose-600" />
-            )}
-            <span className="text-sm font-medium">{alertInfo.message}</span>
-          </div>
-          <button onClick={() => setAlertInfo(null)} className="text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Làm mới</span>
+        </button>
+      </div>
 
-      {/* Nutrition Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-amber-100 rounded-xl text-amber-700">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Chờ BGH Phê Duyệt</p>
-              <p className="text-xl font-bold text-slate-800">
-                {menus.filter((m) => m.status === 'DRAFT').length} Tuần
-              </p>
-            </div>
-          </div>
+      {/* Bộ lọc trạng thái */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+          <Filter className="w-4 h-4 text-[#275A4E]" />
+          <span>Lọc danh sách thực đơn:</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-100 rounded-xl text-emerald-700">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Đã Ban Hành Toàn Trường</p>
-              <p className="text-xl font-bold text-slate-800">
-                {menus.filter((m) => m.status === 'APPROVED').length} Tuần
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 rounded-xl text-orange-700">
-              <Flame className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Năng Lượng TB / Ngày</p>
-              <p className="text-xl font-bold text-slate-800">
-                {selectedMenu?.totalCalories || 720} Kcal
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#275A4E]/10 rounded-xl text-[#275A4E]">
-              <PieChart className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Tỷ Lệ Đạm - Béo - Đường</p>
-              <p className="text-xs font-bold text-slate-800 mt-1">
-                15% P - 25% L - 60% G
-              </p>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: 'DRAFT' as const, label: 'Chờ thẩm định (DRAFT)' },
+            { id: 'APPROVED' as const, label: 'Đã ban hành (APPROVED)' },
+            { id: 'REJECTED' as const, label: 'Yêu cầu sửa đổi (REJECTED)' },
+            { id: 'ALL' as const, label: 'Tất cả thực đơn' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                statusFilter === tab.id
+                  ? 'bg-[#275A4E] text-white shadow-2xs'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Menu List */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-slate-800">Danh Sách Tuần Thực Đơn</h2>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-            >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="DRAFT">Chờ duyệt (Dự thảo)</option>
-              <option value="APPROVED">Đã phê duyệt</option>
-              <option value="REJECTED">Bị từ chối</option>
-            </select>
-          </div>
+      {/* Grid Danh Sách Thực Đơn */}
+      {menus.length === 0 ? (
+        <div className="rounded-3xl bg-white border border-slate-200 p-12 text-center text-slate-400">
+          <Utensils className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#275A4E]" />
+          <p className="text-base font-bold text-slate-700">Chưa có thực đơn tuần nào cần thẩm định</p>
+          <p className="text-xs mt-1">Nhân viên Bếp bán trú sẽ gửi kế hoạch thực đơn tuần lên trước Thứ Sáu</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {menus.map((m) => {
+            const isApproved = m.status === 'APPROVED';
+            const isRejected = m.status === 'REJECTED';
+            const isDraft = m.status === 'DRAFT';
 
-          <div className="space-y-2">
-            {loading ? (
-              <div className="text-center py-8 text-slate-400 text-sm">Đang tải danh sách...</div>
-            ) : menus.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-sm">Không có thực đơn nào</div>
-            ) : (
-              menus.map((m) => {
-                const isSelected = selectedMenu?.menuId === m.menuId;
-                return (
-                  <div
-                    key={m.menuId}
-                    onClick={() => setSelectedMenu(m)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[#275A4E] bg-[#275A4E]/5 shadow-sm'
-                        : 'border-slate-100 hover:border-slate-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-800">Tuần {m.weekNumber}</span>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          m.status === 'APPROVED'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : m.status === 'REJECTED'
-                            ? 'bg-rose-100 text-rose-700'
-                            : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {m.status === 'APPROVED'
-                          ? 'Đã Duyệt'
-                          : m.status === 'REJECTED'
-                          ? 'Từ Chối'
-                          : 'Chờ Duyệt'}
-                      </span>
+            return (
+              <div
+                key={m.menuId}
+                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs hover:shadow-md hover:border-[#78C2AD] transition-all duration-200 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#78C2AD]/15 text-[#275A4E] flex items-center justify-center font-bold">
+                      <Utensils className="w-6 h-6" />
                     </div>
-
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>
-                        {m.startDate} - {m.endDate}
-                      </span>
+                    <div>
+                      {isApproved && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>ĐÃ DUYỆT BAN HÀNH</span>
+                        </span>
+                      )}
+                      {isRejected && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>YÊU CẦU ĐIỀU CHỈNH</span>
+                        </span>
+                      )}
+                      {isDraft && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                          <span>CHỜ BGH THẨM ĐỊNH</span>
+                        </span>
+                      )}
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
 
-        {/* Right: Selected Menu Detail & Daily Matrix */}
-        <div className="lg:col-span-2 space-y-4">
-          {selectedMenu ? (
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-800">
-                    Chi Tiết Thực Đơn Tuần {selectedMenu.weekNumber}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Thời gian: {selectedMenu.startDate} đến {selectedMenu.endDate} • {selectedMenu.academicYearName}
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    Thực Đơn Tuần {m.weekNumber}
+                  </h3>
+
+                  <p className="text-xs font-semibold text-[#275A4E] mt-0.5">
+                    {m.startDate} - {m.endDate}
                   </p>
+
+                  <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Định mức năng lượng:</span>
+                      <strong className="text-slate-800 font-bold flex items-center gap-1">
+                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                        {m.totalCalories || 720} Kcal/ngày
+                      </strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Cơ cấu dinh dưỡng:</span>
+                      <strong className="text-slate-800 font-bold truncate max-w-[200px]" title={m.nutrientRatio}>
+                        {m.nutrientRatio || '15% P - 25% L - 60% G'}
+                      </strong>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Niên khóa:</span>
+                      <strong className="text-slate-800 font-bold">{m.academicYearName || '2025-2026'}</strong>
+                    </div>
+                  </div>
+
+                  {/* Lý do từ chối nếu có */}
+                  {isRejected && m.rejectionReason && (
+                    <div className="mt-3 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                      <strong>Chỉ đạo của BGH:</strong> {m.rejectionReason}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {selectedMenu.status !== 'APPROVED' ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setActionMenu(selectedMenu);
-                          setApproveModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#275A4E] text-white rounded-xl text-sm font-semibold hover:bg-[#1E4D40] transition-colors shadow-sm"
-                      >
-                        <Check className="w-4 h-4" />
-                        Phê Duyệt Thực Đơn
-                      </button>
-                      <button
-                        onClick={() => {
-                          setActionMenu(selectedMenu);
-                          setRejectModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 border border-rose-300 text-rose-600 rounded-xl text-sm font-semibold hover:bg-rose-50 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                        Từ Chối
-                      </button>
-                    </>
-                  ) : (
-                    <span className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-xl text-sm font-semibold">
-                      <ShieldCheck className="w-4 h-4" />
-                      Đã Ban Hành Chính Thức
-                    </span>
+                {/* Nút hành động */}
+                <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMenu(m)}
+                    className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Chi tiết món</span>
+                  </button>
+
+                  {!isApproved && (
+                    <button
+                      type="button"
+                      onClick={() => approveMutation.mutate(m.menuId)}
+                      disabled={approveMutation.isPending}
+                      className="py-2 px-3 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Phê duyệt</span>
+                    </button>
+                  )}
+
+                  {!isRejected && (
+                    <button
+                      type="button"
+                      onClick={() => openRejectModal(m)}
+                      className="py-2 px-3 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                    >
+                      Từ chối
+                    </button>
+                  )}
+
+                  {/* Nút Khôi phục Chờ duyệt khi đã duyệt hoặc từ chối */}
+                  {(isApproved || isRejected) && (
+                    <button
+                      type="button"
+                      onClick={() => resetMutation.mutate(m.menuId)}
+                      disabled={resetMutation.isPending}
+                      title="Khôi phục thực đơn về trạng thái Chờ duyệt (DRAFT)"
+                      className="py-2 px-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Khôi phục</span>
+                    </button>
                   )}
                 </div>
               </div>
+            );
+          })}
+        </div>
+      )}
 
-              {selectedMenu.rejectionReason && (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-800">
-                  <span className="font-bold">Lý do từ chối trước đó: </span>
-                  {selectedMenu.rejectionReason}
+      {/* Modal Chi Tiết Món Ăn Trong Tuần */}
+      {selectedMenu && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-[#275A4E] to-[#1E4D40] text-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                  <Utensils className="w-5 h-5 text-[#78C2AD]" />
                 </div>
-              )}
-
-              {/* Day-by-Day Nutrition Matrix */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
-                  <Layers className="w-4 h-4 text-[#275A4E]" />
-                  Cơ Cấu Các Bữa Ăn Trong Tuần (Sáng - Trưa - Xế)
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'].map((dayKey) => {
-                    const dayItems = (selectedMenu.items || []).filter((i) => i.dayOfWeek === dayKey);
-                    return (
-                      <div key={dayKey} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-3">
-                        <div className="font-bold text-sm text-[#275A4E] border-b border-slate-200 pb-2">
-                          {dayOfWeekNames[dayKey] || dayKey}
-                        </div>
-
-                        {dayItems.length === 0 ? (
-                          <div className="text-xs text-slate-400 italic">Thực đơn chuẩn bị cập nhật...</div>
-                        ) : (
-                          <div className="space-y-2">
-                            {dayItems.map((item) => (
-                              <div
-                                key={item.itemId}
-                                className="flex items-start justify-between bg-white p-2.5 rounded-lg border border-slate-100 text-xs"
-                              >
-                                <div>
-                                  <span className="font-semibold text-slate-700 block">
-                                    {mealTypeNames[item.mealType] || item.mealType}
-                                  </span>
-                                  <span className="text-slate-600">{item.dishName}</span>
-                                </div>
-                                <span className="px-2 py-0.5 bg-amber-50 text-amber-700 font-bold rounded">
-                                  {item.calories} Kcal
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div>
+                  <h3 className="text-lg font-bold">Thực Đơn Tuần {selectedMenu.weekNumber}</h3>
+                  <p className="text-xs text-[#78C2AD]">{selectedMenu.startDate} - {selectedMenu.endDate} • UC-041</p>
                 </div>
               </div>
+              <button onClick={() => setSelectedMenu(null)} className="p-1 rounded-full text-white/80 hover:bg-white/10">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          ) : (
-            <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm text-center text-slate-400">
-              Vui lòng chọn một tuần thực đơn để xem chi tiết
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Modal Phê Duyệt */}
-      {approveModalOpen && actionMenu && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full rounded-2xl p-6 shadow-xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-slate-800">
-              Xác Nhận Phê Duyệt Thực Đơn Tuần {actionMenu.weekNumber}
-            </h3>
-            <p className="text-sm text-slate-600">
-              Sau khi phê duyệt, thực đơn sẽ chính thức được công bố trên ứng dụng cho Phụ huynh và Giáo viên theo dõi (BR-041, BR-042).
-            </p>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1 block">
-                Ghi chú chỉ đạo cho bộ phận Bếp (Tùy chọn)
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Nhập lưu ý hoặc dặn dò vệ sinh an toàn thực phẩm..."
-                rows={3}
-                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-              />
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                {daysOfWeek.map((day) => {
+                  const dayItems = (selectedMenu.items || []).filter((i) => i.dayOfWeek === day.key);
+
+                  return (
+                    <div key={day.key} className="bg-slate-50 rounded-2xl p-3 border border-slate-200">
+                      <div className="text-center font-extrabold text-xs text-[#275A4E] pb-2 border-b border-slate-200 mb-2">
+                        {day.label}
+                      </div>
+                      <div className="space-y-2">
+                        {dayItems.length === 0 ? (
+                          <p className="text-[11px] text-slate-400 text-center py-4 italic">Chưa lên món</p>
+                        ) : (
+                          dayItems.map((item, idx) => (
+                            <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#78C2AD]/20 text-[#275A4E] mb-1">
+                                {item.mealType === 'BREAKFAST' ? 'Bữa Sáng' : item.mealType === 'LUNCH' ? 'Bữa Trưa' : 'Bữa Xế'}
+                              </span>
+                              <h4 className="text-xs font-bold text-slate-800">{item.dishName}</h4>
+                              <p className="text-[10px] text-slate-400 mt-0.5">{item.calories} Kcal</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                onClick={() => setApproveModalOpen(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={handleApprove}
-                disabled={submitting}
-                className="px-5 py-2 bg-[#275A4E] text-white rounded-xl text-sm font-semibold hover:bg-[#1E4D40]"
-              >
-                {submitting ? 'Đang duyệt...' : 'Đồng Ý Phê Duyệt'}
-              </button>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <span className="text-xs text-slate-500">
+                Tổng calo trung bình: <strong className="text-slate-800">{selectedMenu.totalCalories || 720} Kcal/ngày</strong>
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openRejectModal(selectedMenu)}
+                  className="px-4 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition"
+                >
+                  Yêu cầu Bếp điều chỉnh
+                </button>
+                <button
+                  type="button"
+                  onClick={() => approveMutation.mutate(selectedMenu.menuId)}
+                  disabled={approveMutation.isPending}
+                  className="px-5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-sm"
+                >
+                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt & Công bố (MSG-108)'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Từ Chối */}
-      {rejectModalOpen && actionMenu && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full rounded-2xl p-6 shadow-xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-rose-700">
-              Từ Chối Thực Đơn Tuần {actionMenu.weekNumber}
-            </h3>
-            <p className="text-sm text-slate-600">
-              Theo quy định BR-047, quyết định từ chối bắt buộc phải đi kèm nội dung giải trình chỉ đạo điều chỉnh chi tiết.
-            </p>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 mb-1 block">
-                Lý do từ chối & Yêu cầu chỉnh sửa <span className="text-rose-500">*</span>
-              </label>
-              <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Ví dụ: Cơ cấu món chính bị trùng lặp; Tỷ lệ đạm chưa đạt định mức; Chi phí vượt ngân sách..."
-                rows={4}
-                className="w-full text-sm p-3 border border-rose-200 rounded-xl focus:outline-none focus:border-rose-500"
-              />
-            </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
+      {/* Modal Từ Chối & Yêu Cầu Bếp Chỉnh Sửa */}
+      {rejectingMenu && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <XCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Từ Chối Thực Đơn Tuần</h3>
+                  <p className="text-xs text-slate-500">Tuần {rejectingMenu.weekNumber} • BR-047</p>
+                </div>
+              </div>
               <button
-                onClick={() => setRejectModalOpen(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm"
+                type="button"
+                onClick={closeRejectModal}
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                Đóng
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={submitting}
-                className="px-5 py-2 bg-rose-600 text-white rounded-xl text-sm font-semibold hover:bg-rose-700"
-              >
-                {submitting ? 'Đang gửi...' : 'Xác Nhận Từ Chối'}
+                <X className="w-5 h-5" />
               </button>
             </div>
+
+            <form onSubmit={handleConfirmReject} className="space-y-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Lý do từ chối & Yêu cầu Bếp bán trú điều chỉnh <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={rejectionReason}
+                  onChange={(e) => {
+                    setRejectionReason(e.target.value);
+                    setValidationError('');
+                  }}
+                  placeholder="Ví dụ: Bữa trưa Thứ 3 và Thứ 5 bị trùng món tôm rim, đề nghị đổi thứ 5 sang thịt kho trứng cút để đảm bảo đa dạng khẩu phần..."
+                  className="w-full text-sm p-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:border-[#275A4E] focus:ring-2 focus:ring-[#78C2AD]/20"
+                />
+                {validationError && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {validationError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeRejectModal}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={rejectMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
+                >
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối (MSG-109)'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

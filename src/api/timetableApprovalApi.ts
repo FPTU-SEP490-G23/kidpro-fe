@@ -15,7 +15,7 @@ export interface TimetableClassApproval {
   roomName: string;
   building: string;
   totalSlots: number;
-  status: 'PENDING' | 'PUBLISHED' | 'NEEDS_REVISION';
+  status: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'PUBLISHED' | 'NEEDS_REVISION';
   revisionNotes?: string;
   slots?: TimetableSlot[];
 }
@@ -35,13 +35,19 @@ export const timetableApprovalApi = {
 
   // Phê duyệt & Ban hành thời khóa biểu (BR-011, BR-013)
   approveTimetable: async (classId: string): Promise<{ message: string; data: TimetableClassApproval }> => {
-    const res: any = await axiosClient.patch(`/bgh/timetables/class/${classId}/approve`);
+    const res: any = await axiosClient.post(`/bgh/timetables/class/${classId}/approve`);
     return res?.data || res;
   },
 
-  // Yêu cầu chỉnh sửa kèm góp ý chuyên môn (MSG-033)
+  // Yêu cầu chỉnh sửa kèm góp ý chuyên môn (MSG-033, MSG-047)
   requestRevision: async (classId: string, reason: string): Promise<{ message: string; data: TimetableClassApproval }> => {
-    const res: any = await axiosClient.patch(`/bgh/timetables/class/${classId}/request-revision`, { reason });
+    const res: any = await axiosClient.post(`/bgh/timetables/class/${classId}/request-revision`, { reason });
+    return res?.data || res;
+  },
+
+  // Khôi phục thời khóa biểu về Chờ phê duyệt (PENDING_APPROVAL)
+  resetPendingTimetable: async (classId: string): Promise<{ message: string; data: TimetableClassApproval }> => {
+    const res: any = await axiosClient.post(`/bgh/timetables/class/${classId}/reset-pending`);
     return res?.data || res;
   },
 };

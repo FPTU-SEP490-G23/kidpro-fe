@@ -32,44 +32,23 @@ export const AuditLogDetailModal: React.FC<AuditLogDetailModalProps> = ({
   if (!isOpen || !log) return null;
 
   const getActionBadge = (action: AuditAction) => {
-    switch (action) {
-      case 'CREATE':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            CREATE (Tạo mới)
-          </span>
-        );
-      case 'UPDATE':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-[#1E4D40] border border-amber-300">
-            UPDATE (Cập nhật)
-          </span>
-        );
-      case 'DELETE':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-300">
-            DELETE (Xóa)
-          </span>
-        );
-      case 'LOGIN':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-300">
-            LOGIN (Đăng nhập)
-          </span>
-        );
-      case 'VERIFY':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-300">
-            VERIFY (Xác minh)
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
-            {action}
-          </span>
-        );
+    const act = (action || '').toUpperCase();
+    let badgeClass = 'bg-slate-100 text-slate-700 border-slate-300';
+    if (act.includes('DELETE') || act.includes('REMOVE') || act.includes('REJECT') || act.includes('LOCK')) {
+      badgeClass = 'bg-red-100 text-red-800 border-red-300';
+    } else if (act.includes('CREATE') || act.includes('ADD') || act.includes('INSERT') || act.includes('APPROVE')) {
+      badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    } else if (act.includes('UPDATE') || act.includes('EDIT')) {
+      badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+    } else if (act.includes('PUBLISH') || act.includes('SEND')) {
+      badgeClass = 'bg-purple-100 text-purple-800 border-purple-300';
     }
+
+    return (
+      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${badgeClass}`} title={action}>
+        {action}
+      </span>
+    );
   };
 
   const handleCopyPayload = () => {
@@ -161,12 +140,19 @@ export const AuditLogDetailModal: React.FC<AuditLogDetailModalProps> = ({
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
               <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 mb-1">
                 <User className="w-3.5 h-3.5 text-slate-400" />
-                Người thực hiện
+                Người thực hiện & Vai trò
               </span>
               <p className="text-xs font-bold text-slate-800 truncate" title={log.userName}>
                 {log.userName}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{log.userEmail}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-[#1E4D40] border border-emerald-200">
+                  {log.userRole}
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono truncate" title={log.userId}>
+                  ID: {log.userId || 'N/A'}
+                </span>
+              </div>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
