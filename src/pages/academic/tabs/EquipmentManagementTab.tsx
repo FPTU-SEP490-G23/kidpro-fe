@@ -26,8 +26,7 @@ import {
   TransferEquipmentPayload,
   EquipmentTransferLogResponse
 } from '../../../types/equipment.types';
-import { academicApi } from '../../../api/academicApi';
-import { ClassEntity } from '../../../types/classroom.types';
+import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
 
 export const EquipmentManagementTab: React.FC = () => {
   // State
@@ -74,23 +73,22 @@ export const EquipmentManagementTab: React.FC = () => {
 
   const fetchInitialRooms = async () => {
     try {
-      const res = await academicApi.getClasses().catch(() => ({ data: [] }));
-      const classList: ClassEntity[] = Array.isArray(res?.data) ? res.data : [];
-      if (classList && classList.length > 0) {
-        const uniqueRooms = Array.from(
-          new Map(
-            classList
-              .filter((c: ClassEntity) => c.id)
-              .map((c: ClassEntity) => [c.id, { id: c.id, name: c.name || c.roomName || 'Phòng học' }])
-          ).values()
-        );
+      const roomList = await facilityClassroomApi.getAllClassrooms().catch(() => []);
+      const classRooms: FacilityClassroom[] = Array.isArray(roomList) ? roomList : [];
+      if (classRooms && classRooms.length > 0) {
+        const uniqueRooms = classRooms
+          .filter((c: FacilityClassroom) => c.classroomId)
+          .map((c: FacilityClassroom) => ({
+            id: c.classroomId!,
+            name: c.roomName + (c.building ? ` (${c.building})` : '')
+          }));
         setRooms(uniqueRooms);
         if (uniqueRooms.length > 0 && !newRoomId) {
           setNewRoomId(uniqueRooms[0].id);
         }
       }
     } catch (e) {
-      console.warn('Could not load classes for rooms:', e);
+      console.warn('Could not load classrooms:', e);
     }
   };
 
@@ -203,6 +201,11 @@ export const EquipmentManagementTab: React.FC = () => {
   const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!transferTarget) return;
+
+    if (!transferTarget.roomId) {
+      setTransferError('Thiết bị này chưa được phân bổ vào phòng cụ thể. Không thể điều chuyển.');
+      return;
+    }
 
     if (!toRoomId) {
       setTransferError('Vui lòng chọn phòng tiếp nhận.');
@@ -432,7 +435,7 @@ export const EquipmentManagementTab: React.FC = () => {
                 </tr>
               ) : (
                 filteredInventories.map((item) => (
-                  <tr key={item.allocationId} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={item.allocationId || item.equipmentId} className="hover:bg-slate-50/80 transition-colors">
                     {/* Equipment Code */}
                     <td className="py-3.5 px-4 font-mono font-bold text-emerald-700 text-xs">
                       {item.equipmentCode}
