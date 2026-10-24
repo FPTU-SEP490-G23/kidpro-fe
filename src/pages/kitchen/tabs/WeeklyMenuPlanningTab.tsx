@@ -82,9 +82,18 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   };
 
   // 1. Fetch weekly menu from backend (GET /api/kitchen/menus?weekStartDate=...)
-  const { data: serverMenus, isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
+  const { data: serverMenus = [], isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
     queryKey: ['weekly-menu', mondayStr],
-    queryFn: async () => (await kitchenApi.getWeeklyMenus(mondayStr)).data
+    queryFn: async () => {
+      try {
+        const res: any = await kitchenApi.getWeeklyMenus(mondayStr);
+        const data = res?.data ?? res;
+        return Array.isArray(data) ? data : [];
+      } catch (err: any) {
+        console.warn('Failed to fetch weekly menu:', err);
+        return [];
+      }
+    }
   });
 
   // Map server dishes to 5-day matrix if available
@@ -106,14 +115,14 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           d.mealType === 'SNACK' || d.mealType === 'AFTERNOON_SNACK');
 
         const totalCalo = lunchDish?.calories || 0;
-        const lunchParts = (lunchDish?.dishName || '').split('|').map((part) => part.trim());
+        const lunchParts = (lunchDish?.dishName || '').split('|').map((part: string) => part.trim());
         const allAllergies = Array.from(
           new Set(
             dishes
               .map((d) => d.allergyTags || '')
               .join(',')
               .split(',')
-              .map((s) => s.trim())
+              .map((s: string) => s.trim())
               .filter(Boolean)
           )
         );
@@ -137,14 +146,48 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     }
   }, [serverMenus]);
 
-  // 2. Fetch students with allergies to cross-reference (GET /api/academic/students/by-allergy)
-  const { data: allergicStudents = [], isError: allergyQueryError } = useQuery({
-    queryKey: ['students-by-allergy'],
+  // 2. Fetch students with allergies to cross-reference
+  const { data: rawAllergyStudents = [], isError: allergyQueryError } = useQuery({
+    queryKey: ['kitchen-allergy-students'],
     queryFn: async () => {
-      const res = await studentAnalyticsApi.getStudents({ hasAllergyOnly: true });
-      return Array.isArray(res) ? res : ((res as any)?.data || []);
+      try {
+        const res: any = await kitchenApi.getStudentsByAllergy();
+        const data = res?.data ?? res;
+        if (Array.isArray(data) && data.length > 0) {
+          return data;
+        }
+      } catch (err) {
+        console.warn('kitchenApi.getStudentsByAllergy error, falling back to studentAnalyticsApi:', err);
+      }
+      try {
+        const res2: any = await studentAnalyticsApi.getStudents({ hasAllergyOnly: true });
+        const data2 = res2?.data ?? res2;
+        return Array.isArray(data2) ? data2 : [];
+      } catch (err2) {
+        console.warn('studentAnalyticsApi fallback error:', err2);
+        return [];
+      }
     }
   });
+
+  const allergicStudents = useMemo(() => {
+    return (rawAllergyStudents || []).map((stu: any) => {
+      const tags: string[] = Array.isArray(stu.allergyTags)
+        ? stu.allergyTags
+        : (typeof stu.allergyTags === 'string' ? stu.allergyTags.split(',').map((t: string) => t.trim()) : []);
+      const allergyInfo = tags.length > 0
+        ? tags.join(', ')
+        : (stu.allergyInfo || stu.parentNotes || stu.notes || 'Dị ứng thực phẩm');
+      return {
+        id: stu.id || stu.studentId || `stu-${Math.random()}`,
+        studentId: stu.studentId,
+        fullName: stu.fullName || stu.studentName || 'Học sinh',
+        className: stu.className || 'Chưa xếp lớp',
+        allergyInfo,
+        allergyTags: tags
+      };
+    });
+  }, [rawAllergyStudents]);
 
   // Calculate Friday deadline check (BR-039)
   const isAfterFridayDeadline = useMemo(() => {
