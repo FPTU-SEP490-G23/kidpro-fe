@@ -17,6 +17,7 @@ export const MainLayout: React.FC = () => {
           </ErrorBoundary>
         </main>
       </div>
+
       <MobileBottomNav />
     </div>
   );

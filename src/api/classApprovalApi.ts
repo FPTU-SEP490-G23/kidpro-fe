@@ -10,14 +10,16 @@ export interface ClassApprovalItem {
   building?: string;
   academicYearId?: string;
   academicYearName?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   rejectionReason?: string;
 }
 
 export const classApprovalApi = {
   // Lấy danh sách lớp cần duyệt
   getApprovals: async (status: string = 'ALL'): Promise<ClassApprovalItem[]> => {
-    const res: any = await axiosClient.get(`/bgh/classes/approvals?status=${status}`);
+    // Map 'PENDING' → 'PENDING_APPROVAL' để khớp với enum ClassStatus của backend
+    const mappedStatus = status === 'PENDING' ? 'PENDING_APPROVAL' : status;
+    const res: any = await axiosClient.get(`/bgh/classes/approvals?status=${mappedStatus}`);
     return Array.isArray(res) ? res : (res?.data || []);
   },
 

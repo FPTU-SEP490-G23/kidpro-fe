@@ -22,7 +22,7 @@ export const BghClassApprovalsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { success, error } = useToast();
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED'>('PENDING_APPROVAL');
   const [rejectingClass, setRejectingClass] = useState<ClassApprovalItem | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -138,7 +138,7 @@ export const BghClassApprovalsPage: React.FC = () => {
 
         <div className="flex flex-wrap gap-1.5">
           {[
-            { id: 'PENDING' as const, label: 'Chờ phê duyệt (PENDING)' },
+            { id: 'PENDING_APPROVAL' as const, label: 'Chờ phê duyệt (PENDING)' },
             { id: 'APPROVED' as const, label: 'Đã phê duyệt (APPROVED)' },
             { id: 'REJECTED' as const, label: 'Bị từ chối (REJECTED)' },
             { id: 'ALL' as const, label: 'Tất cả kế hoạch' },
@@ -171,7 +171,7 @@ export const BghClassApprovalsPage: React.FC = () => {
           {classes.map((c) => {
             const isApproved = c.status === 'APPROVED';
             const isRejected = c.status === 'REJECTED';
-            const isPending = c.status === 'PENDING';
+            const isPending = c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING';
 
             return (
               <div
