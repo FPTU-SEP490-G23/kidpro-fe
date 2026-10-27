@@ -142,7 +142,7 @@ export const BghAnnouncementsPage: React.FC = () => {
         type: 'success',
         text: 'Thông báo đã được xóa thành công.'
       });
-      setAnnouncements(prev => prev.filter(a => a.announcementId !== id));
+      setAnnouncements(prev => (Array.isArray(prev) ? prev : []).filter(a => a.announcementId !== id));
       if (viewDetail?.announcementId === id) {
         setViewDetail(null);
       }
@@ -155,7 +155,8 @@ export const BghAnnouncementsPage: React.FC = () => {
     }
   };
 
-  const filteredList = announcements.filter(a => {
+  const safeList = Array.isArray(announcements) ? announcements : [];
+  const filteredList = safeList.filter(a => {
     const matchSearch =
       (a.title && a.title.toLowerCase().includes(search.toLowerCase())) ||
       (a.content && a.content.toLowerCase().includes(search.toLowerCase())) ||
@@ -308,7 +309,7 @@ export const BghAnnouncementsPage: React.FC = () => {
                     </span>
                     <span className="text-xs text-gray-400 flex items-center">
                       <Calendar className="w-3.5 h-3.5 mr-1" />
-                      {new Date(ann.createdAt).toLocaleDateString('vi-VN')}
+                      {ann.createdAt ? new Date(ann.createdAt).toLocaleDateString('vi-VN') : '—'}
                     </span>
                   </div>
 
