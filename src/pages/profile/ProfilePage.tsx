@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { userProfileApi } from '../../api/userProfileApi';
 import { UserProfile } from '../../types/userProfile.types';
@@ -7,7 +8,18 @@ import SecurityPasswordTab from './components/SecurityPasswordTab';
 import { User, Shield, AlertTriangle } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security'>(
+    tabFromUrl === 'security' || tabFromUrl === 'password' ? 'security' : 'profile'
+  );
+
+  useEffect(() => {
+    const current = searchParams.get('tab');
+    if (current === 'security' || current === 'password') {
+      setActiveTab('security');
+    }
+  }, [searchParams]);
 
   // Lấy dữ liệu hồ sơ với React Query
   const {

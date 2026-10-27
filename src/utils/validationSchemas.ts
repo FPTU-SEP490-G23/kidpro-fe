@@ -39,15 +39,11 @@ export const changePasswordSchema = z
     currentPassword: z.string().min(1, 'Mật khẩu hiện tại không được để trống'),
     newPassword: z
       .string()
-      .min(8, 'Mật khẩu mới phải có tối thiểu 8 ký tự (BR-006)')
-      .regex(
-        PASSWORD_REGEX,
-        'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (!@#$%^&*)'
-      ),
+      .min(6, 'Mật khẩu mới phải có tối thiểu 6 ký tự'),
     confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu mới'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Mật khẩu mới và Xác nhận mật khẩu không trùng khớp (BR-006)',
+    message: 'Mật khẩu mới và Xác nhận mật khẩu không trùng khớp',
     path: ['confirmPassword'],
   });
 

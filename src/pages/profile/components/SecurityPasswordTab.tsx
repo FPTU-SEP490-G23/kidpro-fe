@@ -36,29 +36,26 @@ export const SecurityPasswordTab: React.FC = () => {
   const newPasswordValue = watch('newPassword') || '';
 
   const onSubmit = async (values: ChangePasswordFormValues) => {
-    // Validate bằng Zod
     const result = changePasswordSchema.safeParse(values);
     if (!result.success) {
-      toast.error(PROFILE_MESSAGES.MSG_007);
+      const firstError = (result.error as any).issues?.[0]?.message || (result.error as any).errors?.[0]?.message || 'Vui lòng kiểm tra lại thông tin mật khẩu';
+      toast.error(firstError);
       return;
     }
 
     try {
       setIsSubmitting(true);
-      await userProfileApi.changePassword({
+      const res = await userProfileApi.changePassword({
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
         confirmPassword: values.confirmPassword,
       });
 
-      toast.success(PROFILE_MESSAGES.MSG_012);
-      reset(); // Reset form sau khi đổi thành công
+      toast.success(res?.message || 'Đổi mật khẩu tài khoản thành công!');
+      reset();
     } catch (err: any) {
-      if (err.message?.includes('không đáp ứng') || err.message?.includes('khớp')) {
-        toast.error(PROFILE_MESSAGES.MSG_007);
-      } else {
-        toast.error(PROFILE_MESSAGES.MSG_004);
-      }
+      const msg = err?.response?.data?.message || err?.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.';
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

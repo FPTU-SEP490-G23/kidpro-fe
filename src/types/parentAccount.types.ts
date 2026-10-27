@@ -64,3 +64,37 @@ export interface LinkStudentPayload {
   forceConfirm?: boolean;
   notes?: string;
 }
+
+export interface GuardianOverviewItem {
+  guardianId: number;
+  fullName: string;
+  phoneNumber: string;
+  email?: string;
+  relationshipToStudent: string;
+  isPrimary?: boolean;
+  isAllowedPickup?: boolean;
+}
+
+export interface StudentParentOverviewItem {
+  studentId: string;
+  studentCode: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  status: string;
+  classId?: string;
+  className?: string;
+  currentGradeLevel?: string;
+  hasParentAccount: boolean;
+  primaryParentId?: string;
+  primaryParentAccountId?: string;
+  parentFullName?: string;
+  parentPhone?: string;
+  parentEmail?: string;
+  parentAccountStatus?: string;
+  suggestedGuardianName?: string;
+  suggestedGuardianPhone?: string;
+  suggestedGuardianEmail?: string;
+  suggestedRelationship?: string;
+  guardians?: GuardianOverviewItem[];
+}

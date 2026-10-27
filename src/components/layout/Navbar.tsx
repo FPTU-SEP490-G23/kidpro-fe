@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getRoleDisplayName, getRoleBadgeColor } from '../../utils/formatters';
-import { LogOut, Bell, User as UserIcon, AlertTriangle, CheckCircle2, Megaphone } from 'lucide-react';
+import { LogOut, Bell, User as UserIcon, AlertTriangle, CheckCircle2, Megaphone, KeyRound } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();

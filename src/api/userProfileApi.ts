@@ -156,21 +156,21 @@ export const userProfileApi = {
   // 4. Đổi mật khẩu
   changePassword: async (payload: ChangePasswordPayload): Promise<{ success: boolean; message: string }> => {
     try {
-      const res = await axiosClient.put<{ message: string }>('/users/me/password', payload);
-      return { success: true, message: (res as any)?.message || 'Đổi mật khẩu thành công' };
+      const res: any = await axiosClient.put('/users/me/password', payload);
+      return { success: true, message: res?.message || res?.data?.message || 'Đổi mật khẩu thành công' };
     } catch (err: any) {
-      // Kiểm tra xem Supabase session có thể đổi trực tiếp không
       try {
-        const { error } = await supabase.auth.updateUser({
-          password: payload.newPassword,
-        });
-        if (!error) {
-          return { success: true, message: 'Đổi mật khẩu tài khoản thành công.' };
-        }
-      } catch {
-        // ignore
+        const authRes: any = await axiosClient.post('/auth/change-password', payload);
+        return { success: true, message: authRes?.message || 'Đổi mật khẩu thành công' };
+      } catch (authErr: any) {
+        const errorMsg =
+          authErr?.response?.data?.message ||
+          err?.response?.data?.message ||
+          authErr?.message ||
+          err?.message ||
+          'Đổi mật khẩu thất bại';
+        throw new Error(errorMsg);
       }
-      throw err;
     }
   },
 };

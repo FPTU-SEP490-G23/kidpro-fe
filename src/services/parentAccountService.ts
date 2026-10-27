@@ -4,10 +4,20 @@ import {
   LinkedStudentItem,
   ProvisionParentAccountPayload,
   ProvisionAccountResponse,
-  LinkStudentPayload
+  LinkStudentPayload,
+  StudentParentOverviewItem
 } from '../types/parentAccount.types';
 
 export const parentAccountService = {
+  getStudentsOverview: async (search?: string, filter?: string): Promise<StudentParentOverviewItem[]> => {
+    const params: any = {};
+    if (search && search.trim()) params.search = search.trim();
+    if (filter && filter !== 'ALL') params.filter = filter;
+    const res: any = await axiosClient.get('/parent-accounts/students-overview', { params });
+    const payload = res?.data !== undefined ? res.data : res;
+    return Array.isArray(payload) ? payload : [];
+  },
+
   getAccounts: async (search?: string): Promise<ParentAccountItem[]> => {
     const params = search && search.trim() ? { search: search.trim() } : {};
     const res: any = await axiosClient.get('/parent-accounts', { params });
