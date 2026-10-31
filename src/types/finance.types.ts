@@ -739,7 +739,7 @@ export interface ClassTuitionSummaryDto {
 export interface TuitionSummaryDto {
   billingMonth: number;
   billingYear: number;
-  status: 'DRAFT' | 'APPROVED' | 'REJECTED';
+  status: 'DRAFT' | 'APPROVED' | 'REJECTED' | 'SUBMITTED' | 'NOT_INITIALIZED';
   totalStudents: number;
   totalGrossAmount: number;
   totalDiscountAmount: number;

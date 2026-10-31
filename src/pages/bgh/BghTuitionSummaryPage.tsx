@@ -15,6 +15,9 @@ import {
   Users,
   Building2,
   Lock,
+  Send,
+  AlertCircle,
+  Info,
 } from 'lucide-react';
 import tuitionSummaryApi, {
   TuitionSummaryDto,
@@ -57,7 +60,37 @@ export const BghTuitionSummaryPage: React.FC = () => {
     fetchSummary();
   }, [selectedMonth, selectedYear]);
 
+  // Kiểm tra điều kiện dữ liệu
+  const hasData = Boolean(
+    summary &&
+    summary.classSummaries &&
+    summary.classSummaries.length > 0 &&
+    (summary.totalStudents || 0) > 0
+  );
+  const isApproved = summary?.status === 'APPROVED';
+  const isSubmitted = summary?.status === 'SUBMITTED';
+  const isRejected = summary?.status === 'REJECTED';
+  const isDraft = !summary || summary?.status === 'DRAFT' || summary?.status === 'NOT_INITIALIZED';
+
   const handleApprove = async () => {
+    if (!hasData) {
+      setAlertInfo({
+        type: 'error',
+        message: `Kỳ ${selectedMonth}/${selectedYear} chưa có số liệu học phí do Kế toán lập. Không thể phê duyệt.`,
+      });
+      setApproveModalOpen(false);
+      return;
+    }
+
+    if (!isSubmitted) {
+      setAlertInfo({
+        type: 'error',
+        message: `Bảng tính học phí tháng ${selectedMonth}/${selectedYear} chưa được bộ phận Kế toán gửi trình. Không thể phê duyệt.`,
+      });
+      setApproveModalOpen(false);
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await tuitionSummaryApi.approve(
@@ -66,7 +99,10 @@ export const BghTuitionSummaryPage: React.FC = () => {
       );
       setAlertInfo({
         type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Bảng tổng hợp học phí tháng đã được phê duyệt thành công và khóa dữ liệu dự thu.',
+        message:
+          (res as any)?.message ||
+          (res as any)?.data?.message ||
+          'Bảng tổng hợp học phí tháng đã được phê duyệt thành công và khóa dữ liệu dự thu.',
       });
       setApproveModalOpen(false);
       setNote('');
@@ -97,7 +133,10 @@ export const BghTuitionSummaryPage: React.FC = () => {
       );
       setAlertInfo({
         type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Đã từ chối bảng học phí và chuyển yêu cầu chỉnh sửa về bộ phận Kế toán.',
+        message:
+          (res as any)?.message ||
+          (res as any)?.data?.message ||
+          'Đã từ chối bảng học phí và chuyển yêu cầu chỉnh sửa về bộ phận Kế toán.',
       });
       setRejectModalOpen(false);
       setRejectReason('');
@@ -113,8 +152,8 @@ export const BghTuitionSummaryPage: React.FC = () => {
   };
 
   const formatVND = (amt?: number) => {
-    if (!amt) return '0 ₫';
-    return amt.toLocaleString('vi-VN') + ' ₫';
+    if (!amt) return '0 đ';
+    return amt.toLocaleString('vi-VN') + ' đ';
   };
 
   return (
@@ -168,7 +207,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
             onClick={fetchSummary}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors text-sm"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#275A4E]' : ''}`} />
             Làm mới
           </button>
         </div>
@@ -203,17 +242,21 @@ export const BghTuitionSummaryPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <div
               className={`p-3 rounded-xl ${
-                summary.status === 'APPROVED'
+                isApproved
                   ? 'bg-emerald-100 text-emerald-800'
-                  : summary.status === 'REJECTED'
+                  : isRejected
                   ? 'bg-rose-100 text-rose-800'
+                  : isSubmitted
+                  ? 'bg-blue-100 text-blue-800'
                   : 'bg-amber-100 text-amber-800'
               }`}
             >
-              {summary.status === 'APPROVED' ? (
+              {isApproved ? (
                 <Lock className="w-6 h-6" />
-              ) : summary.status === 'REJECTED' ? (
+              ) : isRejected ? (
                 <XCircle className="w-6 h-6" />
+              ) : isSubmitted ? (
+                <Send className="w-6 h-6" />
               ) : (
                 <Clock className="w-6 h-6" />
               )}
@@ -223,18 +266,24 @@ export const BghTuitionSummaryPage: React.FC = () => {
                 <span className="text-xs uppercase font-bold text-slate-400">Trạng Thái Bảng Học Phí:</span>
                 <span
                   className={`px-3 py-0.5 rounded-full text-xs font-bold ${
-                    summary.status === 'APPROVED'
+                    isApproved
                       ? 'bg-emerald-100 text-emerald-800'
-                      : summary.status === 'REJECTED'
+                      : isRejected
                       ? 'bg-rose-100 text-rose-800'
+                      : isSubmitted
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-amber-100 text-amber-800'
                   }`}
                 >
-                  {summary.status === 'APPROVED'
+                  {isApproved
                     ? 'Đã Phê Duyệt & Khóa Sổ'
-                    : summary.status === 'REJECTED'
+                    : isRejected
                     ? 'Đã Từ Chối Phê Duyệt'
-                    : 'Dự Thảo Chờ BGH Duyệt'}
+                    : isSubmitted
+                    ? 'Đã Được Kế Toán Trình Duyệt'
+                    : !hasData
+                    ? 'Chưa Khởi Tạo Học Phí'
+                    : 'Dự Thảo (Kế toán chưa gửi trình)'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
@@ -244,18 +293,42 @@ export const BghTuitionSummaryPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {summary.status !== 'APPROVED' ? (
+            {!isApproved ? (
               <>
                 <button
                   onClick={() => setApproveModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#275A4E] text-white rounded-xl text-sm font-semibold hover:bg-[#1E4D40] transition-colors shadow-sm"
+                  disabled={!hasData || !isSubmitted || submitting}
+                  title={
+                    !hasData
+                      ? 'Kỳ này chưa có dữ liệu học phí do Kế toán lập'
+                      : !isSubmitted
+                      ? 'Kế toán chưa gửi trình bảng tổng hợp học phí. Cần Kế toán trình trước khi duyệt.'
+                      : 'Ký Duyệt & Khóa Sổ Bảng Học Phí'
+                  }
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm ${
+                    !hasData || !isSubmitted || submitting
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
+                      : 'bg-[#275A4E] text-white hover:bg-[#1E4D40]'
+                  }`}
                 >
                   <Check className="w-4 h-4" />
                   Ký Duyệt & Khóa Sổ Bảng Học Phí
                 </button>
                 <button
                   onClick={() => setRejectModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 border border-rose-300 text-rose-600 rounded-xl text-sm font-semibold hover:bg-rose-50 transition-colors"
+                  disabled={!hasData || !isSubmitted || submitting}
+                  title={
+                    !hasData
+                      ? 'Kỳ này chưa có dữ liệu học phí để từ chối'
+                      : !isSubmitted
+                      ? 'Kế toán chưa gửi trình bảng tổng hợp học phí'
+                      : 'Từ Chối & Yêu Cầu Sửa'
+                  }
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    !hasData || !isSubmitted || submitting
+                      ? 'border border-slate-200 text-slate-300 cursor-not-allowed'
+                      : 'border border-rose-300 text-rose-600 hover:bg-rose-50'
+                  }`}
                 >
                   <X className="w-4 h-4" />
                   Từ Chối & Yêu Cầu Sửa
@@ -264,9 +337,46 @@ export const BghTuitionSummaryPage: React.FC = () => {
             ) : (
               <span className="flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-xl text-sm font-bold">
                 <ShieldCheck className="w-4 h-4" />
-                Dữ Liệu Đã Khóa (Chỉ Đọc - Read-only)
+                Dữ Liệu Đã Khóa (Chỉ đọc - Read-only)
               </span>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Thông báo hướng dẫn nghiệp vụ */}
+      {!hasData && !loading && (
+        <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-sm">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">Kỳ học phí Tháng {selectedMonth}/{selectedYear} chưa được Kế toán khởi tạo</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Hệ thống không tự ý tính toán hay phê duyệt khi chưa có hóa đơn được Kế toán tạo ở màn hình <strong>[G8-UC-04] Lập Bảng tính Học phí</strong>. Ban Giám hiệu chưa thể thao tác Ký duyệt hoặc Từ chối kỳ này.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {hasData && !isSubmitted && !isApproved && (
+        <div className="p-4 bg-blue-50/90 border border-blue-200 rounded-2xl flex items-start gap-3 text-blue-900 text-sm">
+          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">Bảng học phí đang ở trạng thái Dự thảo (Kế toán chưa gửi trình)</p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              Số liệu dự thu đã được tạo nhưng bộ phận Kế toán chưa nhấn <strong>"Trình BGH Phê duyệt"</strong> tại [G8-UC-06]. Để đảm bảo quy trình kiểm soát nội bộ (BR-071), Ban Giám hiệu chỉ phê duyệt sau khi Kế toán đã rà soát và chính thức gửi trình.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {hasData && isSubmitted && (
+        <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl flex items-start gap-3 text-emerald-900 text-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">Bảng học phí đã được Kế toán gửi trình và sẵn sàng phê duyệt</p>
+            <p className="text-xs text-emerald-700 mt-0.5">
+              Kính mời Ban Giám hiệu kiểm tra tổng dự thu, các khoản miễn giảm và bấm <strong>"Ký Duyệt & Khóa Sổ Bảng Học Phí"</strong> để mở phát hành thông báo thu tiền học phí tới phụ huynh (G8-UC-07).
+            </p>
           </div>
         </div>
       )}
@@ -304,12 +414,12 @@ export const BghTuitionSummaryPage: React.FC = () => {
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-amber-100 rounded-xl text-amber-700">
-              <DollarSign className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">Miễn Giảm & Hoàn Trả Tiền Ăn</p>
-              <p className="text-xl font-bold text-slate-800">
-                {formatVND(summary?.totalDiscountAmount)}
+              <p className="text-xs text-slate-500 font-medium">Tổng Miễn Giảm / Ưu Đãi</p>
+              <p className="text-xl font-bold text-amber-600">
+                -{formatVND(summary?.totalDiscountAmount)}
               </p>
             </div>
           </div>
@@ -317,11 +427,11 @@ export const BghTuitionSummaryPage: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#275A4E]/10 rounded-xl text-[#275A4E]">
-              <Calculator className="w-5 h-5" />
+            <div className="p-3 bg-emerald-100 rounded-xl text-emerald-800">
+              <DollarSign className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">Số Tiền Thực Thu Dự Kiến</p>
+              <p className="text-xs text-slate-500 font-medium">Thực Thu Dự Kiến</p>
               <p className="text-xl font-bold text-[#275A4E]">
                 {formatVND(summary?.totalNetAmount)}
               </p>
@@ -330,53 +440,52 @@ export const BghTuitionSummaryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Class Breakdown Table */}
+      {/* Class breakdown */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="font-bold text-slate-800 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-[#275A4E]" />
-            Chi Tiết Dự Thu Theo Từng Khối & Lớp Học
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            BR-072: Đối soát chính xác 100% giữa tổng hợp và chi tiết
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-slate-500" />
+            <h2 className="text-lg font-bold text-slate-800">
+              Chi Tiết Bảng Tổng Hợp Học Phí Theo Từng Lớp Học
+            </h2>
+          </div>
+          <span className="text-xs text-slate-400">
+            Dữ liệu tổng hợp từ các khoản thu & miễn giảm chuẩn (BR-038)
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs uppercase font-semibold">
+            <thead className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4">Tên Lớp Học</th>
                 <th className="px-6 py-4">Khối Lớp</th>
-                <th className="px-6 py-4">Sĩ Số</th>
-                <th className="px-6 py-4">Tiền Dự Thu</th>
-                <th className="px-6 py-4">Miễn Giảm & Hoàn Ăn</th>
-                <th className="px-6 py-4">Thực Thu</th>
+                <th className="px-6 py-4 text-center">Sĩ Số Tính Phí</th>
+                <th className="px-6 py-4">Dự Thu Gốc</th>
+                <th className="px-6 py-4">Miễn Giảm</th>
+                <th className="px-6 py-4">Thực Thu Dự Kiến</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400">
-                    Đang tính toán số liệu học phí...
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#275A4E]" />
+                    Đang tải dữ liệu tổng hợp...
                   </td>
                 </tr>
-              ) : summary?.classSummaries?.length === 0 ? (
+              ) : !summary?.classSummaries || summary.classSummaries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400">
-                    Chưa có lớp học nào trong kỳ thu này
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                    Kỳ học phí Tháng {selectedMonth}/{selectedYear} chưa có số liệu tổng hợp. Bộ phận Kế toán cần tạo bảng tính tại [G8-UC-04] trước.
                   </td>
                 </tr>
               ) : (
-                summary?.classSummaries?.map((cls) => (
-                  <tr key={cls.classId} className="hover:bg-slate-50/60 transition-colors">
+                summary.classSummaries.map((cls) => (
+                  <tr key={cls.classId} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-800">{cls.className}</td>
-                    <td className="px-6 py-4 text-slate-600">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                        {cls.gradeLevel}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-700">{cls.studentCount} trẻ</td>
+                    <td className="px-6 py-4 text-slate-500">{cls.gradeLevel}</td>
+                    <td className="px-6 py-4 text-center font-bold text-slate-700">{cls.studentCount} trẻ</td>
                     <td className="px-6 py-4 text-slate-700 font-semibold">{formatVND(cls.grossAmount)}</td>
                     <td className="px-6 py-4 text-amber-600 font-medium">{formatVND(cls.discountAmount)}</td>
                     <td className="px-6 py-4 font-bold text-[#275A4E]">{formatVND(cls.netAmount)}</td>

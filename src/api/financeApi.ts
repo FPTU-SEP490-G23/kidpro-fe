@@ -130,6 +130,10 @@ export const financeApi = {
       .catch(() => axiosClient.get<TuitionSummaryDto>('/bgh/finance/tuition-summary', { params }));
   },
 
+  submitTuitionSummary: (params?: { month?: number; year?: number }) => {
+    return axiosClient.post<TuitionSummaryDto>('/finance/tuition-summary/submit', {}, { params });
+  },
+
   approveTuitionSummary: (params?: { month?: number; year?: number }, data?: { note?: string }) => {
     return axiosClient.post<TuitionSummaryDto>('/bgh/finance/tuition-summary/approve', data, { params });
   },
