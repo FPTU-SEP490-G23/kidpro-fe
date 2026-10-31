@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import {
   Calculator,
   Percent,
@@ -114,7 +114,6 @@ const normalizeTabKey = (tabKey: string | null): string => {
 export const FinancePage: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(location.search);
   const rawTab = searchParams.get('tab');
@@ -129,11 +128,6 @@ export const FinancePage: React.FC = () => {
   if (user && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
-
-  const handleTabChange = (key: string) => {
-    setActiveTab(key);
-    navigate(`/finance?tab=${key}`, { replace: true });
-  };
 
   const currentMeta = TAB_META[activeTab] || TAB_META['fee-catalog'];
 
@@ -157,27 +151,6 @@ export const FinancePage: React.FC = () => {
             {currentMeta.description}
           </p>
         </div>
-      </div>
-
-      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-sm overflow-x-auto flex gap-1.5 scrollbar-thin">
-        {Object.entries(TAB_META).map(([key, meta]) => {
-          const Icon = meta.icon;
-          const isActive = activeTab === key;
-          return (
-            <button
-              key={key}
-              onClick={() => handleTabChange(key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-              }`}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>[{meta.uc}] {meta.title}</span>
-            </button>
-          );
-        })}
       </div>
 
       <div className="min-h-[500px]">
