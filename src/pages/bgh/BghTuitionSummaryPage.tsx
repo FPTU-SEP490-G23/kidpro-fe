@@ -18,6 +18,7 @@ import {
   Send,
   AlertCircle,
   Info,
+  Undo2,
 } from 'lucide-react';
 import tuitionSummaryApi, {
   TuitionSummaryDto,
@@ -34,8 +35,10 @@ export const BghTuitionSummaryPage: React.FC = () => {
   // Modals
   const [approveModalOpen, setApproveModalOpen] = useState<boolean>(false);
   const [rejectModalOpen, setRejectModalOpen] = useState<boolean>(false);
+  const [revokeModalOpen, setRevokeModalOpen] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
   const [rejectReason, setRejectReason] = useState<string>('');
+  const [revokeReason, setRevokeReason] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Toast
@@ -145,6 +148,40 @@ export const BghTuitionSummaryPage: React.FC = () => {
       setAlertInfo({
         type: 'error',
         message: err?.response?.data?.message || 'Có lỗi xảy ra khi từ chối bảng học phí.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRevokeApproval = async () => {
+    if (!revokeReason.trim()) {
+      setAlertInfo({
+        type: 'error',
+        message: 'Vui lòng nhập lý do thu hồi phê duyệt để chuyển giao bộ phận Kế toán xử lý.',
+      });
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const res = await tuitionSummaryApi.revokeApproval(
+        { month: selectedMonth, year: selectedYear },
+        revokeReason.trim()
+      );
+      setAlertInfo({
+        type: 'success',
+        message:
+          (res as any)?.message ||
+          (res as any)?.data?.message ||
+          'Đã thu hồi phê duyệt thành công. Bảng học phí đã được mở khóa và chuyển về trạng thái Dự thảo.',
+      });
+      setRevokeModalOpen(false);
+      setRevokeReason('');
+      fetchSummary();
+    } catch (err: any) {
+      setAlertInfo({
+        type: 'error',
+        message: err?.response?.data?.message || 'Có lỗi xảy ra khi thu hồi phê duyệt bảng học phí.',
       });
     } finally {
       setSubmitting(false);
@@ -335,10 +372,21 @@ export const BghTuitionSummaryPage: React.FC = () => {
                 </button>
               </>
             ) : (
-              <span className="flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-xl text-sm font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                Dữ Liệu Đã Khóa (Chỉ đọc - Read-only)
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-xl text-sm font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                  Dữ Liệu Đã Khóa (Chỉ đọc - Read-only)
+                </span>
+                <button
+                  onClick={() => setRevokeModalOpen(true)}
+                  disabled={submitting}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
+                  title="Thu hồi quyết định phê duyệt để mở khóa cho bộ phận Kế toán điều chỉnh sai sót"
+                >
+                  <Undo2 className="w-4 h-4" />
+                  Thu Hồi Phê Duyệt
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -573,6 +621,48 @@ export const BghTuitionSummaryPage: React.FC = () => {
                 className="px-5 py-2 bg-rose-600 text-white rounded-xl text-sm font-semibold hover:bg-rose-700"
               >
                 {submitting ? 'Đang gửi...' : 'Xác Nhận Từ Chối'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thu Hồi Phê Duyệt */}
+      {revokeModalOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white max-w-md w-full rounded-2xl p-6 shadow-xl border border-slate-100 space-y-4">
+            <h3 className="text-lg font-bold text-amber-800 flex items-center gap-2">
+              <Undo2 className="w-5 h-5 text-amber-600" />
+              Thu Hồi Phê Duyệt Bảng Học Phí Tháng {selectedMonth}/{selectedYear}
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Khi thu hồi phê duyệt, bảng tổng hợp học phí sẽ được mở khóa và chuyển về trạng thái <strong>Dự thảo</strong> để bộ phận Kế toán điều chỉnh các sai sót phát sinh. Các phiếu báo học phí chưa thu tiền sẽ tạm thời khóa phát hành lại.
+            </p>
+            <div>
+              <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                Lý do thu hồi & Hướng chỉ đạo điều chỉnh <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                value={revokeReason}
+                onChange={(e) => setRevokeReason(e.target.value)}
+                placeholder="Ví dụ: Cần điều chỉnh lại tiền ăn lớp Mầm A1 do nghỉ ốm; Bổ sung miễn giảm cho học sinh chính sách..."
+                rows={4}
+                className="w-full text-sm p-3 border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setRevokeModalOpen(false)}
+                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm"
+              >
+                Đóng
+              </button>
+              <button
+                onClick={handleRevokeApproval}
+                disabled={submitting}
+                className="px-5 py-2 bg-amber-600 text-white rounded-xl text-sm font-semibold hover:bg-amber-700"
+              >
+                {submitting ? 'Đang xử lý...' : 'Xác Nhận Thu Hồi Phê Duyệt'}
               </button>
             </div>
           </div>

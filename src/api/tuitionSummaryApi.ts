@@ -1,4 +1,4 @@
-﻿import axiosClient from './axiosClient';
+import axiosClient from './axiosClient';
 
 export interface ClassTuitionSummaryDto {
   classId: string;
@@ -34,6 +34,10 @@ export const tuitionSummaryApi = {
 
   reject: async (params: { month?: number; year?: number }, reason: string) => {
     return axiosClient.post<TuitionSummaryDto>('/bgh/finance/tuition-summary/reject', { reason }, { params });
+  },
+
+  revokeApproval: async (params?: { month?: number; year?: number }, reason?: string) => {
+    return axiosClient.post<TuitionSummaryDto>('/bgh/finance/tuition-summary/revoke-approval', { reason }, { params });
   },
 };
 
