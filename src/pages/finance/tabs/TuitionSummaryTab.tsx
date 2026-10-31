@@ -11,6 +11,7 @@ import {
   Users,
   ShieldAlert,
   AlertCircle,
+  Undo2,
 } from 'lucide-react';
 import { financeApi } from '../../../api/financeApi';
 import { formatCurrency } from '../../../utils/formatters';
@@ -94,6 +95,35 @@ export const TuitionSummaryTab: React.FC = () => {
     }
   };
 
+  const handleRecall = async () => {
+    if (
+      !window.confirm(
+        `Bạn có chắc chắn muốn THU HỒI bảng tổng hợp học phí Tháng ${selectedMonth}/${selectedYear}? Sau khi thu hồi, bảng tính sẽ quay về trạng thái Dự thảo để bạn chỉnh sửa phụ phí/biểu phí, và BGH sẽ tạm thời chưa thể ký duyệt.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await financeApi.recallTuitionSummary({
+        month: selectedMonth,
+        year: selectedYear,
+      });
+      showToast(
+        'success',
+        (res as any)?.message ||
+          (res as any)?.data?.message ||
+          'Đã thu hồi bảng tổng hợp học phí về trạng thái Dự thảo thành công.'
+      );
+      await fetchSummary();
+    } catch (err: any) {
+      showToast('error', err?.response?.data?.message || 'Có lỗi xảy ra khi thu hồi gửi duyệt.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Toast Alert */}
@@ -142,6 +172,20 @@ export const TuitionSummaryTab: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
 
+          {/* Nút Thu hồi gửi duyệt (chỉ hiển thị khi đang SUBMITTED và chưa bị APPROVED) */}
+          {isSubmitted && !isApproved && (
+            <button
+              onClick={handleRecall}
+              disabled={submitting || loading}
+              title="Thu hồi bảng tổng hợp học phí về trạng thái Dự thảo để chỉnh sửa phụ phí"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shadow-sm bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300"
+            >
+              <Undo2 className="w-4 h-4" />
+              {submitting ? 'Đang xử lý...' : 'Thu Hồi Gửi Phê Duyệt'}
+            </button>
+          )}
+
+          {/* Nút Trình BGH Phê duyệt */}
           <button
             onClick={handleSubmitForApproval}
             disabled={!hasData || isApproved || submitting || loading}
