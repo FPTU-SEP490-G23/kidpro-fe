@@ -395,7 +395,7 @@ export const TuitionCalculationTab: React.FC = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Mã thông báo</th>
-                <th className="py-3.5 px-4">Học sinh & Lớp</th>
+                <th className="py-3.5 px-4 min-w-[200px] max-w-[280px]">Học sinh & Lớp</th>
                 <th className="py-3.5 px-4">Phụ huynh</th>
                 <th className="py-3.5 px-4">Tổng gốc</th>
                 <th className="py-3.5 px-4">Miễn giảm</th>
@@ -426,7 +426,7 @@ export const TuitionCalculationTab: React.FC = () => {
                     <td className="py-3.5 px-4 font-mono text-xs font-bold text-indigo-700">
                       {inv.invoiceCode}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 min-w-[200px] max-w-[280px]">
                       <p className="font-semibold text-slate-800">{inv.studentName}</p>
                       <p className="text-xs text-slate-500">Mã: {inv.studentCode} | Lớp: {inv.className || 'Chưa phân lớp'}</p>
                       {/* Hiển thị chi tiết phụ phí phát sinh & các khoản tự nguyện ở màn hình chính */}
@@ -450,44 +450,52 @@ export const TuitionCalculationTab: React.FC = () => {
                         });
                         if (incidentalItems.length === 0) return null;
                         return (
-                          <div className="mt-2 space-y-1">
+                          <div className="mt-2 space-y-1.5">
                             {incidentalItems.map((itm, itmIdx) => {
                               const isVoluntary = itm.itemDescription.includes('CLB') || itm.itemDescription.includes('buýt') || itm.itemDescription.includes('tự nguyện');
                               return (
                                 <div
                                   key={itm.itemId || itmIdx}
-                                  className={`flex items-center gap-1.5 p-1.5 px-2 rounded-lg text-xs group shadow-2xs ${
+                                  className={`p-2 rounded-lg text-xs group shadow-2xs ${
                                     isVoluntary
                                       ? 'bg-purple-50/90 border border-purple-200/90 text-purple-900'
                                       : 'bg-amber-50/90 border border-amber-200/90 text-amber-900'
                                   }`}
                                 >
-                                  {isVoluntary ? (
-                                    <Sparkles className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
-                                  ) : (
-                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                                  )}
-                                  <div className="flex-1 truncate">
-                                    <span className="font-bold">+{formatCurrency(itm.amount)}: </span>
-                                    <span>{itm.itemDescription}</span>
+                                  <div className="flex items-center justify-between gap-1.5">
+                                    <div className="flex items-center gap-1.5 font-bold">
+                                      {isVoluntary ? (
+                                        <Sparkles className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                                      ) : (
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                                      )}
+                                      <span>+{formatCurrency(itm.amount)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditFeeModal(inv, itm)}
+                                        className="p-1 hover:bg-slate-200/80 text-indigo-700 rounded transition"
+                                        title="Sửa khoản này"
+                                      >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteFee(inv, itm)}
+                                        className="p-1 hover:bg-rose-200/80 text-rose-700 rounded transition"
+                                        title="Xóa khoản ghi nhầm"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1 flex-shrink-0">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEditFeeModal(inv, itm)}
-                                      className="p-1 hover:bg-slate-200 text-indigo-700 rounded transition"
-                                      title="Sửa khoản này"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteFee(inv, itm)}
-                                      className="p-1 hover:bg-rose-200 text-rose-700 rounded transition"
-                                      title="Xóa khoản ghi nhầm"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
+                                  <div
+                                    className={`mt-1 text-[11px] leading-snug break-words whitespace-normal pl-5 ${
+                                      isVoluntary ? 'text-purple-800' : 'text-amber-800'
+                                    }`}
+                                  >
+                                    {itm.itemDescription}
                                   </div>
                                 </div>
                               );
