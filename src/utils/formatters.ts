@@ -163,7 +163,7 @@ export const normalizeRole = (rawRole?: string | null): UserRole => {
 export const getRoleDisplayName = (role?: UserRole | string | null): string => {
   const normalized = normalizeRole(role);
   const map: Record<UserRole, string> = {
-    SYSTEM_ADMIN: 'Quản trị viên nền tảng',
+    SYSTEM_ADMIN: 'Quản trị viên hệ thống (Super Admin)',
     BGH: 'Ban Giám Hiệu (Hiệu trưởng)',
     GIAO_VU: 'Cán bộ Giáo vụ',
     KE_TOAN: 'Kế toán & Học phí',

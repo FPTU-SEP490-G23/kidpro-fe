@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeRole, getRoleHomePath } from '../../utils/formatters';
-import { ShieldCheck, LogIn, AlertCircle } from 'lucide-react';
+import { authApi } from '../../api/authApi';
+import { ShieldCheck, LogIn, AlertCircle, KeyRound, Mail, X, CheckCircle2, Loader2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { loginWithGoogle, loginWithPassword, user, role } = useAuth();
@@ -12,6 +13,13 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Trạng thái modal Quên Mật Khẩu
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
+  const [forgotErrorMsg, setForgotErrorMsg] = useState('');
 
   // Nếu đã đăng nhập thì tự động điều hướng đúng trang theo role
   useEffect(() => {
@@ -50,6 +58,38 @@ export const LoginPage: React.FC = () => {
       setErrorMsg(typeof err === 'string' ? err : (err?.message || 'Sai thông tin đăng nhập'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 3. Mở Modal Quên mật khẩu
+  const openForgotPasswordModal = () => {
+    setForgotEmail(email.trim());
+    setForgotSuccessMsg('');
+    setForgotErrorMsg('');
+    setIsForgotModalOpen(true);
+  };
+
+  // 4. Xử lý gửi yêu cầu Quên mật khẩu
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) {
+      setForgotErrorMsg('Vui lòng nhập địa chỉ email tài khoản.');
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      setForgotErrorMsg('');
+      setForgotSuccessMsg('');
+      const res = await authApi.forgotPassword(forgotEmail.trim());
+      setForgotSuccessMsg(res?.message || 'Mật khẩu ngẫu nhiên mới đã được gửi tới hòm thư Gmail của bạn.');
+    } catch (err: any) {
+      const errorText =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Không thể gửi yêu cầu cấp lại mật khẩu. Vui lòng thử lại sau.';
+      setForgotErrorMsg(errorText);
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -129,9 +169,18 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Mật khẩu
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Mật khẩu
+                </label>
+                <button
+                  type="button"
+                  onClick={openForgotPasswordModal}
+                  className="text-xs font-semibold text-[#275A4E] hover:underline cursor-pointer transition hover:text-[#1E4D40]"
+                >
+                  Quên mật khẩu?
+                </button>
+              </div>
               <input
                 type="password"
                 required
@@ -235,6 +284,117 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Modal Quên Mật Khẩu */}
+      {isForgotModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-150">
+            <button
+              type="button"
+              onClick={() => setIsForgotModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 rounded-lg p-1 transition cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-emerald-50 text-[#275A4E] flex items-center justify-center shrink-0">
+                <KeyRound className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Quên mật khẩu?</h3>
+                <p className="text-xs text-slate-500">Cấp lại mật khẩu mới tự động qua Gmail</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+              Nhập địa chỉ Gmail liên kết với tài khoản của bạn. Hệ thống sẽ tạo một mật khẩu ngẫu nhiên mới và gửi trực tiếp vào hòm thư Gmail của bạn.
+            </p>
+
+            {forgotSuccessMsg ? (
+              <div className="space-y-4">
+                <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-800">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-emerald-900 mb-1">Gửi mật khẩu thành công!</p>
+                      <p className="leading-relaxed">{forgotSuccessMsg}</p>
+                      <p className="mt-2 text-[11px] text-emerald-700">
+                        💡 Vui lòng kiểm tra hộp thư đến (Inbox) hoặc Thư rác (Spam) để lấy mật khẩu đăng nhập.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotModalOpen(false);
+                    setForgotSuccessMsg('');
+                  }}
+                  className="w-full rounded-xl bg-[#275A4E] py-2.5 text-sm font-bold text-white hover:bg-[#1E4D40] transition cursor-pointer shadow-sm"
+                >
+                  Đã hiểu, quay lại đăng nhập
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                {forgotErrorMsg && (
+                  <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200 animate-in fade-in">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                    <span>{forgotErrorMsg}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Địa chỉ Gmail tài khoản
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="email"
+                      required
+                      autoFocus
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="vidu@gmail.com hoặc ten@kidpro.edu.vn"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-medium text-slate-800 transition focus:border-[#275A4E] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotModalOpen(false)}
+                    disabled={forgotLoading}
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer disabled:opacity-50"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#275A4E] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-900/10 hover:bg-[#1E4D40] transition cursor-pointer disabled:opacity-50"
+                  >
+                    {forgotLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Đang gửi email...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4" />
+                        <span>Gửi mật khẩu mới</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

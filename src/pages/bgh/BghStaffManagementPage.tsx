@@ -24,6 +24,10 @@ import {
   RefreshCw,
   CheckCircle2,
   Calendar,
+  Eye,
+  EyeOff,
+  Send,
+  Check,
 } from 'lucide-react';
 
 export const BghStaffManagementPage: React.FC = () => {
@@ -45,10 +49,15 @@ export const BghStaffManagementPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [department, setDepartment] = useState('ACADEMIC');
   const [qualification, setQualification] = useState('Đại học Sư phạm Mầm non');
   const [hireDate, setHireDate] = useState('2026-09-01');
   const [initialRole, setInitialRole] = useState('TEACHER');
+
+  // Success summary modal state
+  const [createdResult, setCreatedResult] = useState<StaffMember | null>(null);
 
   // Lock reason
   const [lockReason, setLockReason] = useState('Nghỉ việc');
@@ -64,9 +73,11 @@ export const BghStaffManagementPage: React.FC = () => {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: CreateStaffInput) => staffApi.createStaff(data),
-    onSuccess: (res) => {
+    onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['bgh-staff-list'] });
-      success(res?.message || 'MSG-019: Tạo hồ sơ và cấp tài khoản nhân sự mới thành công.');
+      const createdStaff = res?.data || res;
+      setCreatedResult(createdStaff);
+      success(res?.message || 'MSG-019: Tạo hồ sơ, cấp tài khoản và đã gửi thông báo đến Gmail thành công.');
       closeCreateModal();
     },
     onError: (err: any) => {
@@ -134,6 +145,8 @@ export const BghStaffManagementPage: React.FC = () => {
     setFullName('');
     setPhoneNumber('');
     setEmail('');
+    setPassword('');
+    setShowPassword(false);
     setDepartment('ACADEMIC');
     setQualification('Đại học Sư phạm Mầm non');
     setHireDate('2026-09-01');
@@ -176,17 +189,28 @@ export const BghStaffManagementPage: React.FC = () => {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !phoneNumber.trim()) {
-      setFormError('Vui lòng điền họ tên và số điện thoại');
+      setFormError('Vui lòng điền đầy đủ họ tên và số điện thoại');
       return;
     }
+    if (!email.trim()) {
+      setFormError('Vui lòng nhập địa chỉ email/Gmail để hệ thống gửi thông báo tài khoản');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setFormError('Địa chỉ email không đúng định dạng (ví dụ: giaovien@gmail.com)');
+      return;
+    }
+
     createMutation.mutate({
       fullName: fullName.trim(),
       phoneNumber: phoneNumber.trim(),
-      email: email.trim() || undefined,
+      email: email.trim(),
       department,
       qualification: qualification.trim() || undefined,
       hireDate,
       role: initialRole,
+      password: password.trim() || undefined,
     });
   };
 
@@ -473,6 +497,18 @@ export const BghStaffManagementPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                  <Send className="w-4 h-4 text-emerald-700" />
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-900">Tạo tài khoản Staff & Gửi thông báo Gmail</p>
+                  <p className="text-[11px] text-emerald-700 leading-relaxed">
+                    Hệ thống tự động tạo đồng thời bản ghi <strong>Account</strong> & <strong>Staff</strong> trong database, sau đó gửi thông tin tài khoản và mật khẩu đến Gmail của cán bộ.
+                  </p>
+                </div>
+              </div>
+
               {formError && (
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -481,7 +517,7 @@ export const BghStaffManagementPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Họ và Tên *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Họ và Tên Cán Bộ *</label>
                 <input
                   type="text"
                   required
@@ -505,14 +541,18 @@ export const BghStaffManagementPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="lan.nt@kidpro.edu.vn"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E] text-sm outline-none"
-                  />
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Gmail Nhận Thông Báo *</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="lan.nt@gmail.com"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E] text-sm outline-none"
+                    />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  </div>
                 </div>
               </div>
 
@@ -548,6 +588,29 @@ export const BghStaffManagementPage: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Mật Khẩu Khởi Tạo (Tùy chọn)</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Mặc định: KidPro@2026 (nếu để trống)"
+                    className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#275A4E] text-sm outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Nếu để trống, mật khẩu khởi tạo mặc định là <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-bold">KidPro@2026</code>.
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Trình Độ Chuyên Môn</label>
                 <input
                   type="text"
@@ -569,10 +632,10 @@ export const BghStaffManagementPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-6 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-60"
                 >
-                  <Save className="w-4 h-4" />
-                  <span>{createMutation.isPending ? 'Đang tạo...' : 'Lưu hồ sơ & cấp tài khoản'}</span>
+                  <Send className={`w-4 h-4 ${createMutation.isPending ? 'animate-bounce' : ''}`} />
+                  <span>{createMutation.isPending ? 'Đang tạo & gửi Gmail...' : 'Tạo Tài Khoản & Gửi Gmail'}</span>
                 </button>
               </div>
             </form>
@@ -798,6 +861,68 @@ export const BghStaffManagementPage: React.FC = () => {
                 {updateRoleMutation.isPending ? 'Đang lưu...' : 'Lưu phân quyền'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thông Báo Tạo Tài Khoản & Gửi Gmail Thành Công */}
+      {createdResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-emerald-700">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Khởi Tạo & Cấp Tài Khoản Thành Công!</h3>
+                <p className="text-xs text-emerald-600 font-medium">Bản ghi Account & Staff đã được lưu trong CSDL</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 space-y-1">
+              <div className="flex items-center gap-2 font-bold">
+                <Mail className="w-4 h-4 text-emerald-700" />
+                <span>Đã gửi thông báo kích hoạt tới Gmail:</span>
+              </div>
+              <p className="font-semibold text-emerald-950 pl-6">{createdResult.email}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs space-y-2.5">
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Mã Cán Bộ:</span>
+                <span className="font-mono font-bold text-[#275A4E]">{createdResult.staffCode}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Họ & Tên:</span>
+                <span className="font-bold text-slate-900">{createdResult.fullName}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Username:</span>
+                <span className="font-mono font-semibold text-slate-800">{createdResult.username}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Mật khẩu khởi tạo:</span>
+                <span className="font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                  {createdResult.tempPassword || 'KidPro@2026'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-medium">Phòng ban:</span>
+                <span className="font-medium text-slate-700">{createdResult.department}</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 text-center italic">
+              Nhân sự có thể đăng nhập ngay bằng Username hoặc Email trên với mật khẩu khởi tạo đã cấp.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setCreatedResult(null)}
+              className="w-full py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-md cursor-pointer"
+            >
+              Hoàn Tất & Đóng
+            </button>
           </div>
         </div>
       )}

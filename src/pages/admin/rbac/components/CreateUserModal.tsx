@@ -4,13 +4,14 @@ import { UserAccount, CreateUserPayload, RBAC_MESSAGES } from '../../../../types
 import { Tenant } from '../../../../types/tenant.types';
 import { UserRole } from '../../../../types/auth.types';
 import { rbacApi } from '../../../../api/rbacApi';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import {
   createUserAccountSchema,
   CreateUserAccountFormValues,
 } from '../../../../utils/validationSchemas';
 import { getRoleDisplayName } from '../../../../utils/formatters';
-import { X, UserPlus, Mail, Phone, Building2, Shield, Loader2, Sparkles } from 'lucide-react';
+import { X, UserPlus, Mail, Phone, Building2, Shield, Loader2, Sparkles, Briefcase } from 'lucide-react';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -25,12 +26,18 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   onClose,
   onUserCreated,
 }) => {
+  const { user: currentUser } = useAuth();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [department, setDepartment] = useState('ACADEMIC');
+  const [qualification, setQualification] = useState('');
+
+  const isBgh = currentUser?.role === 'BGH';
 
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
   } = useForm<CreateUserAccountFormValues>({
@@ -43,9 +50,22 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     },
   });
 
+  const selectedRole = watch('role');
+  const isStaffRole =
+    selectedRole === 'GIAO_VIEN' ||
+    selectedRole === 'GIAO_VU' ||
+    selectedRole === 'KE_TOAN' ||
+    selectedRole === 'BEP';
+
   if (!isOpen) return null;
 
   const onSubmit = async (values: CreateUserAccountFormValues) => {
+    // Chặn nếu BGH cố tạo Super Admin
+    if (isBgh && values.role === 'SYSTEM_ADMIN') {
+      toast.error('Ban Giám Hiệu không có quyền tạo tài khoản Quản trị viên hệ thống (Super Admin).');
+      return;
+    }
+
     const validation = createUserAccountSchema.safeParse(values);
     if (!validation.success) {
       toast.error(validation.error.issues[0]?.message || 'Vui lòng kiểm tra lại thông tin.');
@@ -60,10 +80,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         phone: values.phone.replace(/[\s.-]/g, ''),
         tenantId: values.tenantId,
         role: values.role as UserRole,
+        department: isStaffRole ? department : undefined,
+        qualification: isStaffRole && qualification.trim() ? qualification.trim() : undefined,
       });
 
       toast.success(
-        `Khởi tạo tài khoản thành công! Mật khẩu tạm thời đã gửi đến email ${newUser.email}.`
+        `Khởi tạo tài khoản ${getRoleDisplayName(newUser.role)} thành công! Đã tự động tạo hồ sơ hệ thống.`
       );
       onUserCreated(newUser);
       reset();
@@ -74,7 +96,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       } else if (err.message === RBAC_MESSAGES.MSG_015) {
         toast.error(RBAC_MESSAGES.MSG_015);
       } else {
-        toast.error(RBAC_MESSAGES.MSG_004);
+        toast.error(err.message || RBAC_MESSAGES.MSG_004);
       }
     } finally {
       setIsSubmitting(false);
@@ -115,9 +137,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               type="text"
               {...register('fullName', { required: true })}
               placeholder="Ví dụ: Hoàng Thị Lan"
-              className={`w-full rounded-xl border px-3.5 py-2.5 text-xs font-medium ${
-                errors.fullName ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
-              } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
+              className={`w-full rounded-xl border px-3.5 py-2.5 text-xs font-medium ${errors.fullName ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
+                } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
             />
             {errors.fullName && <p className="text-rose-600">{errors.fullName.message}</p>}
           </div>
@@ -132,9 +153,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 type="email"
                 {...register('email', { required: true })}
                 placeholder="lan.ht@kidpro.edu.vn"
-                className={`w-full rounded-xl border pl-9 pr-3.5 py-2.5 text-xs font-medium ${
-                  errors.email ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
-                } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
+                className={`w-full rounded-xl border pl-9 pr-3.5 py-2.5 text-xs font-medium ${errors.email ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
+                  } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
@@ -151,9 +171,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 type="tel"
                 {...register('phone', { required: true })}
                 placeholder="0988123456"
-                className={`w-full rounded-xl border pl-9 pr-3.5 py-2.5 text-xs font-medium ${
-                  errors.phone ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
-                } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
+                className={`w-full rounded-xl border pl-9 pr-3.5 py-2.5 text-xs font-medium ${errors.phone ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
+                  } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
               />
               <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
@@ -190,23 +209,63 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 {...register('role', { required: true })}
                 className="w-full rounded-xl border border-slate-300 pl-9 pr-3.5 py-2.5 text-xs font-medium text-slate-800 focus:border-[#275A4E] focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40"
               >
+                {!isBgh && (
+                  <option value="SYSTEM_ADMIN">{getRoleDisplayName('SYSTEM_ADMIN')}</option>
+                )}
                 <option value="BGH">{getRoleDisplayName('BGH')}</option>
                 <option value="GIAO_VIEN">{getRoleDisplayName('GIAO_VIEN')}</option>
                 <option value="GIAO_VU">{getRoleDisplayName('GIAO_VU')}</option>
                 <option value="KE_TOAN">{getRoleDisplayName('KE_TOAN')}</option>
                 <option value="BEP">{getRoleDisplayName('BEP')}</option>
-                <option value="SYSTEM_ADMIN">{getRoleDisplayName('SYSTEM_ADMIN')}</option>
+                <option value="PHU_HUYNH">{getRoleDisplayName('PHU_HUYNH')}</option>
               </select>
               <Shield className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
-            <p className="text-[11px] text-slate-400">
-              Hệ thống sẽ tự động gán ma trận quyền mặc định của vai trò này.
-            </p>
+            {isBgh && (
+              <p className="text-[11px] text-amber-600 font-medium">
+                * Ban Giám Hiệu chỉ được cấp tài khoản nhân sự & phụ huynh, không có quyền tạo tài khoản Quản trị viên hệ thống (Super Admin).
+              </p>
+            )}
           </div>
+
+          {/* Trường mở rộng nếu là nhân sự Staff */}
+          {isStaffRole && (
+            <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-3">
+              <p className="font-bold text-emerald-800 text-[11px] flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Hồ sơ Cán bộ Nhân sự (Tự động ghi bảng Staff)</span>
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-medium text-slate-600 text-[11px]">Phòng ban chuyên môn</label>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-medium text-slate-800"
+                  >
+                    <option value="ACADEMIC">Chuyên môn Sư phạm (ACADEMIC)</option>
+                    <option value="ACCOUNTING">Kế toán & Tài chính (ACCOUNTING)</option>
+                    <option value="KITCHEN">Bếp Bán trú (KITCHEN)</option>
+                    <option value="MEDICAL">Y tế Học đường (MEDICAL)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-medium text-slate-600 text-[11px]">Trình độ / Bằng cấp</label>
+                  <input
+                    type="text"
+                    value={qualification}
+                    onChange={(e) => setQualification(e.target.value)}
+                    placeholder="VD: Cử nhân Sư phạm Mầm non"
+                    className="w-full rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-medium text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Ghi chú mật khẩu tự sinh */}
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-relaxed">
-            💡 Hệ thống sẽ tự động sinh mật khẩu tạm thời ngẫu nhiên và gửi thư kích hoạt tài khoản kèm hướng dẫn đến email nhân sự.
+            💡 Mật khẩu khởi tạo mặc định là <b>KidPro@2026</b>. Nhân sự có thể đổi lại sau lần đăng nhập đầu tiên.
           </div>
 
           {/* Footer Actions */}

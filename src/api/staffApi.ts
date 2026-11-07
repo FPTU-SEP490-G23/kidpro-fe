@@ -13,16 +13,18 @@ export interface StaffMember {
   email?: string;
   role?: string;
   status?: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'SUSPENDED';
+  tempPassword?: string;
 }
 
 export interface CreateStaffInput {
   fullName: string;
   phoneNumber: string;
-  email?: string;
+  email: string;
   department: string;
   qualification?: string;
   hireDate?: string;
   role?: string;
+  password?: string;
 }
 
 export interface UpdateStaffInput {

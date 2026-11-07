@@ -43,6 +43,7 @@ import BghAcademicApprovalsHubPage from './pages/bgh/hubs/BghAcademicApprovalsHu
 import BghChildcareHubPage from './pages/bgh/hubs/BghChildcareHubPage';
 import BghFinanceHubPage from './pages/bgh/hubs/BghFinanceHubPage';
 import BghCommunicationsHubPage from './pages/bgh/hubs/BghCommunicationsHubPage';
+import BghBusManagementPage from './pages/bgh/BghBusManagementPage';
 
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
@@ -112,7 +113,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/users-rbac"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'BGH']}>
                 <RbacPage />
               </ProtectedRoute>
             }
@@ -120,7 +121,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin/rbac"
             element={
-              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'BGH']}>
                 <RbacPage />
               </ProtectedRoute>
             }
@@ -362,6 +363,22 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
                 <BghStaffManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/bus-management"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghBusManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bgh/buses"
+            element={
+              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
+                <BghBusManagementPage />
               </ProtectedRoute>
             }
           />

@@ -8,6 +8,7 @@ import {
   UserListParams,
   RBAC_MESSAGES,
 } from '../types/rbac.types';
+import { UserRole } from '../types/auth.types';
 
 // Danh mục ma trận phân quyền 5 phân hệ chuẩn của KIDPRO
 export const SYSTEM_PERMISSION_MODULES: PermissionModule[] = [
@@ -357,22 +358,51 @@ export const getDefaultPermissionsForRole = (role: string): string[] => {
   }
 };
 
+const mapBackendRoleToFrontend = (roleStr?: string): UserRole => {
+  if (!roleStr) return 'GIAO_VIEN';
+  const r = roleStr.toUpperCase();
+  if (r === 'SUPER_ADMIN' || r === 'SYSTEM_ADMIN' || r === 'ADMIN') return 'SYSTEM_ADMIN';
+  if (r === 'BOARD_OF_DIRECTORS' || r === 'BGH' || r === 'PRINCIPAL' || r === 'VICE_PRINCIPAL') return 'BGH';
+  if (r === 'TEACHER' || r === 'GIAO_VIEN') return 'GIAO_VIEN';
+  if (r === 'ACADEMIC_STAFF' || r === 'GIAO_VU') return 'GIAO_VU';
+  if (r === 'ACCOUNTANT' || r === 'KE_TOAN') return 'KE_TOAN';
+  if (r === 'KITCHEN_STAFF' || r === 'BEP') return 'BEP';
+  if (r === 'PARENT' || r === 'PHU_HUYNH') return 'PHU_HUYNH';
+  return 'GIAO_VIEN';
+};
+
+const mapFrontendRoleToBackend = (roleStr: string): string => {
+  switch (roleStr) {
+    case 'SYSTEM_ADMIN': return 'SUPER_ADMIN';
+    case 'BGH': return 'BOARD_OF_DIRECTORS';
+    case 'GIAO_VU': return 'ACADEMIC_STAFF';
+    case 'GIAO_VIEN': return 'TEACHER';
+    case 'KE_TOAN': return 'ACCOUNTANT';
+    case 'BEP': return 'KITCHEN_STAFF';
+    case 'PHU_HUYNH': return 'PARENT';
+    default: return roleStr;
+  }
+};
+
 const mapUserDtoToAccount = (dto: any): UserAccount => {
   const localUsers = getStoredUsers();
   const localMatch = localUsers.find(
-    (u) => String(u.id) === String(dto.id) || (u.email && u.email.toLowerCase() === dto.email?.toLowerCase())
+    (u) => String(u.id) === String(dto.id || dto.accountId) || (u.email && u.email.toLowerCase() === dto.email?.toLowerCase())
   );
-  const defaultRolePerms = getDefaultPermissionsForRole(dto.role);
+  const feRole = mapBackendRoleToFrontend(dto.role);
+  const defaultRolePerms = getDefaultPermissionsForRole(feRole);
+
+  const isLocked = dto.status === 'BLOCKED' || dto.status === 'INACTIVE' || dto.status === 'LOCKED';
 
   return {
-    id: String(dto.id),
-    fullName: dto.fullName || 'Người dùng',
-    email: dto.email,
-    phone: dto.phone || '',
-    tenantId: dto.schoolId || localMatch?.tenantId || (dto.role === 'SYSTEM_ADMIN' ? 'all' : 'tnt_001'),
-    tenantName: dto.schoolName || localMatch?.tenantName || (dto.role === 'SYSTEM_ADMIN' ? 'Toàn hệ thống' : 'Trường Mầm Sống'),
-    role: dto.role,
-    status: dto.status === 'LOCKED' ? 'LOCKED' : 'ACTIVE',
+    id: String(dto.id || dto.accountId),
+    fullName: dto.fullName || dto.username || 'Người dùng',
+    email: dto.email || '',
+    phone: dto.phone || dto.phoneNumber || '',
+    tenantId: dto.schoolId || localMatch?.tenantId || (feRole === 'SYSTEM_ADMIN' ? 'all' : 'tnt_001'),
+    tenantName: dto.schoolName || localMatch?.tenantName || (feRole === 'SYSTEM_ADMIN' ? 'Toàn hệ thống' : 'Trường Mầm Non KIDPRO'),
+    role: feRole,
+    status: isLocked ? 'LOCKED' : 'ACTIVE',
     avatarUrl:
       dto.avatarUrl ||
       localMatch?.avatarUrl ||
@@ -380,7 +410,7 @@ const mapUserDtoToAccount = (dto: any): UserAccount => {
     lockReason: localMatch?.lockReason,
     permissions: localMatch?.permissions || defaultRolePerms,
     createdAt: dto.createdAt ? new Date(dto.createdAt).toISOString() : new Date().toISOString(),
-    updatedAt: localMatch?.updatedAt || (dto.createdAt ? new Date(dto.createdAt).toISOString() : undefined),
+    updatedAt: localMatch?.updatedAt || (dto.updatedAt ? new Date(dto.updatedAt).toISOString() : undefined),
   };
 };
 
@@ -452,24 +482,27 @@ export const rbacApi = {
 
   // 3. Thêm tài khoản mới (kết nối Spring Boot /api/admin/users)
   createUser: async (payload: CreateUserPayload): Promise<UserAccount> => {
+    const beRole = mapFrontendRoleToBackend(payload.role);
     try {
       const bePayload = {
-        email: payload.email.trim(),
-        password: (payload as any).password || 'Kidpro@2026',
-        role: payload.role,
         fullName: payload.fullName.trim(),
         phone: payload.phone?.trim() || null,
-        schoolId: payload.tenantId && payload.tenantId !== 'ALL' && payload.tenantId.length > 20 ? payload.tenantId : null,
-        status: 'ACTIVE',
+        email: payload.email?.trim() || null,
+        role: beRole,
+        password: payload.password?.trim() || 'KidPro@2026',
+        department: payload.department,
+        qualification: payload.qualification,
+        position: payload.position,
+        address: payload.address,
+        identityCardNumber: payload.identityCardNumber,
       };
 
       const res: any = await axiosClient.post('/admin/users', bePayload);
       const createdDto = res?.data || res;
-      if (createdDto && (createdDto.id || createdDto.email)) {
+      if (createdDto && (createdDto.id || createdDto.accountId || createdDto.email)) {
         const newAccount = mapUserDtoToAccount(createdDto);
         if (payload.tenantId) {
           newAccount.tenantId = payload.tenantId;
-          newAccount.tenantName = (payload as any).tenantName || createdDto.schoolName || newAccount.tenantName;
         }
 
         const list = getStoredUsers();
@@ -478,8 +511,12 @@ export const rbacApi = {
         return newAccount;
       }
     } catch (err: any) {
-      if (err?.response?.status === 409 || err?.response?.data?.message?.toLowerCase().includes('email')) {
+      const msg = err?.response?.data?.message || err?.message;
+      if (err?.response?.status === 409 || (msg && msg.toLowerCase().includes('email'))) {
         throw new Error(RBAC_MESSAGES.MSG_019);
+      }
+      if (err?.response?.status === 403) {
+        throw new Error(msg || 'Bạn không có quyền thực hiện thao tác này.');
       }
       console.warn('Lưu ý: Không thể lưu qua backend, lưu tạm vào bộ nhớ cục bộ:', err);
     }
@@ -515,7 +552,60 @@ export const rbacApi = {
     return newUser;
   },
 
-  // 4. Cập nhật quyền người dùng (Phân quyền RBAC)
+  // 4. Cập nhật thông tin tài khoản người dùng (Edit User)
+  updateUser: async (userId: string, payload: UpdateUserPayload): Promise<UserAccount> => {
+    try {
+      const beRole = payload.role ? mapFrontendRoleToBackend(payload.role) : undefined;
+      const bePayload = {
+        fullName: payload.fullName?.trim(),
+        phone: payload.phone?.trim(),
+        email: payload.email?.trim(),
+        role: beRole,
+        status: payload.status === 'LOCKED' ? 'BLOCKED' : payload.status === 'ACTIVE' ? 'ACTIVE' : undefined,
+        newPassword: payload.newPassword?.trim() || undefined,
+        department: payload.department,
+        qualification: payload.qualification,
+        position: payload.position,
+        address: payload.address,
+        identityCardNumber: payload.identityCardNumber,
+      };
+
+      const res: any = await axiosClient.put(`/admin/users/${userId}`, bePayload);
+      const updatedDto = res?.data || res;
+      if (updatedDto && (updatedDto.id || updatedDto.accountId || updatedDto.email)) {
+        const updatedAccount = mapUserDtoToAccount(updatedDto);
+        const list = getStoredUsers();
+        const index = list.findIndex((u) => u.id === userId);
+        if (index !== -1) {
+          list[index] = { ...list[index], ...updatedAccount };
+          saveStoredUsers(list);
+        }
+        return updatedAccount;
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message;
+      if (err?.response?.status === 403) {
+        throw new Error(msg || 'Bạn không có quyền chỉnh sửa tài khoản này.');
+      }
+      console.warn('Lưu ý: Không thể cập nhật qua backend, cập nhật cục bộ:', err);
+    }
+
+    const list = getStoredUsers();
+    const index = list.findIndex((u) => u.id === userId);
+    if (index === -1) throw new Error('Không tìm thấy người dùng');
+
+    if (payload.fullName) list[index].fullName = payload.fullName;
+    if (payload.email) list[index].email = payload.email;
+    if (payload.phone) list[index].phone = payload.phone;
+    if (payload.role) list[index].role = payload.role;
+    if (payload.status) list[index].status = payload.status;
+    list[index].updatedAt = new Date().toISOString();
+
+    saveStoredUsers(list);
+    return list[index];
+  },
+
+  // 5. Cập nhật quyền người dùng (Phân quyền RBAC)
   updateUserPermissions: async (
     userId: string,
     permissions: string[],
@@ -545,17 +635,19 @@ export const rbacApi = {
     return targetUser;
   },
 
-  // 5. Khóa / Mở khóa tài khoản người dùng (kết nối Spring Boot PUT /api/admin/users/{id}/status)
+  // 6. Khóa / Mở khóa tài khoản người dùng
   updateUserStatus: async (
     userId: string,
     payload: UpdateUserStatusPayload
   ): Promise<UserAccount> => {
     try {
-      const res: any = await axiosClient.put(`/admin/users/${userId}/status`, {
-        status: payload.status,
+      const beStatus = payload.status === 'LOCKED' ? 'BLOCKED' : 'ACTIVE';
+      const res: any = await axiosClient.patch(`/admin/users/${userId}/status`, {
+        status: beStatus,
+        reason: payload.reason,
       });
       const updatedDto = res?.data || res;
-      if (updatedDto && (updatedDto.id || updatedDto.email)) {
+      if (updatedDto && (updatedDto.id || updatedDto.accountId || updatedDto.email)) {
         const updatedAccount = mapUserDtoToAccount(updatedDto);
         if (payload.reason) updatedAccount.lockReason = payload.reason;
 
@@ -567,18 +659,17 @@ export const rbacApi = {
         }
         return updatedAccount;
       }
-    } catch (err) {
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message;
+      if (err?.response?.status === 403) {
+        throw new Error(msg || 'Bạn không có quyền thực hiện thao tác này.');
+      }
       console.warn('Lưu ý: Không thể cập nhật trạng thái qua backend, thực hiện cục bộ:', err);
     }
 
     const list = getStoredUsers();
     const index = list.findIndex((u) => u.id === userId);
     if (index === -1) throw new Error('Không tìm thấy người dùng');
-
-    // Không cho phép khóa Super Admin
-    if (list[index].role === 'SYSTEM_ADMIN') {
-      throw new Error('Không thể khóa tài khoản Quản trị viên cấp cao (Super Admin)');
-    }
 
     list[index].status = payload.status;
     if (payload.reason) {
@@ -590,6 +681,18 @@ export const rbacApi = {
     list[index].updatedAt = new Date().toISOString();
     saveStoredUsers(list);
     return list[index];
+  },
+
+  // 7. Đặt lại mật khẩu tài khoản
+  resetPassword: async (userId: string, newPassword?: string): Promise<void> => {
+    try {
+      await axiosClient.post(`/admin/users/${userId}/reset-password`, {
+        newPassword: newPassword?.trim() || 'KidPro@2026',
+      });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message;
+      throw new Error(msg || 'Không thể đặt lại mật khẩu.');
+    }
   },
 };
 

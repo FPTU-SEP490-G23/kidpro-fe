@@ -41,6 +41,12 @@ export interface CreateUserPayload {
   phone: string;
   tenantId: string;
   role: UserRole;
+  password?: string;
+  department?: string;
+  qualification?: string;
+  position?: string;
+  address?: string;
+  identityCardNumber?: string;
 }
 
 export interface UpdateUserPayload {
@@ -49,6 +55,13 @@ export interface UpdateUserPayload {
   phone?: string;
   role?: UserRole;
   tenantId?: string;
+  status?: UserAccountStatus;
+  newPassword?: string;
+  department?: string;
+  qualification?: string;
+  position?: string;
+  address?: string;
+  identityCardNumber?: string;
 }
 
 export interface UpdatePermissionsPayload {

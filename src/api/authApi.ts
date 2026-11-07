@@ -74,6 +74,10 @@ export const authApi = {
   getCurrentUser: () => {
     return axiosClient.get<User>('/auth/me');
   },
+  forgotPassword: async (email: string) => {
+    const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+    return response.data;
+  },
 };
 
 export default authApi;

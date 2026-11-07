@@ -48,7 +48,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       },
       {
         id: 'admin-rbac',
-        title: '[UC-006] Phân Quyền Vai Trò RBAC',
+        title: '[UC-006] Quản Trị Tài Khoản & Phân Quyền (Super Admin)',
         path: '/admin/users-rbac',
         icon: 'ShieldCheck',
         roles: ['SYSTEM_ADMIN'],
@@ -130,6 +130,22 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         icon: 'Users',
         roles: ['BGH', 'SYSTEM_ADMIN'],
         useCases: ['UC-008', 'UC-009'],
+      },
+      {
+        id: 'bgh-bus-management',
+        title: '[G5-UC-08] Quản Lý Xe Buýt & Đưa Đón',
+        path: '/bgh/bus-management',
+        icon: 'Bus',
+        roles: ['BGH', 'SYSTEM_ADMIN'],
+        useCases: ['G5-UC-08', 'UC-041'],
+      },
+      {
+        id: 'bgh-user-accounts',
+        title: '[UC-006] Cấp Tài Khoản Người Dùng',
+        path: '/admin/users-rbac',
+        icon: 'ShieldCheck',
+        roles: ['BGH'],
+        useCases: ['UC-006'],
       },
       {
         id: 'bgh-communications',

@@ -6,6 +6,7 @@ import { rbacApi } from '../../../api/rbacApi';
 import { tenantApi } from '../../../api/tenantApi';
 import { getRoleDisplayName, getRoleBadgeColor } from '../../../utils/formatters';
 import CreateUserModal from './components/CreateUserModal';
+import EditUserModal from './components/EditUserModal';
 import PermissionsMatrixModal from './components/PermissionsMatrixModal';
 import LockUserModal from './components/LockUserModal';
 import {
@@ -20,6 +21,7 @@ import {
   CheckCircle2,
   AlertOctagon,
   User,
+  Pencil,
 } from 'lucide-react';
 
 export const RbacPage: React.FC = () => {
@@ -35,7 +37,7 @@ export const RbacPage: React.FC = () => {
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
-  const [modalMode, setModalMode] = useState<'PERMISSIONS' | 'LOCK' | null>(null);
+  const [modalMode, setModalMode] = useState<'PERMISSIONS' | 'LOCK' | 'EDIT' | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -288,6 +290,20 @@ export const RbacPage: React.FC = () => {
                       {/* Thao tác */}
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Nút Sửa tài khoản */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedUser(usr);
+                              setModalMode('EDIT');
+                            }}
+                            title="Chỉnh sửa thông tin tài khoản"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-slate-600" />
+                            <span>Sửa</span>
+                          </button>
+
                           {/* Nút Phân quyền */}
                           <button
                             type="button"
@@ -347,6 +363,22 @@ export const RbacPage: React.FC = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-users-list'] });
         }}
       />
+
+      {/* Modal Chỉnh sửa tài khoản */}
+      {modalMode === 'EDIT' && (
+        <EditUserModal
+          user={selectedUser}
+          isOpen={true}
+          tenants={tenants}
+          onClose={() => {
+            setModalMode(null);
+            setSelectedUser(null);
+          }}
+          onUserUpdated={() => {
+            queryClient.invalidateQueries({ queryKey: ['admin-users-list'] });
+          }}
+        />
+      )}
 
       {/* Modal Ma trận phân quyền */}
       {modalMode === 'PERMISSIONS' && (
