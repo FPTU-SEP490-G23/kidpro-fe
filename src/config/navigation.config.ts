@@ -318,6 +318,14 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         roles: ['GIAO_VU', 'BGH'],
         useCases: ['G11-UC-08'],
       },
+      {
+        id: 'gv-bus-registrations',
+        title: '[G5-UC-09] Duyệt Đăng Ký Xe Buýt',
+        path: '/academic/bus-registrations',
+        icon: 'Bus',
+        roles: ['GIAO_VU', 'BGH'],
+        useCases: ['G5-UC-09', 'UC-041'],
+      },
     ],
   },
 

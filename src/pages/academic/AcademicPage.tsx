@@ -25,8 +25,10 @@ import {
   HeartPulse,
   Megaphone,
   ClipboardList,
+  Bus,
 } from 'lucide-react';
 import AcademicYearsPage from './years/AcademicYearsPage';
+import { BusRegistrationApprovalTab } from './tabs/BusRegistrationApprovalTab';
 import { StudentAdmissionTab } from './tabs/StudentAdmissionTab';
 import { ClassManagementTab } from './tabs/ClassManagementTab';
 import { TimetableManagementTab } from './tabs/TimetableManagementTab';
@@ -72,7 +74,8 @@ export type AcademicTabKey =
   | 'equipment'
   | 'announcements'
   | 'surveys'
-  | 'medical_bulletins';
+  | 'medical_bulletins'
+  | 'bus_registrations';
 
 interface TabMeta {
   uc: string;
@@ -247,6 +250,13 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
     badge: 'Y Tế & Dịch Bệnh',
     specialColor: 'allergy',
   },
+  bus_registrations: {
+    uc: 'G5-UC-09',
+    title: 'Phê Duyệt Đơn Đăng Ký Xe Buýt Của Phụ Huynh',
+    description: 'Tiếp nhận, thẩm định điều kiện tuyến đón trả và phê duyệt hoặc từ chối đơn đăng ký xe buýt đưa đón học sinh.',
+    icon: Bus,
+    badge: 'Đưa Đón Xe Buýt',
+  },
 };
 
 const getDefaultTabForRole = (role?: UserRole | null): AcademicTabKey => {
@@ -290,6 +300,7 @@ export const AcademicPage: React.FC = () => {
       if (param === 'evaluations') return 'evaluations';
       if (param === 'quality_surveys') return 'quality_surveys';
       if (param === 'academic_years') return 'academic_years';
+      if (param === 'bus_registrations' || param === 'bus-registrations' || param === 'bus' || param === 'bus-registers') return 'bus_registrations';
     }
     if (location.pathname === '/academic/students') return 'students';
     if (location.pathname === '/academic/classes') return 'classes';
@@ -309,6 +320,7 @@ export const AcademicPage: React.FC = () => {
     if (location.pathname === '/academic/medical-bulletins') return 'medical_bulletins';
     if (location.pathname === '/academic/moet-reports' || location.pathname === '/academic/reports') return 'moet_attendance';
     if (location.pathname === '/academic/year-archival') return 'year_archival';
+    if (location.pathname === '/academic/bus-registrations') return 'bus_registrations';
     if (location.pathname === '/teacher/activities') return 'lesson_plans';
     return getDefaultTabForRole(role);
   };
@@ -457,6 +469,7 @@ export const AcademicPage: React.FC = () => {
         {activeTab === 'announcements' && <AnnouncementManagementTab />}
         {activeTab === 'surveys' && <SurveyManagementTab />}
         {activeTab === 'medical_bulletins' && <MedicalBulletinTab />}
+        {activeTab === 'bus_registrations' && <BusRegistrationApprovalTab />}
         {activeTab === 'academic_years' && <AcademicYearsPage />}
       </div>
     </div>

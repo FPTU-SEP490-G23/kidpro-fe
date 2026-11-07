@@ -32,9 +32,10 @@ import { CreateBusModal } from './bus/CreateBusModal';
 import { EditBusModal } from './bus/EditBusModal';
 import { CreateBusStopModal } from './bus/CreateBusStopModal';
 import { AssignTeacherModal } from './bus/AssignTeacherModal';
+import { BusRegistrationApprovalTab } from '../academic/tabs/BusRegistrationApprovalTab';
 
 export const BghBusManagementPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'buses' | 'stops' | 'assignments'>('buses');
+  const [activeTab, setActiveTab] = useState<'buses' | 'stops' | 'assignments' | 'registrations'>('buses');
 
   // Dữ liệu chính
   const [buses, setBuses] = useState<BusItem[]>([]);
@@ -392,6 +393,18 @@ export const BghBusManagementPage: React.FC = () => {
           >
             <UserCheck className="w-4 h-4" />
             <span>Phân Công Giáo Viên Đi Xe</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('registrations')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === 'registrations'
+                ? 'bg-[#275A4E] text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Duyệt Đăng Ký Của Phụ Huynh</span>
           </button>
         </div>
       </div>
@@ -782,6 +795,13 @@ export const BghBusManagementPage: React.FC = () => {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 6. Nội Dung Tab 4: DUYỆT ĐĂNG KÝ XE BUÝT */}
+      {activeTab === 'registrations' && (
+        <div className="px-6">
+          <BusRegistrationApprovalTab />
         </div>
       )}
 
