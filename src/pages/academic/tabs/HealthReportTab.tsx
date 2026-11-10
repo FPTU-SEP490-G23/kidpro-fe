@@ -162,12 +162,50 @@ export const HealthReportTab: React.FC = () => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      st.fullName.toLowerCase().includes(term) ||
-      st.studentCode.toLowerCase().includes(term) ||
-      st.className.toLowerCase().includes(term) ||
-      st.alertReason.toLowerCase().includes(term)
+      (st.fullName && st.fullName.toLowerCase().includes(term)) ||
+      (st.studentCode && st.studentCode.toLowerCase().includes(term)) ||
+      (st.className && st.className.toLowerCase().includes(term)) ||
+      (st.alertReason && st.alertReason.toLowerCase().includes(term)) ||
+      (st.interventionPlan && st.interventionPlan.toLowerCase().includes(term)) ||
+      (st.zScoreLabel && st.zScoreLabel.toLowerCase().includes(term))
     );
   });
+
+  // Computed KPI Metrics (Hỗ trợ fallback cả format Spring Boot backend lẫn mockup)
+  const totalMeasured =
+    dashboardData?.measuredCount ??
+    dashboardData?.totalStudentsMeasured ??
+    dashboardData?.totalStudents ??
+    0;
+
+  const totalStudents = dashboardData?.totalStudents ?? totalMeasured;
+  const measuredRate =
+    dashboardData?.measuredRate ??
+    (totalStudents > 0 ? Math.round((totalMeasured / totalStudents) * 100) : 100);
+
+  const normalCount = dashboardData?.normalCount ?? 0;
+  const normalPct =
+    dashboardData?.normalPercentage ??
+    (totalMeasured > 0 ? (normalCount / totalMeasured) * 100 : 0);
+
+  const stuntedCount =
+    dashboardData?.malnutritionCount ?? dashboardData?.stuntedCount ?? 0;
+  const stuntedPct =
+    dashboardData?.malnutritionPercentage ??
+    (totalMeasured > 0 ? (stuntedCount / totalMeasured) * 100 : 0);
+
+  const underweightCount = dashboardData?.underweightCount ?? 0;
+  const underweightPct =
+    dashboardData?.underweightPercentage ??
+    (totalMeasured > 0 ? (underweightCount / totalMeasured) * 100 : 0);
+
+  const overweightObeseCount =
+    (dashboardData?.obeseCount || 0) + (dashboardData?.overweightCount || 0);
+  const overweightObesePct =
+    dashboardData?.obesePercentage != null && dashboardData?.overweightPercentage != null
+      ? dashboardData.obesePercentage + dashboardData.overweightPercentage
+      : dashboardData?.obesePercentage ??
+        (totalMeasured > 0 ? (overweightObeseCount / totalMeasured) * 100 : 0);
 
   return (
     <div className="space-y-6">
@@ -331,93 +369,126 @@ export const HealthReportTab: React.FC = () => {
 
       {/* KPI Cards Row */}
       {dashboardData && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-stretch">
           {/* Card 1: Tổng số trẻ */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Học sinh đã đo</span>
-              <Users className="w-4 h-4 text-blue-600" />
+          <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden group">
+            <div className="h-1 bg-blue-500 absolute top-0 left-0 right-0" />
+            <div className="flex items-center justify-between gap-2 mb-2 min-h-[28px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate" title="Học sinh đã đo">
+                Học sinh đã đo
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-slate-900 mb-1">
-              {dashboardData.totalStudentsMeasured}
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-black text-slate-900 tracking-tight">
+                {totalMeasured}
+              </span>
+              <span className="text-xs font-semibold text-slate-400">
+                / {totalStudents} trẻ
+              </span>
             </div>
-            <div className="text-xs text-slate-400">100% tỷ lệ hoàn thành đo đạc</div>
+            <div className="mt-auto pt-2.5 border-t border-slate-100 flex items-center min-h-[34px] text-[11px] leading-snug font-medium text-slate-500">
+              <span className="font-semibold text-blue-700">{measuredRate}%</span>
+              <span className="ml-1 text-slate-400">tỷ lệ hoàn thành đo đạc</span>
+            </div>
           </div>
 
           {/* Card 2: Bình thường */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-emerald-700 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Bình thường</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden group">
+            <div className="h-1 bg-emerald-500 absolute top-0 left-0 right-0" />
+            <div className="flex items-center justify-between gap-2 mb-2 min-h-[28px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 truncate" title="Bình thường">
+                Bình thường
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-emerald-700 mb-1">
-              {dashboardData.normalCount}{' '}
-              <span className="text-xs text-emerald-600 font-semibold">
-                ({dashboardData.totalStudentsMeasured > 0
-                  ? ((dashboardData.normalCount / dashboardData.totalStudentsMeasured) * 100).toFixed(1)
-                  : 0}
-                %)
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-black text-emerald-700 tracking-tight">
+                {normalCount}
+              </span>
+              <span className="inline-flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                {Number(normalPct).toFixed(1)}%
               </span>
             </div>
-            <div className="text-xs text-slate-400">Thể trạng phát triển chuẩn WHO</div>
+            <div className="mt-auto pt-2.5 border-t border-slate-100 flex items-center min-h-[34px] text-[11px] leading-snug font-medium text-slate-500">
+              Thể trạng phát triển chuẩn WHO
+            </div>
           </div>
 
           {/* Card 3: Thấp còi */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-amber-700 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">SDD Thấp còi</span>
-              <TrendingDown className="w-4 h-4 text-amber-600" />
+          <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden group">
+            <div className="h-1 bg-amber-500 absolute top-0 left-0 right-0" />
+            <div className="flex items-center justify-between gap-2 mb-2 min-h-[28px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 truncate" title="SDD Thấp còi">
+                SDD Thấp còi
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                <TrendingDown className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-amber-700 mb-1">
-              {dashboardData.stuntedCount}{' '}
-              <span className="text-xs text-amber-600 font-semibold">
-                ({dashboardData.totalStudentsMeasured > 0
-                  ? ((dashboardData.stuntedCount / dashboardData.totalStudentsMeasured) * 100).toFixed(1)
-                  : 0}
-                %)
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-black text-amber-700 tracking-tight">
+                {stuntedCount}
+              </span>
+              <span className="inline-flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
+                {Number(stuntedPct).toFixed(1)}%
               </span>
             </div>
-            <div className="text-xs text-slate-400">Cần bổ sung vi chất & chiều cao</div>
+            <div className="mt-auto pt-2.5 border-t border-slate-100 flex items-center min-h-[34px] text-[11px] leading-snug font-medium text-slate-500">
+              Cần bổ sung vi chất & chiều cao
+            </div>
           </div>
 
           {/* Card 4: Nhẹ cân */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-orange-700 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Nhẹ cân</span>
-              <TrendingDown className="w-4 h-4 text-orange-600" />
+          <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden group">
+            <div className="h-1 bg-orange-500 absolute top-0 left-0 right-0" />
+            <div className="flex items-center justify-between gap-2 mb-2 min-h-[28px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-orange-700 truncate" title="Nhẹ cân">
+                Nhẹ cân
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+                <TrendingDown className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-orange-700 mb-1">
-              {dashboardData.underweightCount}{' '}
-              <span className="text-xs text-orange-600 font-semibold">
-                ({dashboardData.totalStudentsMeasured > 0
-                  ? ((dashboardData.underweightCount / dashboardData.totalStudentsMeasured) * 100).toFixed(1)
-                  : 0}
-                %)
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-black text-orange-700 tracking-tight">
+                {underweightCount}
+              </span>
+              <span className="inline-flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200/60">
+                {Number(underweightPct).toFixed(1)}%
               </span>
             </div>
-            <div className="text-xs text-slate-400">Tăng khẩu phần bữa phụ & sữa</div>
+            <div className="mt-auto pt-2.5 border-t border-slate-100 flex items-center min-h-[34px] text-[11px] leading-snug font-medium text-slate-500">
+              Tăng khẩu phần bữa phụ & sữa
+            </div>
           </div>
 
           {/* Card 5: Thừa cân & Béo phì */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-xs">
-            <div className="flex items-center justify-between text-indigo-700 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Thừa cân / Béo phì</span>
-              <TrendingUp className="w-4 h-4 text-indigo-600" />
+          <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden group">
+            <div className="h-1 bg-indigo-500 absolute top-0 left-0 right-0" />
+            <div className="flex items-center justify-between gap-2 mb-2 min-h-[28px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 truncate" title="Thừa cân / Béo phì">
+                Thừa cân / Béo phì
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                <TrendingUp className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-indigo-700 mb-1">
-              {dashboardData.overweightCount + dashboardData.obeseCount}{' '}
-              <span className="text-xs text-indigo-600 font-semibold">
-                ({dashboardData.totalStudentsMeasured > 0
-                  ? (
-                      ((dashboardData.overweightCount + dashboardData.obeseCount) /
-                        dashboardData.totalStudentsMeasured) *
-                      100
-                    ).toFixed(1)
-                  : 0}
-                %)
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-black text-indigo-700 tracking-tight">
+                {overweightObeseCount}
+              </span>
+              <span className="inline-flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                {Number(overweightObesePct).toFixed(1)}%
               </span>
             </div>
-            <div className="text-xs text-slate-400">Cân đối calo & vận động thể chất</div>
+            <div className="mt-auto pt-2.5 border-t border-slate-100 flex items-center min-h-[34px] text-[11px] leading-snug font-medium text-slate-500">
+              Cân đối calo & vận động thể chất
+            </div>
           </div>
         </div>
       )}
@@ -579,29 +650,39 @@ export const HealthReportTab: React.FC = () => {
 
                     {/* Growth status badge */}
                     <td className="py-3.5 px-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          st.growthStatus === 'STUNTED'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : st.growthStatus === 'UNDERWEIGHT'
-                            ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                            : st.growthStatus === 'OBESE'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                        }`}
-                      >
-                        {st.growthStatus === 'STUNTED'
-                          ? 'SDD Thấp còi'
-                          : st.growthStatus === 'UNDERWEIGHT'
-                          ? 'Nhẹ cân'
-                          : st.growthStatus === 'OBESE'
-                          ? 'Béo phì'
-                          : 'Thừa cân'}
-                      </span>
+                      {(() => {
+                        const status = st.growthStatus || st.zScoreStatus;
+                        const label =
+                          st.zScoreLabel ||
+                          (status === 'STUNTED' || status === 'MALNUTRITION'
+                            ? 'SDD Thấp còi'
+                            : status === 'UNDERWEIGHT'
+                            ? 'Nhẹ cân'
+                            : status === 'OBESE'
+                            ? 'Béo phì'
+                            : 'Thừa cân');
+                        return (
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              status === 'STUNTED' || status === 'MALNUTRITION'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : status === 'UNDERWEIGHT'
+                                ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                : status === 'OBESE'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </td>
 
-                    {/* Alert reason */}
-                    <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs">{st.alertReason}</td>
+                    {/* Alert reason / Intervention plan */}
+                    <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs">
+                      {st.alertReason || st.interventionPlan || '-'}
+                    </td>
 
                     {/* Guardian contact */}
                     <td className="py-3.5 px-3 text-right">

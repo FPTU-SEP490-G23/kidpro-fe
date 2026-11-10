@@ -7,10 +7,16 @@ export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
   supabaseAnonKey &&
   supabaseUrl !== 'https://your-supabase-project.supabase.co' &&
-  supabaseAnonKey !== 'demo-anon-key'
+  supabaseUrl !== 'https://your-project.supabase.co' &&
+  supabaseAnonKey !== 'demo-anon-key' &&
+  supabaseAnonKey !== 'your-supabase-anon-key'
 );
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Use fallback values to prevent createClient from crashing the entire app if env vars are missing
+const safeUrl = isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co';
+const safeKey = isSupabaseConfigured ? supabaseAnonKey : 'placeholder-anon-key';
+
+export const supabase = createClient(safeUrl, safeKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

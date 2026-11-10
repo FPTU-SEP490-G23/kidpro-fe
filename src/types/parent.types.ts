@@ -273,6 +273,7 @@ export interface TuitionInvoiceItem {
   paidAmount: number;
   remainingAmount: number;
   bankReferenceCode?: string;
+  paymentQrCode?: string;
   isRecalled?: boolean; // Bị thu hồi điều chỉnh (MSG-191)
   issuedAt: string;
   paidAt?: string;
@@ -305,12 +306,14 @@ export interface VietQrPaymentInfo {
   invoiceNumber: string;
   referenceCode: string; // Mã nội dung chuyển khoản duy nhất
   accountName: string; // TRUONG MAM NON KIDPRO
-  accountNumber: string; // 0987654321
+  accountNumber: string; // 666619092005
   bankName: string; // MBBank
   bankCode: string; // 970422
   amount: number; // 3845000
   description: string; // INV202610A7B9C1
   qrImageUrl: string;
+  staticQrUrl?: string;
+  paymentQrCode?: string;
   deepLinkUrl: string; // vietqr:// hoặc universal link PayOS
   isGatewayBusy?: boolean; // MSG-194
 }

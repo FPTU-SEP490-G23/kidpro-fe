@@ -210,8 +210,35 @@ export const parentApi = {
   // Tra cứu danh sách hóa đơn học phí của bé
   getTuitionInvoices: async (studentId: string) => {
     try {
-      const resp = await axiosClient.get<TuitionInvoiceItem[]>(`/finance/invoices?studentId=${studentId}`);
-      return resp.data || [];
+      const resp = await axiosClient.get<any[]>(`/finance/invoices?studentId=${studentId}`);
+      const rawList = resp.data || [];
+      return rawList.map((item: any) => ({
+        id: item.invoiceId || item.id,
+        invoiceNumber: item.invoiceCode || item.invoiceNumber || '',
+        referenceCode: item.invoiceCode || item.referenceCode || '',
+        studentId: item.studentId || '',
+        studentName: item.studentName || '',
+        className: item.className || '',
+        billingPeriod: item.billingMonth ? `Tháng ${String(item.billingMonth).padStart(2, '0')}/${item.billingYear}` : (item.billingPeriod || ''),
+        dueDate: item.dueDate || '',
+        status: item.status || 'UNPAID',
+        baseTuition: Number(item.totalAmount ?? item.baseTuition ?? 0),
+        mealFee: Number(item.mealFee || 0),
+        siblingDiscount: Number(item.discountAmount ?? item.siblingDiscount ?? 0),
+        latePickupMinutes: item.latePickupMinutes || 0,
+        latePickupFee: Number(item.latePickupFee || 0),
+        mealRefundCount: item.mealRefundCount || 0,
+        mealRefundTotal: Number(item.mealRefundTotal || 0),
+        mealRefundDetails: item.mealRefundDetails || [],
+        totalAmount: Number(item.finalAmount ?? item.totalAmount ?? 0),
+        paidAmount: item.status === 'PAID' ? Number(item.finalAmount ?? item.totalAmount ?? 0) : Number(item.paidAmount || 0),
+        remainingAmount: item.status === 'PAID' ? 0 : Number(item.finalAmount ?? item.totalAmount ?? 0),
+        bankReferenceCode: item.invoiceCode || item.bankReferenceCode || '',
+        paymentQrCode: item.paymentQrCode ? String(item.paymentQrCode).replace(/KIDPRO8888/g, '666619092005') : '',
+        isRecalled: false,
+        issuedAt: item.dueDate || new Date().toISOString(),
+        paidAt: item.paidAt,
+      })) as TuitionInvoiceItem[];
     } catch {
       return [];
     }
@@ -220,8 +247,36 @@ export const parentApi = {
   // Tra cứu chi tiết hóa đơn theo mã tham chiếu (GET /api/finance/invoices/ref/{referenceCode})
   getInvoiceByReference: async (referenceCode: string) => {
     try {
-      const resp = await axiosClient.get<TuitionInvoiceItem>(`/finance/invoices/ref/${referenceCode}`);
-      return resp.data;
+      const resp = await axiosClient.get<any>(`/finance/invoices/ref/${referenceCode}`);
+      const item = resp.data;
+      if (!item) return null;
+      return {
+        id: item.invoiceId || item.id,
+        invoiceNumber: item.invoiceCode || item.invoiceNumber || '',
+        referenceCode: item.invoiceCode || item.referenceCode || '',
+        studentId: item.studentId || '',
+        studentName: item.studentName || '',
+        className: item.className || '',
+        billingPeriod: item.billingMonth ? `Tháng ${String(item.billingMonth).padStart(2, '0')}/${item.billingYear}` : (item.billingPeriod || ''),
+        dueDate: item.dueDate || '',
+        status: item.status || 'UNPAID',
+        baseTuition: Number(item.totalAmount ?? item.baseTuition ?? 0),
+        mealFee: Number(item.mealFee || 0),
+        siblingDiscount: Number(item.discountAmount ?? item.siblingDiscount ?? 0),
+        latePickupMinutes: item.latePickupMinutes || 0,
+        latePickupFee: Number(item.latePickupFee || 0),
+        mealRefundCount: item.mealRefundCount || 0,
+        mealRefundTotal: Number(item.mealRefundTotal || 0),
+        mealRefundDetails: item.mealRefundDetails || [],
+        totalAmount: Number(item.finalAmount ?? item.totalAmount ?? 0),
+        paidAmount: item.status === 'PAID' ? Number(item.finalAmount ?? item.totalAmount ?? 0) : Number(item.paidAmount || 0),
+        remainingAmount: item.status === 'PAID' ? 0 : Number(item.finalAmount ?? item.totalAmount ?? 0),
+        bankReferenceCode: item.invoiceCode || item.bankReferenceCode || '',
+        paymentQrCode: item.paymentQrCode ? String(item.paymentQrCode).replace(/KIDPRO8888/g, '666619092005') : '',
+        isRecalled: false,
+        issuedAt: item.dueDate || new Date().toISOString(),
+        paidAt: item.paidAt,
+      } as TuitionInvoiceItem;
     } catch {
       return null;
     }
@@ -253,25 +308,51 @@ export const parentApi = {
   // Lấy dữ liệu VietQR chuẩn Napas247 (GET /api/finance/invoices/{id}/vietqr)
   getInvoiceVietQrData: async (invoiceId: string, amount?: number, refCode?: string) => {
     try {
-      const resp = await axiosClient.get<VietQrPaymentInfo>(`/finance/invoices/${invoiceId}/vietqr`);
-      return resp.data;
+      const resp = await axiosClient.get<any>(`/finance/invoices/${invoiceId}/vietqr`);
+      const d = resp.data;
+      const finalAmt = d.amount ?? amount ?? 0;
+      const ref = d.referenceCode || d.invoiceCode || refCode || invoiceId;
+      const dynamicQr = (d.paymentQrCode || d.qrImageUrl)
+        ? String(d.paymentQrCode || d.qrImageUrl).replace(/KIDPRO8888/g, '666619092005')
+        : `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${finalAmt}&addInfo=${encodeURIComponent(ref)}&accountName=TRUONG%20MAM%20NON%20KIDPRO`;
+      const staticQr = 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO';
+
+      return {
+        invoiceId,
+        invoiceNumber: d.invoiceNumber || d.invoiceCode || invoiceId,
+        referenceCode: ref,
+        accountName: d.accountName || 'TRUONG MAM NON KIDPRO',
+        accountNumber: '666619092005',
+        bankName: d.bankName || 'MBBank (Ngân hàng TMCP Quân Đội)',
+        bankCode: '970422',
+        amount: Number(finalAmt),
+        description: d.description || `KIDPRO ${ref}`,
+        qrImageUrl: dynamicQr,
+        staticQrUrl: staticQr,
+        paymentQrCode: dynamicQr,
+        deepLinkUrl: d.deepLinkUrl || `vietqr://transfer?bankCode=970422&accNo=666619092005&amount=${finalAmt}&memo=${encodeURIComponent(ref)}`,
+        isGatewayBusy: false,
+      } as VietQrPaymentInfo;
     } catch {
       const amt = amount || 0;
       const ref = refCode || invoiceId;
       const encodedDesc = encodeURIComponent(`KIDPRO ${ref}`);
-      const qrUrl = `https://api.vietqr.io/image/970422-0987654321-compact.jpg?amount=${amt}&addInfo=${encodedDesc}&accountName=TRUONG%20MAM%20NON%20KIDPRO`;
-      const deepLink = `vietqr://transfer?bankCode=970422&accNo=0987654321&amount=${amt}&memo=${encodedDesc}`;
+      const qrUrl = `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${amt}&addInfo=${encodedDesc}&accountName=TRUONG%20MAM%20NON%20KIDPRO`;
+      const staticQrUrl = `https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO`;
+      const deepLink = `vietqr://transfer?bankCode=970422&accNo=666619092005&amount=${amt}&memo=${encodedDesc}`;
       const data: VietQrPaymentInfo = {
         invoiceId,
         invoiceNumber: invoiceId,
         referenceCode: ref,
         accountName: 'TRUONG MAM NON KIDPRO',
-        accountNumber: '0987654321',
+        accountNumber: '666619092005',
         bankName: 'MBBank (Ngân hàng Quân Đội)',
         bankCode: '970422',
         amount: amt,
         description: `KIDPRO ${ref}`,
         qrImageUrl: qrUrl,
+        staticQrUrl: staticQrUrl,
+        paymentQrCode: qrUrl,
         deepLinkUrl: deepLink,
         isGatewayBusy: false,
       };

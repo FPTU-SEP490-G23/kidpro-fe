@@ -30,8 +30,12 @@ export interface SpecialCareStudentDto {
   zScoreWfa?: number;
   zScoreHfa?: number;
   zScoreWfh?: number;
-  growthStatus: GrowthStatus;
-  alertReason: string;
+  growthStatus?: GrowthStatus;
+  zScoreStatus?: string;
+  zScoreLabel?: string;
+  alertReason?: string;
+  interventionPlan?: string;
+  lastMeasurementDate?: string;
   guardianPhone?: string;
 }
 
@@ -39,15 +43,25 @@ export interface HealthDashboardResponse {
   academicYearId?: string;
   measurementRoundId?: string;
   measurementRoundName?: string;
-  isLocked: boolean;
-  totalStudentsMeasured: number;
-  normalCount: number;
-  stuntedCount: number;
-  underweightCount: number;
-  overweightCount: number;
-  obeseCount: number;
+  isLocked?: boolean;
+  totalStudents?: number;
+  measuredCount?: number;
+  measuredRate?: number;
+  totalStudentsMeasured?: number;
+  normalCount?: number;
+  normalPercentage?: number;
+  stuntedCount?: number;
+  malnutritionCount?: number;
+  malnutritionPercentage?: number;
+  underweightCount?: number;
+  underweightPercentage?: number;
+  overweightCount?: number;
+  overweightPercentage?: number;
+  obeseCount?: number;
+  obesePercentage?: number;
   nutritionBreakdown: NutritionCategoryStat[];
   specialCareStudents: SpecialCareStudentDto[];
+  recentIncidents?: any[];
 }
 
 export interface PhysicalRegisterExportParams {
