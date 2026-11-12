@@ -28,6 +28,8 @@ export interface ClassTransferRequestItem {
   processedAt?: string;
   createdAt?: string;
   effectiveDate?: string;
+  hasUnpaidTuition?: boolean;
+  allergies?: string[];
 }
 
 export interface RejectTransferPayload {
@@ -47,8 +49,8 @@ export const classTransferService = {
     return res?.data !== undefined ? res.data : res;
   },
 
-  approveRequest: async (id: number | string): Promise<any> => {
-    const res: any = await axiosClient.put(`/class-transfers/${id}/approve`);
+  approveRequest: async (id: number | string, note?: string): Promise<any> => {
+    const res: any = await axiosClient.put(`/class-transfers/${id}/approve`, note ? { note } : undefined);
     return res?.data !== undefined ? res.data : res;
   },
 

@@ -18,6 +18,7 @@ import {
   Calendar,
   RotateCcw,
 } from 'lucide-react';
+import { formatGradeLevel } from '../../utils/formatters';
 
 export const BghTeachingAssignmentsPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -220,7 +221,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Khối lớp:</span>
-                      <strong className="text-slate-800 font-bold">{item.gradeLevel || 'Mầm non'}</strong>
+                      <strong className="text-slate-800 font-bold">{formatGradeLevel(item.gradeLevel) || 'Mầm non'}</strong>
                     </div>
 
                     <div className="flex items-center justify-between">

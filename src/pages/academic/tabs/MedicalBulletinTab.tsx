@@ -39,10 +39,10 @@ const CATEGORY_OPTIONS: { id: BulletinCategory; label: string }[] = [
 ];
 
 const GRADE_LEVELS = [
-  { id: 'NHA_TRE', label: 'Nhà trẻ' },
-  { id: 'MAM', label: 'Khối Mầm' },
-  { id: 'CHOI', label: 'Khối Chồi' },
-  { id: 'LA', label: 'Khối Lá' },
+  { id: 'NHA_TRE', label: '1 - 2 tuổi' },
+  { id: 'MAM', label: '3 tuổi' },
+  { id: 'CHOI', label: '4 tuổi' },
+  { id: 'LA', label: '5 tuổi' },
 ];
 
 export const MedicalBulletinTab: React.FC = () => {

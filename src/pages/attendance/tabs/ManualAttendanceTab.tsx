@@ -25,6 +25,7 @@ import { academicApi } from '../../../api/academicApi';
 import { supabase } from '../../../config/supabase';
 import { AttendanceStatus, BatchAttendancePayload } from '../../../types/attendance.types';
 import { Student, ClassEntity } from '../../../types/classroom.types';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 interface StudentAttendanceState {
   studentId: string;
@@ -562,7 +563,7 @@ export const ManualAttendanceTab: React.FC = () => {
               >
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {c.ageGroup ? `(${c.ageGroup})` : ''}
+                    {c.name} {c.ageGroup ? `(${formatGradeLevel(c.ageGroup)})` : ''}
                   </option>
                 ))}
               </select>

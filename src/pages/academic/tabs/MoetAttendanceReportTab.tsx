@@ -23,6 +23,7 @@ import {
   MoetStudentAttendanceRow,
   MoetAttendanceReportData,
 } from '../../../types/attendance.types';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 // System Messages
 const MSG_275 = 'Đã xuất sổ điểm danh mẫu Bộ GD&ĐT thành công.';
@@ -154,7 +155,7 @@ export const MoetAttendanceReportTab: React.FC = () => {
       schoolName: 'TRƯỜNG MẦM NON HOA HƯỚNG DƯƠNG (KIDPRO ECOSYSTEM)',
       districtName: 'PHÒNG GIÁO DỤC VÀ ĐÀO TẠO QUẬN CẦU GIẤY - HÀ NỘI',
       classId: selectedClassId,
-      className: selectedClass?.name || 'Lớp Mầm 1 (3-4 Tuổi)',
+      className: selectedClass?.name || 'Lớp Mầm 1 (3 tuổi)',
       academicYear: selectedAcademicYear,
       month: selectedMonth,
       year: selectedYear,
@@ -390,7 +391,7 @@ export const MoetAttendanceReportTab: React.FC = () => {
             >
               {classesData.map((cls) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} ({cls.ageGroup || 'Khối lớp'})
+                  {cls.name} ({formatGradeLevel(cls.ageGroup) || 'Khối lớp'})
                 </option>
               ))}
             </select>

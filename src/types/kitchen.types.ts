@@ -75,7 +75,7 @@ export interface WeeklyMenuPayload {
 // ==========================================
 // UC-030: KHÓA SỐ SUẤT ĂN 08:30 (MEAL HEADCOUNT LOCK)
 // ==========================================
-export type AgeGroupType = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
+export type AgeGroupType = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
 
 export interface ClassMealHeadcountBreakdown {
   classId: string;

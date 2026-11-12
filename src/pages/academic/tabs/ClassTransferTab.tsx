@@ -16,11 +16,12 @@ import {
   User,
   Filter,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from 'lucide-react';
 import { classTransferService, ClassTransferRequestItem } from '../../../services/classTransferService';
 import { useToast } from '../../../contexts/ToastContext';
-import { formatDate } from '../../../utils/formatters';
+import { formatDate, formatDateTime, formatGradeLevel } from '../../../utils/formatters';
 
 export const ClassTransferTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -34,6 +35,7 @@ export const ClassTransferTab: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<ClassTransferRequestItem | null>(null);
   const [modalMode, setModalMode] = useState<'NONE' | 'APPROVE' | 'REJECT' | 'DETAIL'>('NONE');
   const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [approvalNote, setApprovalNote] = useState<string>('');
 
   // 1. Fetch Transfer Requests from Backend API
   const { data: requests = [], isLoading: isLoadingRequests, refetch } = useQuery<ClassTransferRequestItem[]>({
@@ -62,14 +64,15 @@ export const ClassTransferTab: React.FC = () => {
 
   // Mutation: Approve
   const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return await classTransferService.approveRequest(id);
+    mutationFn: async ({ id, note }: { id: number; note: string }) => {
+      return await classTransferService.approveRequest(id, note.trim() || undefined);
     },
     onSuccess: (data: any) => {
-      const msg = data?.message || 'MSG-037: Phê duyệt chuyển lớp cho học sinh thành công.';
+      const msg = data?.message || 'MSG-076: Phê duyệt chuyển lớp thành công';
       success(msg);
       setModalMode('NONE');
       setSelectedRequest(null);
+      setApprovalNote('');
       queryClient.invalidateQueries({ queryKey: ['class-transfers'] });
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
     },
@@ -88,12 +91,13 @@ export const ClassTransferTab: React.FC = () => {
       return await classTransferService.rejectRequest(id, { rejectionReason: reason.trim() });
     },
     onSuccess: (data: any) => {
-      const msg = data?.message || 'MSG-038: Đã từ chối đề xuất chuyển lớp của học sinh.';
+      const msg = data?.message || 'MSG-077: Đã từ chối đơn chuyển lớp của học sinh.';
       warning(msg);
       setModalMode('NONE');
       setSelectedRequest(null);
       setRejectionReason('');
       queryClient.invalidateQueries({ queryKey: ['class-transfers'] });
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
     },
     onError: (err: any) => {
       const msg = err.response?.data?.message || err.message || 'Lỗi khi từ chối chuyển lớp.';
@@ -103,6 +107,7 @@ export const ClassTransferTab: React.FC = () => {
 
   const onOpenApproveModal = (req: ClassTransferRequestItem) => {
     setSelectedRequest(req);
+    setApprovalNote('');
     setModalMode('APPROVE');
   };
 
@@ -261,6 +266,11 @@ export const ClassTransferTab: React.FC = () => {
                               <span>Mã: <strong className="text-slate-700">{req.studentCode}</strong></span>
                               {req.studentAgeMonths ? <span>• {req.studentAgeMonths} tháng</span> : null}
                             </div>
+                            {req.hasUnpaidTuition && (
+                              <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                <AlertTriangle className="w-3 h-3" /> Còn nợ học phí
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -269,7 +279,7 @@ export const ClassTransferTab: React.FC = () => {
                       <td className="py-4 px-4">
                         <div className="font-semibold text-slate-800">{req.fromClassName}</div>
                         <div className="text-[11px] text-slate-500 mt-0.5">
-                          Khối: {req.fromClassGrade || 'N/A'}
+                          Khối: {formatGradeLevel(req.fromClassGrade) || 'N/A'}
                         </div>
                       </td>
 
@@ -280,6 +290,9 @@ export const ClassTransferTab: React.FC = () => {
                           <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${destIsFull ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'}`}>
                             {destCurrent}/{destMax}
                           </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Khối: {formatGradeLevel(req.toClassGrade) || 'N/A'}
                         </div>
                         <div className="text-[11px] text-slate-500 mt-0.5">
                           {destIsFull ? (
@@ -334,7 +347,7 @@ export const ClassTransferTab: React.FC = () => {
                                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer"
                               >
                                 <Check className="w-3.5 h-3.5" />
-                                <span>Phê duyệt</span>
+                                <span>Thẩm định đơn</span>
                               </button>
 
                               <button
@@ -347,14 +360,26 @@ export const ClassTransferTab: React.FC = () => {
                               </button>
                             </>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => onOpenDetailModal(req)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                            >
-                              <FileText className="w-3.5 h-3.5" />
-                              <span>Chi tiết</span>
-                            </button>
+                            <>
+                              {isApproved && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenRejectModal(req)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>Sửa</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => onOpenDetailModal(req)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>Chi tiết</span>
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -374,7 +399,7 @@ export const ClassTransferTab: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5 text-emerald-800 font-extrabold text-base">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                <span>Xác Nhận Phê Duyệt Chuyển Lớp</span>
+                <span>Thẩm Định Đơn Chuyển Lớp</span>
               </div>
               <button
                 type="button"
@@ -386,25 +411,43 @@ export const ClassTransferTab: React.FC = () => {
             </div>
 
             <div className="space-y-4 text-xs">
+              {/* MSG-080: còn nợ học phí thì không được phê duyệt */}
+              {selectedRequest.hasUnpaidTuition && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>MSG-080: Học sinh còn nợ học phí chưa thanh toán. Cần hoàn tất thủ tục tài chính trước khi chuyển lớp.</span>
+                </div>
+              )}
+
               {/* Student info box */}
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thông Tin Học Sinh</span>
                 <div className="font-bold text-slate-900 text-sm">{selectedRequest.studentName}</div>
-                <div className="text-slate-500">Mã học sinh: <strong>{selectedRequest.studentCode}</strong></div>
-                <div className="text-slate-600 mt-1">
-                  Lý do chuyển: <span className="italic">"{selectedRequest.reason || 'Nguyện vọng phụ huynh'}"</span>
+                <div className="text-slate-500">
+                  Mã học sinh: <strong>{selectedRequest.studentCode}</strong>
+                  {selectedRequest.dateOfBirth && <> • Ngày sinh: <strong>{formatDate(selectedRequest.dateOfBirth)}</strong></>}
                 </div>
+                {selectedRequest.allergies && selectedRequest.allergies.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {selectedRequest.allergies.map((a) => (
+                      <span key={a} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#DC2626] text-white">
+                        <AlertTriangle className="w-3 h-3" /> Dị ứng: {a}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Class Transfer Comparison Card */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Chuyển Đi</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Hiện Tại</span>
                   <div className="font-bold text-slate-900 text-sm">{selectedRequest.fromClassName}</div>
                   <div className="text-[11px] text-slate-500">Sĩ số hiện tại: {selectedRequest.fromClassCurrentEnrollment}</div>
                 </div>
 
                 <div className={`p-3.5 rounded-2xl border space-y-1 ${isDestinationFull ? 'border-rose-300 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/30'}`}>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Chuyển Đến</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Tiếp Nhận Mục Tiêu</span>
                   <div className="font-bold text-slate-900 text-sm">{selectedRequest.toClassName}</div>
                   <div className="text-[11px] font-semibold flex items-center justify-between">
                     <span>Sĩ số:</span>
@@ -415,6 +458,11 @@ export const ClassTransferTab: React.FC = () => {
                 </div>
               </div>
 
+              <div className="p-3.5 rounded-2xl border border-slate-100 bg-white space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lý Do Phụ Huynh Đề Xuất</span>
+                <p className="text-slate-700 italic">"{selectedRequest.reason || 'Nguyện vọng phụ huynh'}"</p>
+              </div>
+
               {/* Warning if destination class is full (BR-005) */}
               {isDestinationFull && (
                 <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
@@ -423,11 +471,22 @@ export const ClassTransferTab: React.FC = () => {
                 </div>
               )}
 
-              {!isDestinationFull && (
+              {!isDestinationFull && !selectedRequest.hasUnpaidTuition && (
                 <p className="text-slate-600 text-[11px]">
                   Sau khi phê duyệt, hệ thống sẽ tự động cập nhật phân lớp của trẻ sang <strong>{selectedRequest.toClassName}</strong>, tăng sĩ số lớp mới lên 1 và giảm sĩ số lớp cũ đi 1 (BR-007).
                 </p>
               )}
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ghi Chú Thẩm Định (không bắt buộc)</label>
+                <textarea
+                  value={approvalNote}
+                  onChange={(e) => setApprovalNote(e.target.value)}
+                  rows={2}
+                  placeholder="VD: Hồ sơ hợp lệ"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#275A4E]/30"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
@@ -441,12 +500,12 @@ export const ClassTransferTab: React.FC = () => {
 
               <button
                 type="button"
-                disabled={approveMutation.isPending || isDestinationFull}
-                onClick={() => approveMutation.mutate(selectedRequest.id)}
+                disabled={approveMutation.isPending || isDestinationFull || !!selectedRequest.hasUnpaidTuition}
+                onClick={() => approveMutation.mutate({ id: selectedRequest.id, note: approvalNote })}
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
               >
                 {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                <span>Xác Nhận Phê Duyệt</span>
+                <span>Phê Duyệt Chuyển Lớp</span>
               </button>
             </div>
           </div>
@@ -460,7 +519,7 @@ export const ClassTransferTab: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5 text-rose-700 font-extrabold text-base">
                 <XCircle className="w-5 h-5 text-rose-600" />
-                <span>Từ Chối Đề Xuất Chuyển Lớp</span>
+                <span>{selectedRequest.status === 'APPROVED' ? 'Sửa Đơn Đã Duyệt → Từ Chối' : 'Từ Chối Đề Xuất Chuyển Lớp'}</span>
               </div>
               <button
                 type="button"
@@ -475,6 +534,16 @@ export const ClassTransferTab: React.FC = () => {
               <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
                 Học sinh: <strong className="text-slate-900">{selectedRequest.studentName}</strong> (Mã: {selectedRequest.studentCode})
               </div>
+
+              {selectedRequest.status === 'APPROVED' && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 font-semibold flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    Đơn này đã được duyệt. Khi từ chối, hệ thống sẽ chuyển bé từ <strong>{selectedRequest.toClassName}</strong> về lại{' '}
+                    <strong>{selectedRequest.fromClassName}</strong> và cập nhật lại sĩ số hai lớp.
+                  </span>
+                </div>
+              )}
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1.5">
@@ -509,7 +578,7 @@ export const ClassTransferTab: React.FC = () => {
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
               >
                 {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                <span>Xác Nhận Từ Chối</span>
+                <span>Từ Chối Đơn</span>
               </button>
             </div>
           </div>
@@ -535,6 +604,12 @@ export const ClassTransferTab: React.FC = () => {
             </div>
 
             <div className="space-y-3.5 text-xs">
+              {selectedRequest.hasUnpaidTuition && (selectedRequest.status === 'PENDING' || selectedRequest.status === 'PENDING_APPROVAL') && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>MSG-080: Học sinh còn nợ học phí chưa thanh toán. Cần hoàn tất thủ tục tài chính trước khi chuyển lớp.</span>
+                </div>
+              )}
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
                 <div className="font-bold text-slate-900 text-sm">{selectedRequest.studentName}</div>
                 <div className="text-slate-500">Mã: {selectedRequest.studentCode} • Phụ huynh: {selectedRequest.parentName || 'N/A'} ({selectedRequest.parentPhone || 'Chưa có SĐT'})</div>
@@ -554,6 +629,25 @@ export const ClassTransferTab: React.FC = () => {
               <div className="p-3.5 rounded-2xl border border-slate-100 space-y-1 bg-white">
                 <span className="text-[10px] text-slate-400 font-bold uppercase">Lý Do Chuyển</span>
                 <p className="text-slate-700 font-medium">{selectedRequest.reason || 'Nguyện vọng phụ huynh'}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-2xl border border-slate-100 bg-white">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">Thời Gian Gửi Đơn</span>
+                  <div className="font-bold text-slate-800 text-sm mt-0.5">
+                    {formatDateTime(selectedRequest.createdAt) || 'Chưa ghi nhận'}
+                  </div>
+                </div>
+                {(selectedRequest.status === 'APPROVED' || selectedRequest.status === 'REJECTED') && (
+                  <div className="p-3 rounded-2xl border border-slate-100 bg-white">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">
+                      {selectedRequest.status === 'APPROVED' ? 'Thời Gian Duyệt' : 'Thời Gian Từ Chối'}
+                    </span>
+                    <div className="font-bold text-slate-800 text-sm mt-0.5">
+                      {formatDateTime(selectedRequest.processedAt) || 'Chưa ghi nhận'}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedRequest.rejectionReason && (

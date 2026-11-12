@@ -1,6 +1,7 @@
 import React from 'react';
 import { ClassDailyHeadcountSummary } from '../../../../types/executiveDashboard.types';
 import { Utensils, AlertTriangle, Users, ChefHat } from 'lucide-react';
+import { formatGradeLevel } from '../../../../utils/formatters';
 
 interface KitchenMealBreakdownChartProps {
   classSummaries: ClassDailyHeadcountSummary[];
@@ -77,7 +78,7 @@ export const KitchenMealBreakdownChart: React.FC<KitchenMealBreakdownChartProps>
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-400 block mt-0.5">{cls.ageGroup}</span>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">{formatGradeLevel(cls.ageGroup)}</span>
                   </td>
 
                   <td className="py-3 px-4 text-center font-bold text-slate-800">

@@ -28,6 +28,7 @@ import {
 } from '../../../types/classroom.types';
 import { useSaveGrowthEvaluations } from '../../../hooks/useSaveGrowthEvaluations';
 import { EarlyChildhoodRadarModal } from '../components/EarlyChildhoodRadarModal';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 // System Messages
 const MSG_262 = 'Đã lưu đánh giá phát triển và tạo báo cáo biểu đồ thành công.';
@@ -459,7 +460,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
               >
                 {classesData.map((cls) => (
                   <option key={cls.id} value={cls.id}>
-                    {cls.name} {cls.ageGroup ? `(${cls.ageGroup})` : ''}
+                    {cls.name} {cls.ageGroup ? `(${formatGradeLevel(cls.ageGroup)})` : ''}
                   </option>
                 ))}
               </select>
@@ -917,7 +918,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
         student={selectedStudentForRadar}
         isOpen={!!selectedStudentForRadar}
         onClose={() => setSelectedStudentForRadar(null)}
-        ageGroupName={selectedClass?.ageGroup || 'Khối Mầm (3 - 4 Tuổi)'}
+        ageGroupName={selectedClass?.ageGroup || '3 tuổi'}
         termLabel={
           selectedTerm === 'SEMESTER_1'
             ? 'Học kỳ I'

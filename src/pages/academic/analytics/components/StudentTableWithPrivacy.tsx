@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudentRecord } from '../../../../types/studentAnalytics.types';
-import { formatDate } from '../../../../utils/formatters';
+import { formatDate, formatGradeLevel } from '../../../../utils/formatters';
 import {
   AlertTriangle,
   ShieldCheck,
@@ -85,7 +85,7 @@ export const StudentTableWithPrivacy: React.FC<StudentTableWithPrivacyProps> = (
                     {/* Lớp */}
                     <td className="py-3.5 px-4">
                       <span className="font-semibold text-slate-800 block">{student.className}</span>
-                      <span className="text-[11px] text-slate-400">{student.ageGroup}</span>
+                      <span className="text-[11px] text-slate-400">{formatGradeLevel(student.ageGroup)}</span>
                     </td>
 
                     {/* Ngày sinh */}

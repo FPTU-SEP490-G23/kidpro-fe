@@ -491,3 +491,31 @@ Hệ thống frontend `kidpro-fe` được xây dựng từ đầu để đáp �
   ✓ built in 13.17s
   ```
 - **Trạng thái sẵn sàng**: Hệ thống `kidpro-fe` đã sẵn sàng 100% để triển khai thực tế và vận hành trên môi trường Production!
+
+## 2026-11-11: Hiển thị khối lớp "1 tuổi … 5 tuổi"
+- Đổi nhãn grade_level ở Quản lý lớp, Tuyển sinh, Xếp lớp, Lên lớp, BGH duyệt lớp, Bếp chốt suất; các ô chọn khối đủ 5 khối (thêm 5 tuổi / 1 tuổi còn thiếu); type TS thêm PRE_K.
+
+## 2026-11-11: Đổi toàn bộ nhãn khối ở phân hệ giáo vụ sang độ tuổi
+- Các tab academic (thông báo, khảo sát, bản tin y tế, báo cáo sức khỏe, duyệt giáo án, đánh giá, lên lớp, khóa sổ, tuyển sinh, quản lý lớp…) + trang Thông báo: Nhà trẻ → 1 - 2 tuổi, Mầm → 3 tuổi, Chồi → 4 tuổi, Lá → 5 tuổi (giữ nguyên mã NHA_TRE/MAM/CHOI/LA).
+
+## 2026-11-11: Hiển thị khối theo độ tuổi ở các màn đang in mã thô (KINDERGARTEN…)
+- Thêm utils/formatters.ts → formatGradeLevel(code): INFANT…PRE_K → "1 tuổi"…"5 tuổi" (chuỗi khác giữ nguyên).
+- Áp dụng: Chuyển lớp (giáo vụ), thời khóa biểu, báo cáo sức khỏe, điểm danh Bộ GD, đánh giá trẻ, duyệt giáo án, phân tích học sinh, điểm danh thủ công, biểu đồ suất ăn, các trang BGH (chất lượng, đánh giá, phân công, TKB, học phí), tổng hợp học phí.
+
+## 2026-11-11: Chuyển lớp – hiện khối của lớp tiếp nhận
+- ClassTransferTab: cột lớp đích thêm dòng "Khối: <n> tuổi" (toClassGrade qua formatGradeLevel).
+
+## 2026-11-11: Chi tiết phiếu chuyển lớp – thời gian gửi / duyệt
+- Popup "Chi Tiết Phiếu Chuyển Lớp": thêm "Thời gian gửi đơn" (createdAt); đơn đã duyệt/từ chối thêm "Thời gian duyệt"/"Thời gian từ chối" (processedAt). Thêm formatDateTime (HH:mm dd/MM/yyyy) vào utils/formatters.ts.
+
+## 2026-11-11: Popup "Thẩm Định Đơn Chuyển Lớp" theo TC_WF05_09–12
+- Nút "Thẩm định đơn"; popup có Thông tin học sinh (ngày sinh, nhãn dị ứng đỏ), Lớp hiện tại/Lớp tiếp nhận mục tiêu, Lý do phụ huynh đề xuất, cảnh báo MSG-080 (vẫn duyệt được), ô ghi chú thẩm định; nút "Phê Duyệt Chuyển Lớp" / "Từ Chối Đơn"; toast MSG-076 / MSG-077.
+
+## 2026-11-11: Thẩm định chuyển lớp – còn nợ học phí thì khóa nút duyệt
+- Cảnh báo MSG-080 đổi sang đỏ, nút "Phê Duyệt Chuyển Lớp" bị khóa khi hasUnpaidTuition.
+
+## 2026-11-11: Hiện rõ cảnh báo nợ học phí ở danh sách & popup chi tiết chuyển lớp
+- Dòng đơn có nhãn đỏ "Còn nợ học phí"; popup Chi tiết (khi đơn đang chờ) cũng hiện MSG-080.
+
+## 2026-11-11: Nút "Sửa" cho đơn chuyển lớp đã duyệt
+- Tab Đã duyệt: nút "Sửa" mở popup "Sửa Đơn Đã Duyệt → Từ Chối" (bắt nhập lý do, cảnh báo sẽ chuyển bé về lớp cũ).

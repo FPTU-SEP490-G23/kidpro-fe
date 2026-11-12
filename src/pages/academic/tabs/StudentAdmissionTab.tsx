@@ -45,11 +45,11 @@ import { GradeLevel, ClassSummary } from '../../../types/classAffairs.types';
 // =========================================================================
 
 const GRADE_LABELS: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Khối Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
-  PRE_K: 'Khối Lá (5 - 6 tuổi)',
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
 };
 
 const STATUS_LABELS: Record<StudentStatus, { text: string; bg: string; textCol: string }> = {
@@ -490,10 +490,11 @@ export const StudentAdmissionTab: React.FC = () => {
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
             >
               <option value="ALL">Tất cả khối lớp</option>
-              <option value="TODDLER">Khối Nhà trẻ (12 - 36 tháng)</option>
-              <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-              <option value="KINDERGARTEN">Khối Chồi (4 - 5 tuổi)</option>
-              <option value="PRE_K">Khối Lá (5 - 6 tuổi)</option>
+              <option value="INFANT">1 tuổi</option>
+              <option value="TODDLER">2 tuổi</option>
+              <option value="NURSERY">3 tuổi</option>
+              <option value="KINDERGARTEN">4 tuổi</option>
+              <option value="PRE_K">5 tuổi</option>
             </select>
           </div>
 
@@ -531,7 +532,7 @@ export const StudentAdmissionTab: React.FC = () => {
               <option value="ALL">Tất cả trạng thái</option>
               <option value="WAITING_PLACEMENT">Chờ xếp lớp</option>
               <option value="ACTIVE">Đang hoạt động</option>
-              <option value="GRADUATED">Đã tốt nghiệp (Khối Lá)</option>
+              <option value="GRADUATED">Đã tốt nghiệp (5 tuổi)</option>
               <option value="TRANSFERRED">Đã chuyển trường</option>
               <option value="WITHDRAWN">Nghỉ học</option>
             </select>
@@ -1144,10 +1145,11 @@ export const StudentAdmissionTab: React.FC = () => {
                         }
                         className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                       >
-                        <option value="TODDLER">Khối Nhà trẻ (12 - 36 tháng)</option>
-                        <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-                        <option value="KINDERGARTEN">Khối Chồi (4 - 5 tuổi)</option>
-                        <option value="PRE_K">Khối Lá (5 - 6 tuổi)</option>
+                        <option value="INFANT">1 tuổi</option>
+                        <option value="TODDLER">2 tuổi</option>
+                        <option value="NURSERY">3 tuổi</option>
+                        <option value="KINDERGARTEN">4 tuổi</option>
+                        <option value="PRE_K">5 tuổi</option>
                       </select>
                     </div>
 
@@ -1504,10 +1506,11 @@ export const StudentAdmissionTab: React.FC = () => {
                     }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                   >
-                    <option value="TODDLER">Khối Nhà trẻ (12 - 36 tháng)</option>
-                    <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-                    <option value="KINDERGARTEN">Khối Chồi (4 - 5 tuổi)</option>
-                    <option value="PRE_K">Khối Lá (5 - 6 tuổi)</option>
+                    <option value="INFANT">1 tuổi</option>
+                    <option value="TODDLER">2 tuổi</option>
+                    <option value="NURSERY">3 tuổi</option>
+                    <option value="KINDERGARTEN">4 tuổi</option>
+                    <option value="PRE_K">5 tuổi</option>
                   </select>
                 </div>
 

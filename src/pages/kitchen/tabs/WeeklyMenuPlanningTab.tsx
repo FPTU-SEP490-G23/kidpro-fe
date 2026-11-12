@@ -46,6 +46,128 @@ const ALLERGEN_OPTIONS = [
   { id: 'soy', label: 'Đậu nành', color: '#059669' }
 ];
 
+// ================= DANH MỤC MÓN CHỌN NHANH =================
+// Mỗi món kèm thẻ dị nguyên để tự động gắn khi Bếp chọn.
+type DishOption = { name: string; allergens?: string[] };
+type DishField = 'breakfast' | 'morningSnack' | 'lunchMainProtein' | 'lunchVegetable' | 'lunchSoup' | 'lunchDessert' | 'snack';
+
+const DISH_CATALOG: Record<DishField, DishOption[]> = {
+  breakfast: [
+    { name: 'Phở bò' },
+    { name: 'Bún gà' },
+    { name: 'Cháo thịt bằm' },
+    { name: 'Cháo cá hồi', allergens: ['seafood'] },
+    { name: 'Miến gà' },
+    { name: 'Hủ tiếu thịt' },
+    { name: 'Xôi gà' },
+    { name: 'Mì nui thịt bò', allergens: ['gluten'] },
+    { name: 'Bánh mì trứng + Sữa tươi', allergens: ['gluten', 'eggs', 'dairy'] },
+    { name: 'Bún riêu cua', allergens: ['seafood'] }
+  ],
+  morningSnack: [
+    { name: 'Sữa tươi', allergens: ['dairy'] },
+    { name: 'Sữa chua', allergens: ['dairy'] },
+    { name: 'Sữa đậu nành', allergens: ['soy'] },
+    { name: 'Chuối' },
+    { name: 'Đu đủ' },
+    { name: 'Dưa hấu' },
+    { name: 'Thanh long' },
+    { name: 'Nước cam' },
+    { name: 'Bánh flan', allergens: ['eggs', 'dairy'] }
+  ],
+  lunchMainProtein: [
+    { name: 'Thịt heo kho trứng', allergens: ['eggs'] },
+    { name: 'Thịt heo rim' },
+    { name: 'Thịt viên sốt cà' },
+    { name: 'Gà rim gừng' },
+    { name: 'Gà chiên nước mắm' },
+    { name: 'Bò xào thơm' },
+    { name: 'Bò hầm cà rốt' },
+    { name: 'Cá basa sốt cà', allergens: ['seafood'] },
+    { name: 'Cá hồi áp chảo', allergens: ['seafood'] },
+    { name: 'Tôm rim thịt', allergens: ['seafood'] },
+    { name: 'Đậu hũ nhồi thịt', allergens: ['soy'] },
+    { name: 'Trứng chiên thịt', allergens: ['eggs'] }
+  ],
+  lunchVegetable: [
+    { name: 'Bí đỏ xào' },
+    { name: 'Su su xào' },
+    { name: 'Bông cải xào' },
+    { name: 'Đậu que xào' },
+    { name: 'Cải thìa luộc' },
+    { name: 'Rau muống luộc' },
+    { name: 'Cà rốt, su hào luộc' },
+    { name: 'Giá xào' }
+  ],
+  lunchSoup: [
+    { name: 'Canh rau ngót thịt bằm' },
+    { name: 'Canh cải xanh thịt' },
+    { name: 'Canh bí đao nấu tôm', allergens: ['seafood'] },
+    { name: 'Canh mồng tơi nấu cua', allergens: ['seafood'] },
+    { name: 'Canh chua cá', allergens: ['seafood'] },
+    { name: 'Canh khoai mỡ' },
+    { name: 'Canh bí đỏ đậu phộng', allergens: ['peanuts'] },
+    { name: 'Canh rau dền' },
+    { name: 'Canh khoai tây cà rốt' }
+  ],
+  lunchDessert: [
+    { name: 'Chuối' },
+    { name: 'Dưa hấu' },
+    { name: 'Thanh long' },
+    { name: 'Đu đủ' },
+    { name: 'Cam' },
+    { name: 'Sữa chua', allergens: ['dairy'] },
+    { name: 'Rau câu' }
+  ],
+  snack: [
+    { name: 'Cháo đậu xanh' },
+    { name: 'Súp gà ngô' },
+    { name: 'Chè đậu đỏ' },
+    { name: 'Mì gà', allergens: ['gluten'] },
+    { name: 'Sữa chua', allergens: ['dairy'] },
+    { name: 'Bánh bông lan + Sữa', allergens: ['gluten', 'eggs', 'dairy'] },
+    { name: 'Bánh flan', allergens: ['eggs', 'dairy'] },
+    { name: 'Cháo yến mạch', allergens: ['gluten'] }
+  ]
+};
+
+const ALL_CATALOG_DISHES: DishOption[] = Object.values(DISH_CATALOG).flat();
+
+const CALORIE_PRESETS = [450, 500, 550, 600, 650];
+
+const NUTRITION_NOTE_PRESETS = [
+  'Giàu đạm',
+  'Giàu canxi',
+  'Bổ sung sắt',
+  'Bổ sung vitamin A',
+  'Nhiều chất xơ',
+  'Ít dầu mỡ'
+];
+
+// Quy đổi thẻ dị ứng (chữ tự do do Y tế/Phụ huynh đăng ký, VD "Hải sản (Tôm, Cua)") sang mã dị nguyên
+const ALLERGEN_KEYWORDS: Record<string, string[]> = {
+  seafood: ['hải sản', 'tôm', 'cua', 'cá', 'mực', 'nghêu', 'sò', 'ốc', 'ghẹ', 'seafood', 'shrimp', 'crab', 'fish'],
+  peanuts: ['đậu phộng', 'lạc', 'peanut'],
+  dairy: ['sữa bò', 'sữa tươi', 'bơ sữa', 'phô mai', 'lactose', 'dairy', 'milk'],
+  eggs: ['trứng', 'egg'],
+  gluten: ['gluten', 'bột mì', 'lúa mì', 'wheat'],
+  soy: ['đậu nành', 'đậu hũ', 'đậu phụ', 'soy']
+};
+
+// Khớp nguyên từ (tránh "cá" khớp nhầm trong "các")
+const hasWord = (text: string, word: string) =>
+  new RegExp(`(^|[^\\p{L}])${word}($|[^\\p{L}])`, 'u').test(text);
+
+function matchAllergenIds(text: string): string[] {
+  const t = text.normalize('NFC').toLowerCase();
+  const ids = Object.entries(ALLERGEN_KEYWORDS)
+    .filter(([, kws]) => kws.some((kw) => hasWord(t, kw)))
+    .map(([id]) => id);
+  // "Sữa" đứng riêng (không phải sữa đậu nành / sữa hạt) → dị ứng sữa
+  if (hasWord(t, 'sữa') && !/sữa (đậu|hạt)/.test(t) && !ids.includes('dairy')) ids.push('dairy');
+  return ids;
+}
+
 const WEEKDAY_NAMES = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu'];
 const EMPTY_WEEK_MENU: DayMenuPlan[] = WEEKDAY_NAMES.map((dayName, index) => ({
   dayOfWeek: index + 1,
@@ -190,6 +312,24 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       };
     });
   }, [rawAllergyStudents]);
+
+  // Mã dị nguyên → danh sách bé đã đăng ký dị ứng thực tế
+  const studentsByAllergen = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    allergicStudents.forEach((stu) => {
+      const ids = new Set(
+        [...stu.allergyTags, stu.allergyInfo].flatMap((txt: string) => matchAllergenIds(txt || ''))
+      );
+      ids.forEach((id) => {
+        (map[id] ||= []).push(stu.fullName);
+      });
+    });
+    return map;
+  }, [allergicStudents]);
+
+  // Chỉ báo đỏ khi có bé thật sự dị ứng. Nếu không tải được danh sách → coi mọi dị nguyên là rủi ro.
+  const isRiskAllergen = (id: string) => allergyQueryError || (studentsByAllergen[id]?.length || 0) > 0;
+  const allergenLabel = (id: string) => ALLERGEN_OPTIONS.find((o) => o.id === id)?.label || id;
 
   // Calculate Friday deadline check (BR-039)
   const isAfterFridayDeadline = useMemo(() => {
@@ -349,6 +489,126 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       }))
     };
     saveWeeklyMenuMutation.mutate(payload);
+  };
+
+  // Số lần mỗi món đạm đã dùng ở CÁC NGÀY KHÁC trong tuần (để khoá lựa chọn vượt MSG-122)
+  const proteinUsageOtherDays = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (!editingDay) return counts;
+    menuDays.forEach((d) => {
+      if (d.dayOfWeek === editingDay.dayOfWeek) return;
+      const key = d.lunchMainProtein.trim().toLowerCase();
+      if (key) counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+  }, [menuDays, editingDay?.dayOfWeek]);
+
+  const duplicateLunchProtein = !!editingDay
+    && !!editingDay.lunchMainProtein.trim()
+    && (proteinUsageOtherDays[editingDay.lunchMainProtein.trim().toLowerCase()] || 0) >= 2;
+
+  // Chọn món: điền vào ô + tự gắn thẻ dị nguyên của món
+  const pickDish = (field: DishField, dish: DishOption) => {
+    if (!editingDay) return;
+    const isSame = editingDay[field] === dish.name;
+    const nextTags = isSame
+      ? editingDay.allergyTags
+      : Array.from(new Set([...editingDay.allergyTags, ...(dish.allergens || [])]));
+    setEditingDay({ ...editingDay, [field]: isSame ? '' : dish.name, allergyTags: nextTags });
+  };
+
+  // Gõ tay: nếu khớp món trong danh mục thì vẫn gắn thẻ dị nguyên
+  const typeDish = (field: DishField, value: string) => {
+    if (!editingDay) return;
+    const matched = ALL_CATALOG_DISHES.find((d) => d.name.toLowerCase() === value.trim().toLowerCase());
+    const nextTags = matched?.allergens
+      ? Array.from(new Set([...editingDay.allergyTags, ...matched.allergens]))
+      : editingDay.allergyTags;
+    setEditingDay({ ...editingDay, [field]: value, allergyTags: nextTags });
+  };
+
+  const toggleNutritionNote = (note: string) => {
+    if (!editingDay) return;
+    const parts = (editingDay.nutritionNotes || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const next = parts.includes(note) ? parts.filter((p) => p !== note) : [...parts, note];
+    setEditingDay({ ...editingDay, nutritionNotes: next.join(', ') });
+  };
+
+  const renderDishPicker = (field: DishField, label: string, required = true) => {
+    if (!editingDay) return null;
+    const value = editingDay[field];
+    const isProtein = field === 'lunchMainProtein';
+    const listId = `dish-list-${field}`;
+    return (
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-slate-700 block">
+          {label} {required && <span className="text-rose-500">*</span>}
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {DISH_CATALOG[field].map((dish) => {
+            const selected = value === dish.name;
+            const usedTimes = isProtein ? proteinUsageOtherDays[dish.name.toLowerCase()] || 0 : 0;
+            const blocked = isProtein && !selected && usedTimes >= 2;
+            const riskyAllergens = (dish.allergens || []).filter(isRiskAllergen);
+            const hasRisk = riskyAllergens.length > 0;
+            const affectedNames = Array.from(
+              new Set(riskyAllergens.flatMap((a) => studentsByAllergen[a] || []))
+            );
+            const riskTitle = hasRisk
+              ? `⚠️ ${riskyAllergens.map(allergenLabel).join(', ')}` +
+                (affectedNames.length > 0
+                  ? ` — ${affectedNames.length} bé dị ứng: ${affectedNames.join(', ')}`
+                  : ' — chưa tải được danh sách bé dị ứng, cần kiểm tra')
+              : (dish.allergens?.length || 0) > 0
+                ? `Có ${dish.allergens!.map(allergenLabel).join(', ')} — hiện không bé nào đăng ký dị ứng`
+                : undefined;
+            return (
+              <button
+                key={dish.name}
+                type="button"
+                disabled={blocked}
+                onClick={() => pickDish(field, dish)}
+                title={blocked ? 'Món đạm này đã dùng 2 lần trong tuần (MSG-122)' : riskTitle}
+                className={`inline-flex items-center gap-1 px-3 min-h-[36px] rounded-xl text-xs border transition ${
+                  selected
+                    ? 'bg-[#275A4E] border-[#275A4E] text-white font-bold'
+                    : blocked
+                      ? 'bg-slate-100 border-slate-200 text-slate-400 line-through cursor-not-allowed'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-[#78C2AD] hover:bg-[#EBF7F4]'
+                }`}
+              >
+                {selected && <CheckCircle2 className="h-3.5 w-3.5 text-[#78C2AD]" />}
+                <span>{dish.name}</span>
+                {hasRisk && (
+                  <span className={`h-1.5 w-1.5 rounded-full ${selected ? 'bg-[#E5A93C]' : 'bg-[#DC2626]'}`} />
+                )}
+                {isProtein && usedTimes > 0 && !blocked && (
+                  <span className="text-[10px] text-amber-600 font-bold">({usedTimes}/2)</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <input
+          type="text"
+          name={field}
+          list={listId}
+          value={value}
+          required={required}
+          onChange={(e) => typeDish(field, e.target.value)}
+          placeholder="Hoặc gõ món khác..."
+          className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
+        />
+        <datalist id={listId}>
+          {DISH_CATALOG[field].map((d) => (
+            <option key={d.name} value={d.name} />
+          ))}
+        </datalist>
+      </div>
+    );
   };
 
   // Update a single day from modal
@@ -702,28 +962,40 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                   </span>
                 </td>
                 {menuDays.map((day) => {
-                  const hasSevereAllergens = day.allergyTags.length > 0;
+                  const riskyTags = day.allergyTags.filter(isRiskAllergen);
+                  const otherTags = day.allergyTags.filter((t) => !isRiskAllergen(t));
                   return (
-                    <td key={day.dayOfWeek} className="p-4 border-l border-slate-100 align-top space-y-1">
-                      {hasSevereAllergens ? (
+                    <td key={day.dayOfWeek} className="p-4 border-l border-slate-100 align-top space-y-1.5">
+                      {riskyTags.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {day.allergyTags.map((tagId) => {
-                            const opt = ALLERGEN_OPTIONS.find((o) => o.id === tagId);
-                            return (
-                              <span
-                                key={tagId}
-                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold text-white"
-                                style={{ backgroundColor: opt?.color || '#DC2626' }}
-                              >
-                                {opt?.label || tagId}
-                              </span>
-                            );
-                          })}
+                          {riskyTags.map((tagId) => (
+                            <span
+                              key={tagId}
+                              title={(studentsByAllergen[tagId] || []).join(', ')}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold text-white bg-[#DC2626]"
+                            >
+                              ⚠️ {allergenLabel(tagId)}
+                              {studentsByAllergen[tagId]?.length ? ` (${studentsByAllergen[tagId].length} bé)` : ''}
+                            </span>
+                          ))}
                         </div>
                       ) : (
-                        <span className="text-[11px] text-emerald-600 font-semibold">
+                        <span className="text-[11px] text-emerald-600 font-semibold block">
                           Không có dị nguyên nguy hiểm
                         </span>
+                      )}
+                      {otherTags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {otherTags.map((tagId) => (
+                            <span
+                              key={tagId}
+                              title="Không có bé nào đăng ký dị ứng với thành phần này"
+                              className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-500 bg-slate-100"
+                            >
+                              {allergenLabel(tagId)}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </td>
                   );
@@ -779,7 +1051,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       {/* ================= MODAL: CHỈNH SỬA THỰC ĐƠN NGÀY (DAY MENU EDITOR) ================= */}
       {editingDay && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 overflow-hidden shadow-2xl relative">
+          <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 overflow-hidden shadow-2xl relative">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-[#275A4E] to-[#1E4D40] text-white">
               <div className="flex items-center gap-2">
                 <Edit2 className="h-5 w-5 text-[#E5A93C]" />
@@ -796,144 +1068,109 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const updated: DayMenuPlan = {
+                if (duplicateLunchProtein) return;
+                handleUpdateDay({
                   ...editingDay,
-                  breakfast: formData.get('breakfast') as string,
-                  morningSnack: formData.get('morningSnack') as string,
-                  lunchMainProtein: formData.get('lunchMainProtein') as string,
-                  lunchVegetable: formData.get('lunchVegetable') as string,
-                  lunchSoup: formData.get('lunchSoup') as string,
-                  lunchDessert: formData.get('lunchDessert') as string,
-                  snack: formData.get('snack') as string,
-                  calories: Number(formData.get('calories')) || editingDay.calories,
-                  nutritionNotes: formData.get('nutritionNotes') as string
-                };
-                handleUpdateDay(updated);
+                  breakfast: editingDay.breakfast.trim(),
+                  morningSnack: editingDay.morningSnack.trim(),
+                  lunchMainProtein: editingDay.lunchMainProtein.trim(),
+                  lunchVegetable: editingDay.lunchVegetable.trim(),
+                  lunchSoup: editingDay.lunchSoup.trim(),
+                  lunchDessert: editingDay.lunchDessert.trim(),
+                  snack: editingDay.snack.trim(),
+                  calories: Number(editingDay.calories) || 0
+                });
               }}
-              className="p-5 space-y-4 max-h-[75vh] overflow-y-auto"
+              className="p-5 space-y-5 max-h-[75vh] overflow-y-auto"
             >
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Bữa Sáng (~07:30): <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="breakfast"
-                  defaultValue={editingDay.breakfast}
-                  required
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                />
-              </div>
+              <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                <Info className="h-3.5 w-3.5 text-[#275A4E] shrink-0" />
+                Bấm chọn món có sẵn (bấm lại để bỏ chọn) hoặc gõ món khác. Món có chấm
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#DC2626]" />
+                đỏ có thành phần mà bé trong trường đã đăng ký dị ứng (rê chuột để xem tên bé).
+              </p>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Bữa Phụ Sáng: <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="morningSnack"
-                  defaultValue={editingDay.morningSnack}
-                  required
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                />
-              </div>
+              {renderDishPicker('breakfast', 'Bữa Sáng (~07:30):')}
+              {renderDishPicker('morningSnack', 'Bữa Phụ Sáng:')}
 
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
                 <span className="text-xs font-bold text-[#1E4D40] block">Các món Bữa Trưa (~11:00):</span>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món đạm chính (Thịt/Cá/Tôm): <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="lunchMainProtein"
-                      defaultValue={editingDay.lunchMainProtein}
-                      required
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món xào / rau củ:
-                    </label>
-                    <input
-                      type="text"
-                      name="lunchVegetable"
-                      defaultValue={editingDay.lunchVegetable}
-                      required
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món canh bổ dưỡng:
-                    </label>
-                    <input
-                      type="text"
-                      name="lunchSoup"
-                      defaultValue={editingDay.lunchSoup}
-                      required
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Tráng miệng:
-                    </label>
-                    <input
-                      type="text"
-                      name="lunchDessert"
-                      defaultValue={editingDay.lunchDessert}
-                      required
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                    />
-                  </div>
-                </div>
+                {renderDishPicker('lunchMainProtein', 'Món đạm chính (Thịt/Cá/Tôm):')}
+                {duplicateLunchProtein && (
+                  <p className="text-[11px] text-rose-700 font-semibold flex items-center gap-1">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Món đạm này đã dùng 2 lần trong tuần (MSG-122). Hãy chọn món khác.
+                  </p>
+                )}
+                {renderDishPicker('lunchVegetable', 'Món xào / rau củ:')}
+                {renderDishPicker('lunchSoup', 'Món canh bổ dưỡng:')}
+                {renderDishPicker('lunchDessert', 'Tráng miệng:')}
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Bữa Xế Chiều (~14:30): <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="snack"
-                  defaultValue={editingDay.snack}
-                  required
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                />
-              </div>
+              {renderDishPicker('snack', 'Bữa Xế Chiều (~14:30):')}
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Kcal (tham khảo):
-                  </label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block">Kcal (tham khảo):</label>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {CALORIE_PRESETS.map((kcal) => (
+                    <button
+                      key={kcal}
+                      type="button"
+                      onClick={() => setEditingDay({ ...editingDay, calories: kcal })}
+                      className={`px-3 min-h-[36px] rounded-xl text-xs border transition ${
+                        editingDay.calories === kcal
+                          ? 'bg-[#E5A93C] border-[#E5A93C] text-white font-bold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-amber-50'
+                      }`}
+                    >
+                      {kcal}
+                    </button>
+                  ))}
                   <input
                     type="number"
                     name="calories"
-                    defaultValue={editingDay.calories}
                     min="0"
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
+                    value={editingDay.calories || ''}
+                    onChange={(e) => setEditingDay({ ...editingDay, calories: Number(e.target.value) || 0 })}
+                    placeholder="Khác"
+                    className="w-24 text-xs p-2 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Ghi chú dinh dưỡng:
-                  </label>
-                  <input
-                    type="text"
-                    name="nutritionNotes"
-                    defaultValue={editingDay.nutritionNotes}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                  />
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block">Ghi chú dinh dưỡng:</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {NUTRITION_NOTE_PRESETS.map((note) => {
+                    const active = (editingDay.nutritionNotes || '')
+                      .split(',')
+                      .map((s) => s.trim())
+                      .includes(note);
+                    return (
+                      <button
+                        key={note}
+                        type="button"
+                        onClick={() => toggleNutritionNote(note)}
+                        className={`px-3 min-h-[36px] rounded-xl text-xs border transition ${
+                          active
+                            ? 'bg-[#EBF7F4] border-[#78C2AD] text-[#1E4D40] font-bold'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {active ? '✓ ' : '+ '}
+                        {note}
+                      </button>
+                    );
+                  })}
                 </div>
+                <input
+                  type="text"
+                  name="nutritionNotes"
+                  value={editingDay.nutritionNotes || ''}
+                  onChange={(e) => setEditingDay({ ...editingDay, nutritionNotes: e.target.value })}
+                  placeholder="Hoặc ghi chú thêm..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
+                />
               </div>
 
               {/* Multi-select Allergens with Red tags */}
@@ -944,11 +1181,16 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2">
                   {ALLERGEN_OPTIONS.map((opt) => {
                     const isChecked = editingDay.allergyTags.includes(opt.id);
+                    const risky = isRiskAllergen(opt.id);
+                    const kids = studentsByAllergen[opt.id]?.length || 0;
                     return (
                       <label
                         key={opt.id}
+                        title={kids > 0 ? `Bé dị ứng: ${studentsByAllergen[opt.id].join(', ')}` : undefined}
                         className={`flex items-center gap-2 p-2 rounded-xl text-xs cursor-pointer border transition ${isChecked
-                            ? 'bg-rose-50 border-rose-300 font-bold text-rose-900'
+                            ? risky
+                              ? 'bg-rose-50 border-rose-300 font-bold text-rose-900'
+                              : 'bg-slate-100 border-slate-300 font-semibold text-slate-700'
                             : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                       >
@@ -971,6 +1213,11 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                           className="rounded-md text-[#DC2626] focus:ring-[#DC2626]"
                         />
                         <span>{opt.label}</span>
+                        {kids > 0 && (
+                          <span className="ml-auto text-[10px] font-extrabold text-white bg-[#DC2626] px-1.5 py-0.5 rounded-md">
+                            {kids} bé
+                          </span>
+                        )}
                       </label>
                     );
                   })}

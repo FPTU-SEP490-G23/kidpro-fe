@@ -2,7 +2,7 @@ import axiosClient from './axiosClient';
 
 export interface GradeLevelQuota {
   quotaId: string;
-  gradeLevel: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
+  gradeLevel: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
   gradeName: string;
   ageRange: string;
   maxCapacity: number;

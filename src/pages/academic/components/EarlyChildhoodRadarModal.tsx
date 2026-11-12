@@ -34,7 +34,7 @@ export const EarlyChildhoodRadarModal: React.FC<EarlyChildhoodRadarModalProps> =
   student,
   isOpen,
   onClose,
-  ageGroupName = 'Khối Mầm (3 - 4 Tuổi)',
+  ageGroupName = '3 tuổi',
   termLabel = 'Học kỳ I',
 }) => {
   if (!isOpen || !student) return null;

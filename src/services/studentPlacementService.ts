@@ -8,7 +8,7 @@ export interface UnassignedStudentResponse {
   gender: 'MALE' | 'FEMALE';
   ageInMonths: number;
   ageInYears: number;
-  suggestedGradeLevel: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
+  suggestedGradeLevel: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
   suggestedGradeName: string;
   status: string;
   parentName?: string;
@@ -35,7 +35,7 @@ export interface ClassPlacementRequest {
 
 export interface AutoPlacementRequest {
   academicYearId?: string;
-  gradeLevel?: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
+  gradeLevel?: 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
 }
 
 export interface AutoPlacementResultResponse {

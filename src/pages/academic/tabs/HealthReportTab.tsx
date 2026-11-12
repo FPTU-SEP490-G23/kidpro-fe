@@ -27,6 +27,7 @@ import {
 } from '../../../types/healthReport.types';
 import { academicApi } from '../../../api/academicApi';
 import { ClassEntity } from '../../../types/classroom.types';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 export const HealthReportTab: React.FC = () => {
   // Filters
@@ -302,9 +303,9 @@ export const HealthReportTab: React.FC = () => {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
             >
               <option value="ALL">Toàn trường (Tất cả các khối)</option>
-              <option value="MAM">Khối Mầm (3-4 tuổi)</option>
-              <option value="CHOI">Khối Chồi (4-5 tuổi)</option>
-              <option value="LA">Khối Lá (5-6 tuổi)</option>
+              <option value="MAM">3 tuổi</option>
+              <option value="CHOI">4 tuổi</option>
+              <option value="LA">5 tuổi</option>
             </select>
           </div>
 
@@ -630,7 +631,7 @@ export const HealthReportTab: React.FC = () => {
                     {/* Class & Grade */}
                     <td className="py-3.5 px-3">
                       <div className="text-slate-800 font-medium">{st.className}</div>
-                      <div className="text-xs text-slate-400">{st.gradeLevel}</div>
+                      <div className="text-xs text-slate-400">{formatGradeLevel(st.gradeLevel)}</div>
                     </td>
 
                     {/* Height */}

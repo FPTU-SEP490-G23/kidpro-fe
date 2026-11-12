@@ -118,6 +118,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         fullName,
         avatarUrl,
+        // Backend xác minh access token với Supabase, không tin email do client gửi
+        accessToken: session.access_token,
       });
 
       const normalizedRole = normalizeRole(beAuth.role);

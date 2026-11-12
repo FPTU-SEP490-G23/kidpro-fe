@@ -21,6 +21,7 @@ import developmentEvaluationApi, {
   DevelopmentEvaluationDto,
 } from '../../api/developmentEvaluationApi';
 import classApprovalApi, { ClassApprovalItem } from '../../api/classApprovalApi';
+import { formatGradeLevel } from '../../utils/formatters';
 
 export const BghEvaluationApprovalsPage: React.FC = () => {
   const [evaluations, setEvaluations] = useState<DevelopmentEvaluationDto[]>([]);
@@ -212,7 +213,7 @@ export const BghEvaluationApprovalsPage: React.FC = () => {
             >
               {classes.map((cls) => (
                 <option key={cls.classId} value={cls.classId}>
-                  {cls.className} ({cls.gradeLevel})
+                  {cls.className} ({formatGradeLevel(cls.gradeLevel)})
                 </option>
               ))}
             </select>

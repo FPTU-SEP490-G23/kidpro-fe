@@ -24,6 +24,7 @@ import tuitionSummaryApi, {
   TuitionSummaryDto,
   ClassTuitionSummaryDto,
 } from '../../api/tuitionSummaryApi';
+import { formatGradeLevel } from '../../utils/formatters';
 
 export const BghTuitionSummaryPage: React.FC = () => {
   const now = new Date();
@@ -532,7 +533,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
                 summary.classSummaries.map((cls) => (
                   <tr key={cls.classId} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-800">{cls.className}</td>
-                    <td className="px-6 py-4 text-slate-500">{cls.gradeLevel}</td>
+                    <td className="px-6 py-4 text-slate-500">{formatGradeLevel(cls.gradeLevel)}</td>
                     <td className="px-6 py-4 text-center font-bold text-slate-700">{cls.studentCount} trẻ</td>
                     <td className="px-6 py-4 text-slate-700 font-semibold">{formatVND(cls.grossAmount)}</td>
                     <td className="px-6 py-4 text-amber-600 font-medium">{formatVND(cls.discountAmount)}</td>

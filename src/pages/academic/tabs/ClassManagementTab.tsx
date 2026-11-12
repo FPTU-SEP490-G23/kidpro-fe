@@ -70,11 +70,11 @@ const draftAssignmentSchema = z.object({
 type DraftAssignmentFormValues = z.infer<typeof draftAssignmentSchema>;
 
 const GRADE_LABELS: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
-  PRE_K: 'Khối Lá (5 - 6 tuổi)',
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
 };
 
 export const ClassManagementTab: React.FC = () => {
@@ -601,10 +601,11 @@ export const ClassManagementTab: React.FC = () => {
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
             >
               <option value="ALL">-- Tất cả khối lớp --</option>
-              <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
-              <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-              <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-              <option value="KINDERGARTEN">Khối Chồi & Lá (4 - 6 tuổi)</option>
+              <option value="INFANT">1 tuổi</option>
+              <option value="TODDLER">2 tuổi</option>
+              <option value="NURSERY">3 tuổi</option>
+              <option value="KINDERGARTEN">4 tuổi</option>
+              <option value="PRE_K">5 tuổi</option>
             </select>
           </div>
 
@@ -805,7 +806,7 @@ export const ClassManagementTab: React.FC = () => {
               <p className="font-bold">Quy định lập kế hoạch mở lớp mới (BR-005, BR-007):</p>
               <p>
                 - Tên lớp học không được trùng lặp trong cùng khối lớp và niên khóa.
-                <br />- Định mức sĩ số theo chuẩn Bộ GD&ĐT: Nhà trẻ tối đa 26 trẻ, Mẫu giáo (Mầm, Chồi, Lá) tối đa 35 trẻ.
+                <br />- Định mức sĩ số theo chuẩn Bộ GD&ĐT: khối 1 - 2 tuổi tối đa 26 trẻ, khối 3 - 5 tuổi tối đa 35 trẻ.
                 <br />- Đề xuất tạo mới bắt buộc ở trạng thái <strong>Chờ Ban Giám hiệu phê duyệt (PENDING_APPROVAL)</strong>.
               </p>
             </div>
@@ -1171,10 +1172,11 @@ export const ClassManagementTab: React.FC = () => {
                   {...registerProposal('gradeLevel')}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                 >
-                  <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
-                  <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-                  <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-                  <option value="KINDERGARTEN">Khối Chồi & Lá (4 - 6 tuổi)</option>
+                  <option value="INFANT">1 tuổi</option>
+                  <option value="TODDLER">2 tuổi</option>
+                  <option value="NURSERY">3 tuổi</option>
+                  <option value="KINDERGARTEN">4 tuổi</option>
+                  <option value="PRE_K">5 tuổi</option>
                 </select>
                 {proposalErrors.gradeLevel?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.gradeLevel.message}</p>
@@ -1210,7 +1212,7 @@ export const ClassManagementTab: React.FC = () => {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Định mức chuẩn: Khối Nhà trẻ 24 - 26 trẻ, Khối Mẫu giáo 30 - 35 trẻ.
+                  Định mức chuẩn: Khối 1 - 2 tuổi 24 - 26 trẻ, khối 3 - 5 tuổi 30 - 35 trẻ.
                 </p>
                 {proposalErrors.proposedCapacity?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.proposedCapacity.message}</p>

@@ -454,10 +454,10 @@ export const AnnouncementsPage: React.FC = () => {
                 <option value="ALL">Tất cả đối tượng nhận</option>
                 <option value="PARENTS">Toàn thể Phụ huynh</option>
                 <option value="TEACHERS">Toàn thể Giáo viên</option>
-                <option value="NURSERY">Khối Nhà trẻ (18-36m)</option>
-                <option value="MAM">Khối Mầm (3-4T)</option>
-                <option value="CHOI">Khối Chồi (4-5T)</option>
-                <option value="LA">Khối Lá (5-6T)</option>
+                <option value="NURSERY">1 - 2 tuổi</option>
+                <option value="MAM">3 tuổi</option>
+                <option value="CHOI">4 tuổi</option>
+                <option value="LA">5 tuổi</option>
               </select>
             </div>
           </div>
@@ -738,10 +738,10 @@ export const AnnouncementsPage: React.FC = () => {
                     { id: 'ALL', label: 'Toàn Trường' },
                     { id: 'PARENTS', label: 'Toàn Thể Phụ Huynh' },
                     { id: 'TEACHERS', label: 'Cán Bộ Giáo Viên' },
-                    { id: 'NURSERY', label: 'Khối Nhà Trẻ' },
-                    { id: 'MAM', label: 'Khối Mầm' },
-                    { id: 'CHOI', label: 'Khối Chồi' },
-                    { id: 'LA', label: 'Khối Lá' },
+                    { id: 'NURSERY', label: '1 - 2 tuổi' },
+                    { id: 'MAM', label: '3 tuổi' },
+                    { id: 'CHOI', label: '4 tuổi' },
+                    { id: 'LA', label: '5 tuổi' },
                   ].map((aud) => {
                     const isSelected = selectedAudiences.includes(aud.id);
                     return (

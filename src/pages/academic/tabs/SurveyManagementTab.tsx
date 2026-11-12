@@ -46,10 +46,10 @@ import {
 
 const GRADE_LEVEL_OPTIONS = [
   { id: 'ALL', label: 'Phụ huynh toàn trường' },
-  { id: 'NHA_TRE', label: 'Khối Nhà trẻ (18 - 36 tháng)' },
-  { id: 'MAM', label: 'Khối Mầm (3 - 4 tuổi)' },
-  { id: 'CHOI', label: 'Khối Chồi (4 - 5 tuổi)' },
-  { id: 'LA', label: 'Khối Lá (5 - 6 tuổi)' },
+  { id: 'NHA_TRE', label: '1 - 2 tuổi' },
+  { id: 'MAM', label: '3 tuổi' },
+  { id: 'CHOI', label: '4 tuổi' },
+  { id: 'LA', label: '5 tuổi' },
 ];
 
 const QUESTION_TYPES: { type: QuestionType; label: string; icon: string }[] = [

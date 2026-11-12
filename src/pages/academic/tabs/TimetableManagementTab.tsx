@@ -30,6 +30,7 @@ import { assignmentService } from '../../../services/assignmentService';
 import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
 import { useToast } from '../../../contexts/ToastContext';
 import { ClassSummary } from '../../../types/classAffairs.types';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 // Standard 5 preschool days (Monday -> Friday)
 const DAYS_OF_WEEK = [
@@ -434,7 +435,7 @@ export const TimetableManagementTab: React.FC = () => {
             >
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} ({cls.gradeLevel})
+                  {cls.name} ({formatGradeLevel(cls.gradeLevel)})
                 </option>
               ))}
             </select>

@@ -19,6 +19,7 @@ import {
   Layers,
   RotateCcw,
 } from 'lucide-react';
+import { formatGradeLevel } from '../../utils/formatters';
 
 export const BghTimetableApprovalsPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -225,7 +226,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
                   </h3>
 
                   <p className="text-xs font-semibold text-[#275A4E] mt-0.5">
-                    Khối: {item.gradeLevel || 'Mầm non'}
+                    Khối: {formatGradeLevel(item.gradeLevel) || 'Mầm non'}
                   </p>
 
                   <div className="mt-4 space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">

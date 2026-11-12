@@ -29,10 +29,11 @@ import { useToast } from '../../../contexts/ToastContext';
 import { ClassSummary, GradeLevel } from '../../../types/classAffairs.types';
 
 const GRADE_LEVEL_LABELS: Record<string, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi/Lá (4 - 6 tuổi)',
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
 };
 
 export const StudentPlacementTab: React.FC = () => {
@@ -250,10 +251,11 @@ export const StudentPlacementTab: React.FC = () => {
             className="text-sm font-semibold border border-slate-200 rounded-xl px-3 py-1.5 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="ALL">Tất cả các khối độ tuổi</option>
-            <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
-            <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-            <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-            <option value="KINDERGARTEN">Khối Chồi/Lá (4 - 6 tuổi)</option>
+            <option value="INFANT">1 tuổi</option>
+            <option value="TODDLER">2 tuổi</option>
+            <option value="NURSERY">3 tuổi</option>
+            <option value="KINDERGARTEN">4 tuổi</option>
+            <option value="PRE_K">5 tuổi</option>
           </select>
         </div>
 

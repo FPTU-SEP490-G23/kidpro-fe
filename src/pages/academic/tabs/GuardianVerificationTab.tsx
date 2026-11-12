@@ -438,7 +438,7 @@ export const GuardianVerificationTab: React.FC = () => {
                     {/* Child info */}
                     <td className="px-5 py-4">
                       <div className="font-semibold text-slate-800 text-xs">{g.studentName || 'Bé Gia Bảo'}</div>
-                      <div className="text-[11px] text-[#275A4E] font-medium">{g.studentClassName || 'Khối Mầm'}</div>
+                      <div className="text-[11px] text-[#275A4E] font-medium">{g.studentClassName || '3 tuổi'}</div>
                     </td>
 
                     {/* AI Face Embedding Status */}

@@ -18,6 +18,14 @@ export const formatDate = (dateStr?: string): string => {
   }).format(date);
 };
 
+/** Ngày giờ dạng "HH:mm dd/MM/yyyy". */
+export const formatDateTime = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const time = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+  return `${time} ${formatDate(dateStr)}`;
+};
+
 export const formatTime = (timeStr?: string): string => {
   if (!timeStr) return '';
   return timeStr.slice(0, 5); // HH:mm
@@ -224,3 +232,15 @@ export const getRoleHomePath = (role?: UserRole | string | null): string => {
       return '/dashboard/executive';
   }
 };
+
+/** Đổi mã khối lớp (grade_level) sang tên hiển thị theo độ tuổi; chuỗi không phải mã thì giữ nguyên. */
+const GRADE_LEVEL_LABELS: Record<string, string> = {
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
+};
+
+export const formatGradeLevel = (code?: string | null): string =>
+  code ? GRADE_LEVEL_LABELS[code] ?? code : '';

@@ -193,7 +193,7 @@ export const YearEndArchivalTab: React.FC = () => {
               Lưu Trữ Dữ Liệu Học Bạ Hết Niên Khóa
             </h2>
             <p className="text-xs sm:text-sm text-white/80 mt-1 max-w-2xl leading-relaxed">
-              Quy trình khóa sổ niên khóa kết thúc ngày 31/05 hàng năm. Chuyển toàn bộ dữ liệu đánh giá, điểm danh, tài chính sang chế độ Chỉ đọc (Read-only), tự động xét lên lớp, cấp giấy chứng nhận tốt nghiệp cho Khối Lá và tạo gói nén SHA-256.
+              Quy trình khóa sổ niên khóa kết thúc ngày 31/05 hàng năm. Chuyển toàn bộ dữ liệu đánh giá, điểm danh, tài chính sang chế độ Chỉ đọc (Read-only), tự động xét lên lớp, cấp giấy chứng nhận tốt nghiệp cho khối 5 tuổi và tạo gói nén SHA-256.
             </p>
           </div>
 
@@ -385,10 +385,10 @@ export const YearEndArchivalTab: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-slate-800">
-                    4. Lập Danh Sách & Cấp Mã Tốt Nghiệp Mầm Non (Khối Lá 5-6T)
+                    4. Lập Danh Sách & Cấp Mã Tốt Nghiệp Mầm Non (5 tuổi)
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Đã tổng hợp hồ sơ và cấp số hiệu giấy chứng nhận hoàn thành chương trình mầm non cho 93 học sinh Khối Lá chuẩn bị vào Lớp 1.
+                    Đã tổng hợp hồ sơ và cấp số hiệu giấy chứng nhận hoàn thành chương trình mầm non cho 93 học sinh khối 5 tuổi chuẩn bị vào Lớp 1.
                   </p>
                   <span className="inline-block text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
                     Trạng thái: Đủ điều kiện 93/93 trẻ
@@ -415,11 +415,11 @@ export const YearEndArchivalTab: React.FC = () => {
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-slate-500 uppercase">
-                    Khối Nhà Trẻ (18-36m)
+                    1 - 2 tuổi
                   </span>
                   <ArrowRight className="w-4 h-4 text-[#275A4E]" />
                 </div>
-                <div className="text-lg font-bold text-[#1E4D40]">Lên Khối Mầm (3-4T)</div>
+                <div className="text-lg font-bold text-[#1E4D40]">Lên 3 tuổi</div>
                 <div className="text-xs text-slate-600">
                   Số lượng xét duyệt: <strong>42 học sinh</strong>
                 </div>
@@ -429,11 +429,11 @@ export const YearEndArchivalTab: React.FC = () => {
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-slate-500 uppercase">
-                    Khối Mầm (3-4 Tuổi)
+                    3 tuổi
                   </span>
                   <ArrowRight className="w-4 h-4 text-[#275A4E]" />
                 </div>
-                <div className="text-lg font-bold text-[#1E4D40]">Lên Khối Chồi (4-5T)</div>
+                <div className="text-lg font-bold text-[#1E4D40]">Lên 4 tuổi</div>
                 <div className="text-xs text-slate-600">
                   Số lượng xét duyệt: <strong>74 học sinh</strong>
                 </div>
@@ -443,11 +443,11 @@ export const YearEndArchivalTab: React.FC = () => {
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-slate-500 uppercase">
-                    Khối Chồi (4-5 Tuổi)
+                    4 tuổi
                   </span>
                   <ArrowRight className="w-4 h-4 text-[#275A4E]" />
                 </div>
-                <div className="text-lg font-bold text-[#1E4D40]">Lên Khối Lá (5-6T)</div>
+                <div className="text-lg font-bold text-[#1E4D40]">Lên 5 tuổi</div>
                 <div className="text-xs text-slate-600">
                   Số lượng xét duyệt: <strong>81 học sinh</strong>
                 </div>
@@ -457,7 +457,7 @@ export const YearEndArchivalTab: React.FC = () => {
               <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-emerald-800 uppercase">
-                    Khối Lá (5-6 Tuổi)
+                    5 tuổi
                   </span>
                   <Sparkles className="w-4 h-4 text-[#E5A93C]" />
                 </div>

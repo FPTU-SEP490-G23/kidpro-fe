@@ -114,8 +114,8 @@ const INITIAL_MOCK_PLANS: WeeklyLessonPlan[] = [
     weekRange: '19/10/2026 - 23/10/2026',
     academicYear: '2026-2027',
     classId: 'cls-01',
-    className: 'Mầm 1 (3-4 Tuổi)',
-    ageGroup: 'Mầm (3-4 Tuổi)',
+    className: 'Mầm 1 (3 tuổi)',
+    ageGroup: '3 tuổi',
     themeTopic: 'Động vật sống dưới nước - Thế giới đại dương kỳ thú',
     teacherId: 'tch-01',
     teacherName: 'Cô Nguyễn Thu Trang',
@@ -177,8 +177,8 @@ const INITIAL_MOCK_PLANS: WeeklyLessonPlan[] = [
     weekRange: '19/10/2026 - 23/10/2026',
     academicYear: '2026-2027',
     classId: 'cls-02',
-    className: 'Chồi 1 (4-5 Tuổi)',
-    ageGroup: 'Chồi (4-5 Tuổi)',
+    className: 'Chồi 1 (4 tuổi)',
+    ageGroup: '4 tuổi',
     themeTopic: 'Thế giới côn trùng có ích - Ong mật chăm chỉ',
     teacherId: 'tch-02',
     teacherName: 'Cô Lê Bích Ngọc',
@@ -206,8 +206,8 @@ const INITIAL_MOCK_PLANS: WeeklyLessonPlan[] = [
     weekRange: '19/10/2026 - 23/10/2026',
     academicYear: '2026-2027',
     classId: 'cls-03',
-    className: 'Lá 1 (5-6 Tuổi)',
-    ageGroup: 'Lá (5-6 Tuổi)',
+    className: 'Lá 1 (5 tuổi)',
+    ageGroup: '5 tuổi',
     themeTopic: 'Phương tiện giao thông và Biển báo an toàn đường bộ',
     teacherId: 'tch-03',
     teacherName: 'Cô Vũ Hải Yến',
@@ -356,7 +356,7 @@ export const WeeklyLessonPlanTab: React.FC = () => {
         weekRange: payload.weekRange,
         academicYear: '2026-2027',
         classId: payload.classId,
-        className: payload.classId === 'cls-01' ? 'Mầm 1 (3-4 Tuổi)' : payload.classId === 'cls-02' ? 'Chồi 1 (4-5 Tuổi)' : 'Lá 1 (5-6 Tuổi)',
+        className: payload.classId === 'cls-01' ? 'Mầm 1 (3 tuổi)' : payload.classId === 'cls-02' ? 'Chồi 1 (4 tuổi)' : 'Lá 1 (5 tuổi)',
         ageGroup: 'Mầm non',
         themeTopic: payload.themeTopic,
         teacherId: 'tch-current',
@@ -563,10 +563,10 @@ export const WeeklyLessonPlanTab: React.FC = () => {
               onChange={(e) => setSelectedClassId(e.target.value)}
               className="px-3.5 py-2 text-sm font-semibold rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#275A4E]"
             >
-              <option value="cls-01">Mầm 1 (3-4 Tuổi)</option>
-              <option value="cls-02">Chồi 1 (4-5 Tuổi)</option>
-              <option value="cls-03">Lá 1 (5-6 Tuổi)</option>
-              <option value="cls-04">Nhà trẻ 1 (18-24 Tháng)</option>
+              <option value="cls-01">Mầm 1 (3 tuổi)</option>
+              <option value="cls-02">Chồi 1 (4 tuổi)</option>
+              <option value="cls-03">Lá 1 (5 tuổi)</option>
+              <option value="cls-04">Nhà trẻ 1 (1 tuổi)</option>
             </select>
           </div>
         </div>

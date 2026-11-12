@@ -374,10 +374,11 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
           </span>
           {[
             { id: 'ALL', label: 'Tất cả khối' },
-            { id: 'INFANT', label: 'Nhũ nhi' },
-            { id: 'TODDLER', label: 'Nhà trẻ nhỏ' },
-            { id: 'NURSERY', label: 'Nhà trẻ' },
-            { id: 'KINDERGARTEN', label: 'Mẫu giáo' }
+            { id: 'INFANT', label: '1 tuổi' },
+            { id: 'TODDLER', label: '2 tuổi' },
+            { id: 'NURSERY', label: '3 tuổi' },
+            { id: 'KINDERGARTEN', label: '4 tuổi' },
+            { id: 'PRE_K', label: '5 tuổi' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -458,10 +459,11 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
               ) : (
                 filteredClasses.map((cls) => {
                   const ageBadgeMap: Record<AgeGroupType, { label: string; color: string }> = {
-                    INFANT: { label: 'Nhũ nhi', color: 'bg-purple-100 text-purple-800' },
-                    TODDLER: { label: 'Nhà trẻ nhỏ', color: 'bg-teal-100 text-teal-800' },
-                    NURSERY: { label: 'Nhà trẻ', color: 'bg-amber-100 text-amber-800' },
-                    KINDERGARTEN: { label: 'Mẫu giáo', color: 'bg-blue-100 text-blue-800' }
+                    INFANT: { label: '1 tuổi', color: 'bg-purple-100 text-purple-800' },
+                    TODDLER: { label: '2 tuổi', color: 'bg-teal-100 text-teal-800' },
+                    NURSERY: { label: '3 tuổi', color: 'bg-amber-100 text-amber-800' },
+                    KINDERGARTEN: { label: '4 tuổi', color: 'bg-blue-100 text-blue-800' },
+                    PRE_K: { label: '5 tuổi', color: 'bg-[#E5A93C]/20 text-[#1E4D40]' }
                   };
                   const ageBadge = ageBadgeMap[cls.ageGroup] || {
                     label: cls.ageGroup,

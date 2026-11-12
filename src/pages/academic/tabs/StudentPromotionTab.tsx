@@ -25,19 +25,19 @@ import { GradeLevel } from '../../../types/classAffairs.types';
 import { useToast } from '../../../contexts/ToastContext';
 
 const GRADE_LABELS: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
-  PRE_K: 'Khối Lá (5 - 6 tuổi)',
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
 };
 
 const GRADE_SHORT: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ',
-  TODDLER: 'Nhà trẻ',
-  NURSERY: 'Khối Mầm',
-  KINDERGARTEN: 'Khối Chồi',
-  PRE_K: 'Khối Lá',
+  INFANT: '1 tuổi',
+  TODDLER: '2 tuổi',
+  NURSERY: '3 tuổi',
+  KINDERGARTEN: '4 tuổi',
+  PRE_K: '5 tuổi',
 };
 
 export const StudentPromotionTab: React.FC = () => {
@@ -214,7 +214,7 @@ export const StudentPromotionTab: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Quy Trình Kết Chuyển Học Sinh Đầu Năm (G3-UC-11)</h2>
               <p className="text-xs text-slate-500">
-                Lũy tiến khối theo niên khóa: Nhà trẻ $\rightarrow$ Mầm $\rightarrow$ Chồi $\rightarrow$ Lá $\rightarrow$ Tốt nghiệp (BR-009)
+                Lũy tiến khối theo niên khóa: 1 tuổi $\rightarrow$ 2 tuổi $\rightarrow$ 3 tuổi $\rightarrow$ 4 tuổi $\rightarrow$ 5 tuổi $\rightarrow$ Tốt nghiệp (BR-009)
               </p>
             </div>
           </div>

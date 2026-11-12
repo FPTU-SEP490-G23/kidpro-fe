@@ -14,7 +14,7 @@ import {
   Undo2,
 } from 'lucide-react';
 import { financeApi } from '../../../api/financeApi';
-import { formatCurrency } from '../../../utils/formatters';
+import { formatCurrency, formatGradeLevel } from '../../../utils/formatters';
 import { TuitionSummaryDto } from '../../../types/finance.types';
 
 export const TuitionSummaryTab: React.FC = () => {
@@ -347,7 +347,7 @@ export const TuitionSummaryTab: React.FC = () => {
                       <Building className="w-4 h-4 text-indigo-500" />
                       {cls.className}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 text-xs">{cls.gradeLevel || 'Mầm non'}</td>
+                    <td className="py-3.5 px-4 text-slate-600 text-xs">{formatGradeLevel(cls.gradeLevel) || 'Mầm non'}</td>
                     <td className="py-3.5 px-4 text-center font-bold text-slate-700">{cls.studentCount} trẻ</td>
                     <td className="py-3.5 px-4 font-medium text-slate-700">{formatCurrency(cls.grossAmount)}</td>
                     <td className="py-3.5 px-4 font-medium text-amber-600">

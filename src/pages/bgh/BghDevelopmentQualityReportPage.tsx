@@ -25,6 +25,7 @@ import {
   DomainScoreStatsDto,
   ClassQualityStatsDto
 } from '../../api/developmentQualityReportApi';
+import { formatGradeLevel } from '../../utils/formatters';
 
 const PERIOD_OPTIONS = [
   { value: 'START_YEAR', label: 'Khảo sát Đầu năm' },
@@ -414,7 +415,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                           <td className="py-4 px-6 font-bold text-gray-900">{cls.className}</td>
                           <td className="py-4 px-6">
                             <span className="inline-block px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg font-medium">
-                              {cls.gradeLevel || 'Khối Mẫu Giáo'}
+                              {formatGradeLevel(cls.gradeLevel) || 'Khối Mẫu Giáo'}
                             </span>
                           </td>
                           <td className="py-4 px-6 font-semibold">

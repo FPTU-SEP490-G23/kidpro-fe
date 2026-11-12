@@ -97,10 +97,11 @@ export const BghClassApprovalsPage: React.FC = () => {
 
   const formatGradeLevel = (lvl?: string) => {
     switch (lvl) {
-      case 'INFANT': return 'Nhà trẻ nhỏ (3 - 12 tháng)';
-      case 'TODDLER': return 'Nhà trẻ (12 - 36 tháng)';
-      case 'NURSERY': return 'Khối Mầm (3 - 4 tuổi)';
-      case 'KINDERGARTEN': return 'Khối Chồi & Lá (4 - 6 tuổi)';
+      case 'INFANT': return '1 tuổi';
+      case 'TODDLER': return '2 tuổi';
+      case 'NURSERY': return '3 tuổi';
+      case 'KINDERGARTEN': return '4 tuổi';
+      case 'PRE_K': return '5 tuổi';
       default: return lvl || 'Mẫu giáo';
     }
   };

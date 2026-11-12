@@ -31,6 +31,7 @@ import {
 } from '../../../types/classroom.types';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useReviewLessonPlan } from '../../../hooks/useReviewLessonPlan';
+import { formatGradeLevel } from '../../../utils/formatters';
 
 // System Message Codes
 const MSG_266 = 'Phê duyệt giáo án tuần thành công. Kế hoạch giảng dạy đã được ban hành chính thức.';
@@ -352,9 +353,9 @@ export const LessonPlanApprovalsTab: React.FC = () => {
                 className="h-10 px-3 text-xs font-medium rounded-xl border border-slate-200 bg-white text-slate-700 cursor-pointer"
               >
                 <option value="ALL">Tất cả khối lớp</option>
-                <option value="Mầm">Khối Mầm (3 - 4 Tuổi)</option>
-                <option value="Chồi">Khối Chồi (4 - 5 Tuổi)</option>
-                <option value="Lá">Khối Lá (5 - 6 Tuổi)</option>
+                <option value="Mầm">3 tuổi</option>
+                <option value="Chồi">4 tuổi</option>
+                <option value="Lá">5 tuổi</option>
               </select>
             </div>
 
@@ -439,7 +440,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
                     {/* Tên lớp & Khối */}
                     <td className="py-4 px-4">
                       <div className="font-bold text-slate-800 text-sm">{plan.className}</div>
-                      <div className="text-[11px] text-slate-400">{plan.ageGroup}</div>
+                      <div className="text-[11px] text-slate-400">{formatGradeLevel(plan.ageGroup)}</div>
                     </td>
 
                     {/* Giáo viên soạn */}
