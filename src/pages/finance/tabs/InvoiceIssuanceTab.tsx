@@ -166,7 +166,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
         <div className="relative z-10 max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-700/80 text-indigo-200 border border-indigo-500/30">
-              G8-UC-07 & Chuẩn VietQR Napas 24/7
+              Chuẩn VietQR Napas 24/7
             </span>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
               summary?.status === 'APPROVED'
@@ -303,9 +303,9 @@ export const InvoiceIssuanceTab: React.FC = () => {
                 {summary.status === 'SUBMITTED' &&
                   'Kế toán đã gửi trình hồ sơ học phí kỳ này lên Ban Giám hiệu. Theo quy định, chỉ sau khi BGH thẩm định và chuyển trạng thái sang "ĐÃ PHÊ DUYỆT", hệ thống mới mở dữ liệu để kế toán phát hành thông báo đóng tiền tới phụ huynh.'}
                 {summary.status === 'REJECTED' &&
-                  `Ban Giám hiệu đã từ chối bảng tính này với lý do: "${summary.rejectionReason || 'Cần kiểm tra lại phụ phí/miễn giảm'}". Kế toán vui lòng sang tab [G8-UC-04 Lập Bảng tính Học phí] để cập nhật số liệu và gửi trình duyệt lại.`}
+                  `Ban Giám hiệu đã từ chối bảng tính này với lý do: "${summary.rejectionReason || 'Cần kiểm tra lại phụ phí/miễn giảm'}". Kế toán vui lòng sang tab [Lập Bảng tính Học phí] để cập nhật số liệu và gửi trình duyệt lại.`}
                 {(summary.status === 'DRAFT' || summary.status === 'NOT_INITIALIZED') &&
-                  'Hiện tại bảng tổng hợp học phí đang ở trạng thái DỰ THẢO (Draft). Để đảm bảo tính chính xác và minh bạch tài chính trường học, bạn cần chuyển sang tab [G8-UC-06 Bảng Tổng hợp Học phí] để nhấn "Trình BGH Phê duyệt" trước khi phát hành.'}
+                  'Hiện tại bảng tổng hợp học phí đang ở trạng thái DỰ THẢO (Draft). Để đảm bảo tính chính xác và minh bạch tài chính trường học, bạn cần chuyển sang tab [Bảng Tổng hợp Học phí] để nhấn "Trình BGH Phê duyệt" trước khi phát hành.'}
               </p>
             </div>
             <a

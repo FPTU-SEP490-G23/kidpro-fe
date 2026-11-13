@@ -18,7 +18,6 @@ import { FoodSafetyThreeStepInspectionTab } from './tabs/FoodSafetyThreeStepInsp
 export type KitchenTabKey = 'portions' | 'allergies' | 'menu' | 'retention' | 'three-step-inspection';
 
 interface TabMeta {
-  uc: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -26,31 +25,26 @@ interface TabMeta {
 
 const TAB_META: Record<KitchenTabKey, TabMeta> = {
   portions: {
-    uc: 'UC-030',
     title: 'Dashboard Khóa Số Suất Ăn 08:30 AM',
     description: 'Chốt sĩ số bán trú thực tế mỗi sáng từ giáo viên để bộ phận bếp định lượng khẩu phần và xuất kho thực phẩm.',
     icon: Clock,
   },
   allergies: {
-    uc: 'UC-031',
     title: 'Quản Lý Dị Ứng Thực Phẩm & Khay Ăn Cách Ly',
     description: 'Bóc tách thực đơn và chế biến khay ăn riêng biệt tuyệt đối an toàn cho trẻ có tiền sử dị ứng thực phẩm nặng.',
     icon: ShieldAlert,
   },
   menu: {
-    uc: 'UC-029',
     title: 'Thiết Lập Thực Đơn Bán Trú Tuần',
     description: 'Lập kế hoạch dinh dưỡng cân bằng calo, tỷ lệ đạm - đường - béo cho từng độ tuổi mầm non theo tuần.',
     icon: UtensilsCrossed,
   },
   retention: {
-    uc: 'UC-032',
     title: 'Tiêu Hao Thực Phẩm & Lưu Mẫu Thức Ăn 24H',
     description: 'Biên bản tiêu hao nguyên liệu trong ngày và quy trình niêm phong tủ lạnh lưu mẫu thức ăn tối thiểu 24 giờ.',
     icon: Thermometer,
   },
   'three-step-inspection': {
-    uc: 'UC-055',
     title: 'Sổ Kiểm Thực 3 Bước & Lưu Mẫu (Quyết Định 1246/QĐ-BYT)',
     description: 'Quy trình kiểm tra an toàn thực phẩm 3 bước của Bộ Y Tế: Trước khi nhập - Trước khi chế biến - Trước khi ăn.',
     icon: ClipboardCheck,
@@ -126,21 +120,21 @@ export const KitchenPage: React.FC = () => {
 
       {/* NỘI DUNG TỪNG PHÂN HỆ (RENDER TRỰC TIẾP, KHÔNG CÒN THANH SCROLL NGANG LÀM RỐI MẮT) */}
       <div className="bg-transparent">
-        {/* Phân hệ 1: UC-030 - Theo dõi Dashboard Khóa số Suất ăn 08:30 */}
+        {/* Phân hệ 1:  - Theo dõi Dashboard Khóa số Suất ăn 08:30 */}
         {activeTab === 'portions' && (
           <MealHeadcountLockDashboardTab selectedDate={selectedDate} />
         )}
 
-        {/* Phân hệ 2: UC-031 - Quản lý Dị ứng Thực phẩm & Chế độ Ăn riêng */}
+        {/* Phân hệ 2:  - Quản lý Dị ứng Thực phẩm & Chế độ Ăn riêng */}
         {activeTab === 'allergies' && <AllergyDietaryManagementTab />}
 
-        {/* Phân hệ 3: UC-029 - Thiết Lập Thực Đơn Tuần Bán Trú */}
+        {/* Phân hệ 3:  - Thiết Lập Thực Đơn Tuần Bán Trú */}
         {activeTab === 'menu' && <WeeklyMenuPlanningTab />}
 
-        {/* Phân hệ 4: UC-032 - Xuất Báo cáo Tiêu hao Thực phẩm & Lưu mẫu 24h */}
+        {/* Phân hệ 4:  - Xuất Báo cáo Tiêu hao Thực phẩm & Lưu mẫu 24h */}
         {activeTab === 'retention' && <FoodRetentionConsumptionTab />}
 
-        {/* Phân hệ 5: UC-055 - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
+        {/* Phân hệ 5:  - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
         {activeTab === 'three-step-inspection' && (
           <FoodSafetyThreeStepInspectionTab initialDate={selectedDate} />
         )}

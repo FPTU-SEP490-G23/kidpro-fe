@@ -42,7 +42,7 @@ function mapToAuditLogEntry(item: any): AuditLogEntry {
 }
 
 export const auditLogApi = {
-  // Lấy danh sách nhật ký kiểm toán với các bộ lọc (UC-010, BR-010)
+  // Lấy danh sách nhật ký kiểm toán với các bộ lọc (, BR-010)
   async getAuditLogs(filter?: AuditLogFilter): Promise<{ data: AuditLogEntry[]; total: number }> {
     try {
       const params = new URLSearchParams();

@@ -400,7 +400,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                         </td>
                       </tr>
 
-                      {/* 6. Dòng điều chỉnh giảm trừ bổ sung (ADJUSTMENT - UC-059) */}
+                      {/* 6. Dòng điều chỉnh giảm trừ bổ sung (ADJUSTMENT - ) */}
                       {Boolean(currentInvoice.adjustmentAmount) && (
                         <tr className="bg-purple-50/70 border-y-2 border-purple-300">
                           <td className="py-3.5 px-4 font-black text-purple-900 flex items-center gap-1.5">
@@ -572,7 +572,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                     </p>
                   </div>
 
-                  {/* Số tiền & Nhóm nút thao tác UC-049 */}
+                  {/* Số tiền & Nhóm nút thao tác  */}
                   <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                     <div className="text-left sm:text-right">
                       <span className="text-[11px] text-slate-400 block font-medium">Số tiền đã nộp:</span>

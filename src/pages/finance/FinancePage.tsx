@@ -34,7 +34,6 @@ export type FinanceTabKey =
   | 'overdue-reminders';
 
 interface TabMeta {
-  uc: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -42,43 +41,36 @@ interface TabMeta {
 
 const TAB_META: Record<string, TabMeta> = {
   'fee-catalog': {
-    uc: 'G8-UC-01',
     title: 'Danh mục Khoản thu Biểu phí',
     description: 'Thiết lập danh mục các khoản thu trong năm học (học phí, tiền ăn, bán trú, xe buýt, CLB), quy định đơn giá định mức và chu kỳ thu.',
     icon: Calculator,
   },
   discounts: {
-    uc: 'G8-UC-03',
     title: 'Chính sách Miễn giảm & Học bổng',
     description: 'Cấu hình quy chế ưu đãi theo nhóm đối tượng (con thứ 2, gia đình chính sách, học bổng) và gán chính sách cho hồ sơ học sinh.',
     icon: Percent,
   },
   'tuition-calc': {
-    uc: 'G8-UC-04/05',
     title: 'Lập Bảng tính Học phí & Phụ phí Phát sinh',
     description: 'Tự động tính toán dự thu hàng tháng, áp dụng miễn giảm và ghi nhận các khoản phụ thu/đền bù/phạt phát sinh cho từng học sinh.',
     icon: Cpu,
   },
   'tuition-summary': {
-    uc: 'G8-UC-06',
     title: 'Bảng Tổng hợp Học phí Toàn trường',
     description: 'Xem bảng tổng hợp thu học phí toàn trường và từng lớp học, theo dõi trạng thái thẩm định & ký duyệt chính thức từ Ban Giám hiệu.',
     icon: FileCheck2,
   },
   'invoice-issuance': {
-    uc: 'G8-UC-07',
     title: 'Phát hành Thông báo Học phí & VietQR',
     description: 'Phát hành phiếu báo học phí tới ứng dụng phụ huynh kèm mã VietQR Napas PayOS đã điền sẵn số tiền và nội dung chuyển khoản.',
     icon: QrCode,
   },
   'cash-receipts': {
-    uc: 'G8-UC-10/11',
     title: 'Thu Tiền mặt & In Biên lai Điện tử',
     description: 'Ghi nhận thu tiền mặt trực tiếp tại quầy kế toán, gạch nợ tức thì và xuất biên lai thu tiền/hóa đơn điện tử có mã số thuế chuẩn.',
     icon: Banknote,
   },
   'revenue-report': {
-    uc: 'G8-UC-12',
     title: 'Báo cáo Doanh thu & Công nợ Quá hạn',
     description: 'Theo dõi tiến độ hoàn thành thu học phí toàn trường, biểu đồ phân tích và danh sách phụ huynh nợ quá hạn (màn hình chung với BGH).',
     icon: BarChart3,

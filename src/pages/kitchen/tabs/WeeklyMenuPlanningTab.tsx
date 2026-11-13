@@ -497,7 +497,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
             Thông tin năng lượng
           </div>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Kcal được lưu cùng món trưa để tham khảo; UC này không chặn gửi duyệt theo ngưỡng kcal hoặc tỷ lệ P:L:C.
+            Kcal được lưu cùng món trưa để tham khảo; Hệ thống không chặn gửi duyệt theo ngưỡng kcal hoặc tỷ lệ P:L:C.
           </p>
         </div>
 

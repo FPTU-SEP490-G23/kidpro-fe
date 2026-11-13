@@ -9,7 +9,6 @@ export type FinanceTabKey = 'tuition-summary' | 'revenue-report' | 'fee-policy';
 
 interface TabItem {
   key: FinanceTabKey;
-  uc: string;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -18,21 +17,18 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     key: 'tuition-summary',
-    uc: 'UC-060',
     label: 'Duyệt Tổng Hợp Học Phí',
     description: 'Kiểm tra & phê duyệt tổng hợp số liệu học phí từng khối lớp trước khi phát hành hóa đơn.',
     icon: Calculator,
   },
   {
     key: 'revenue-report',
-    uc: 'UC-066',
     label: 'Báo Cáo Doanh Thu & Công Nợ',
     description: 'Thống kê tổng thu, số dư công nợ quá hạn và tình hình thanh toán của phụ huynh học sinh.',
     icon: TrendingUp,
   },
   {
     key: 'fee-policy',
-    uc: 'UC-011',
     label: 'Chính Sách & Biểu Phí',
     description: 'Phê duyệt cấu trúc các khoản thu, chính sách miễn giảm và biểu phí năm học mới.',
     icon: FileCheck,
@@ -98,13 +94,7 @@ export const BghFinanceHubPage: React.FC<Props> = ({ initialTab = 'tuition-summa
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {tab.uc}
-                  </span>
+                  
                 </button>
               );
             })}

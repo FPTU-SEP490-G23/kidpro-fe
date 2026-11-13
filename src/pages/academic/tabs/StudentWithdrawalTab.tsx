@@ -619,7 +619,7 @@ export const StudentWithdrawalTab: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-extrabold">Xác Nhận Hoàn Tất Thủ Tục Chuyển Trường</h3>
-                <p className="text-xs text-slate-500">Nghiệp vụ G4-UC-04 & Bàn giao hồ sơ gốc</p>
+                <p className="text-xs text-slate-500">Nghiệp vụ rút hồ sơ & Bàn giao hồ sơ gốc</p>
               </div>
             </div>
 

@@ -136,7 +136,7 @@ export const DismissalPickupTab: React.FC = () => {
     }
   });
 
-  // 3. Fetch Today's Emergency Pickup Authorizations (UC-023 API: GET /api/academic/emergency-pickups/today)
+  // 3. Fetch Today's Emergency Pickup Authorizations ( API: GET /api/academic/emergency-pickups/today)
   const { data: emergencyPickups = [], isLoading: isLoadingEmergency } = useQuery<EmergencyPickupAuthorization[]>({
     queryKey: ['todayEmergencyPickups'],
     queryFn: async () => {

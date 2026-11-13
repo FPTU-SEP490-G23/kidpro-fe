@@ -48,7 +48,7 @@ export interface UpdateAcademicYearInput extends Partial<CreateAcademicYearInput
   status?: AcademicYearStatus;
 }
 
-// UC-065 Archival types
+//  Archival types
 export interface ArchivalPreflightChecklist {
   evaluationsCompleted: boolean;
   incompleteEvaluationCount: number;

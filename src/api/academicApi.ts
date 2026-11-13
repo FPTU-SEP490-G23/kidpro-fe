@@ -59,7 +59,7 @@ export const academicApi = {
     return axiosClient.get<any[]>('/admin/users', { params: { role: 'GIAO_VIEN', status: 'ACTIVE' } });
   },
 
-  // UC-017 & Xếp Thời khóa biểu & Kiểm tra Xung đột Lịch
+  //  & Xếp Thời khóa biểu & Kiểm tra Xung đột Lịch
   getTimetables: (params?: { classId?: string }) => {
     return axiosClient.get<Timetable[]>('/academic/timetables', { params });
   },
@@ -106,7 +106,7 @@ export const academicApi = {
     return axiosClient.post(`/academic/students/${studentId}/dismiss-allergy`, data);
   },
 
-  // UC-054 & Gửi & Thẩm định, Phê duyệt Giáo án Tuần (Lesson Plan Review & Approval)
+  //  & Gửi & Thẩm định, Phê duyệt Giáo án Tuần (Lesson Plan Review & Approval)
   getWeeklyLessonPlans: (params?: { weekNumber?: number; academicYear?: string; classId?: string; status?: string }) => {
     return axiosClient.get<WeeklyLessonPlan[]>('/academic/lesson-plans', { params });
   },

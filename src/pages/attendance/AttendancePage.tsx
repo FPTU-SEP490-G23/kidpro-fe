@@ -28,7 +28,6 @@ type AttendanceTabType =
   | 'leave-requests';
 
 interface TabMeta {
-  uc: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -38,28 +37,24 @@ interface TabMeta {
 
 const TAB_META: Record<AttendanceTabType, TabMeta> = {
   'gate-ai': {
-    uc: 'UC-021',
     title: 'Điểm Danh AI Trạm Cổng (Face Biometric)',
     description: 'Nhận diện tự động học sinh và phụ huynh khi qua cổng trường, kích hoạt viền xanh Mint Green (< 2s) và gửi thông báo tức thì.',
     icon: Camera,
     badge: 'AI Vision v2.4',
   },
   'manual-tablet': {
-    uc: 'UC-022',
     title: 'Điểm Danh Thủ Công Dự Phòng Trên Tablet',
     description: 'Dành cho giáo viên chủ nhiệm tại lớp: điểm danh có mặt/vắng mặt, ghi chú lý do và đồng bộ tức thời tới báo bếp lúc 08:30.',
     icon: ClipboardCheck,
     badge: 'Chuyên Cần Lớp',
   },
   'dismissal-pickup': {
-    uc: 'UC-023',
     title: 'Xác Thực Người Đón Tan Trường AI (Smart Dismissal)',
     description: 'Xác thực danh tính người đón trẻ bằng camera AI đối chiếu hồ sơ người giám hộ hoặc mã QR ủy quyền hợp lệ.',
     icon: ShieldCheck,
     badge: 'Đón Trả An Toàn',
   },
   'stranger-security': {
-    uc: 'UC-024',
     title: 'Quy Trình Xử Lý Cảnh Báo Người Lạ Tại Cổng',
     description: 'Kích hoạt còi báo động bảo vệ, chụp ảnh lưu vết và yêu cầu xuất trình CCCD đối với đối tượng lạ mặt chưa đăng ký ủy quyền.',
     icon: ShieldAlert,
@@ -67,14 +62,12 @@ const TAB_META: Record<AttendanceTabType, TabMeta> = {
     specialColor: 'alert',
   },
   'late-pickup': {
-    uc: 'UC-025',
     title: 'Ghi Nhận Mốc Giờ Trẻ Đón Muộn & Tính Phụ Phí',
     description: 'Tự động tính thời gian đón muộn sau 17:30, áp dụng khung lũy tiến theo chính sách tài chính và gửi thông báo tới phụ huynh.',
     icon: Clock,
     badge: 'Phụ Phí Ngoài Giờ',
   },
   'leave-requests': {
-    uc: 'UC-026',
     title: 'Tiếp Nhận & Duyệt Đơn Xin Nghỉ Học',
     description: 'Giáo viên chủ nhiệm xét duyệt đơn xin nghỉ học của phụ huynh, tự động cập nhật trạng thái điểm danh và báo bếp hoàn tiền ăn.',
     icon: FileText,

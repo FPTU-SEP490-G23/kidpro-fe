@@ -218,9 +218,7 @@ export const BghAnnouncementsPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold tracking-wider uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                UC-079
-              </span>
+              
               <h1 className="text-xl font-bold text-gray-900">
                 Soạn Thảo & Đăng Thông Báo Toàn Trường
               </h1>

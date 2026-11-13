@@ -19,7 +19,7 @@ export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A
 // Regex mã trường school_code: Cho phép chữ in hoa, thường, số, dấu gạch nối và gạch dưới (VD: SM-03, MNMM-2012, KIDPRO_HN)
 export const SCHOOL_CODE_REGEX = /^[A-Za-z0-9_-]+$/;
 
-// ==================== UC-004 SCHEMAS ====================
+// ====================  SCHEMAS ====================
 
 export const profileInfoSchema = z.object({
   email: z
@@ -71,7 +71,7 @@ export const validateAvatarFile = (file: File): { valid: boolean; error?: string
   return { valid: true };
 };
 
-// ==================== UC-005 SCHEMAS ====================
+// ====================  SCHEMAS ====================
 
 export const createTenantSchema = z.object({
   schoolCode: z
@@ -114,7 +114,7 @@ export const editTenantSchema = z.object({
 
 export type EditTenantFormValues = z.infer<typeof editTenantSchema>;
 
-// ==================== UC-006 SCHEMAS ====================
+// ====================  SCHEMAS ====================
 
 export const createUserAccountSchema = z.object({
   fullName: z.string().min(2, 'Họ và tên tối thiểu 2 ký tự'),

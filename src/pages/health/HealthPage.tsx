@@ -71,7 +71,6 @@ interface JournalPostItem {
 type HealthTabType = 'incidents' | 'medication' | 'journal' | 'metrics' | 'care' | 'evaluations';
 
 interface HealthTabMeta {
-  uc: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -81,7 +80,6 @@ interface HealthTabMeta {
 
 const HEALTH_TAB_META: Record<HealthTabType, HealthTabMeta> = {
   incidents: {
-    uc: 'UC-052',
     title: 'Sự Vụ Y Tế Học Đường & Sơ Cứu Ban Đầu',
     description: 'Quy trình tiếp nhận, sơ cấp cứu và lập biên bản sự vụ y tế học đường (sốt cao, dị ứng, trầy xước), đồng bộ thông báo khẩn cấp tới phụ huynh.',
     icon: HeartPulse,
@@ -89,35 +87,30 @@ const HEALTH_TAB_META: Record<HealthTabType, HealthTabMeta> = {
     specialColor: 'alert',
   },
   medication: {
-    uc: 'UC-027',
     title: 'Cho Trẻ Uống Thuốc & Chụp Ảnh Xác Thực (14:00)',
     description: 'Giáo viên thực hiện cho uống thuốc đúng liều lượng theo đơn phụ huynh gửi, chụp ảnh xác thực thời gian thực và gửi báo cáo về phụ huynh.',
     icon: Pill,
     badge: 'Y Tế Học Đường',
   },
   journal: {
-    uc: 'UC-028',
     title: 'Nhật Ký & Album Ảnh Hoạt Động Lớp Học',
     description: 'Đăng tải hình ảnh học tập, vui chơi, trải nghiệm dã ngoại của cả lớp hoặc từng nhóm trẻ vào sổ liên lạc điện tử của phụ huynh.',
     icon: Camera,
     badge: 'Nhật Ký Học Đường',
   },
   metrics: {
-    uc: 'UC-051',
     title: 'Ghi Nhận Chỉ Số Thể Trạng Định Kỳ (WHO BMI)',
     description: 'Đo lường định kỳ chiều cao, cân nặng, tự động tính toán chỉ số BMI theo biểu đồ phát triển tiêu chuẩn của Tổ chức Y Tế Thế Giới (WHO).',
     icon: Scale,
     badge: 'Chuẩn WHO',
   },
   care: {
-    uc: 'Chăm Sóc',
     title: 'Sổ Theo Dõi Sinh Hoạt, Ăn Uống & Giấc Ngủ Trưa',
     description: 'Ghi nhận mức độ tiêu thụ suất ăn từng bữa (hết suất/nửa suất/bỏ bữa) và chất lượng giấc ngủ trưa bán trú của từng bé.',
     icon: Moon,
     badge: 'Chăm Sóc Bán Trú',
   },
   evaluations: {
-    uc: 'UC-061',
     title: 'Đánh Giá Phát Triển Mầm Non (Thông Tư 28 & 51/BGDĐT)',
     description: 'Đánh giá định kỳ 5 lĩnh vực phát triển GD mầm non: Thể chất, Nhận thức, Ngôn ngữ, Tình cảm - KN xã hội, Thẩm mỹ.',
     icon: Award,

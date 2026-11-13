@@ -49,7 +49,6 @@ export type ParentTabKey =
   | 'privacy-decree13';
 
 interface ParentTabMeta {
-  uc: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -59,70 +58,60 @@ interface ParentTabMeta {
 
 export const PARENT_TAB_META: Record<ParentTabKey, ParentTabMeta> = {
   'gate-notifications': {
-    uc: 'UC-046',
     title: 'Thông Báo Đón Trả Kèm Ảnh (Real-time Gate Timeline)',
     description: 'Nhận thông báo kèm hình ảnh con check-in/check-out qua cổng trường từ camera AI (< 2s) thời gian thực.',
     icon: Bell,
     badge: 'Thông Báo AI',
   },
   leave: {
-    uc: 'UC-044',
     title: 'Nộp Đơn Xin Nghỉ Học Trực Tuyến',
     description: 'Phụ huynh gửi đơn xin nghỉ ốm, việc bận trước 08:30 sáng để cô giáo chủ nhiệm duyệt và bếp bán trú hoàn tiền ăn.',
     icon: Calendar,
     badge: 'Đơn Xin Nghỉ',
   },
   'emergency-pickup': {
-    uc: 'UC-043',
     title: 'Ủy Quyền Đón Hộ Đột Xuất Bằng Mã QR 1-Lần',
     description: 'Sinh mã QR dùng một lần cấp cho người thân đến đón bé đột xuất trong ngày, xác thực an toàn tuyệt đối tại cổng.',
     icon: QrCode,
     badge: 'QR Đón Hộ',
   },
   medication: {
-    uc: 'UC-045',
     title: 'Gửi Đơn Dặn Thuốc Điện Tử Cho Bé',
     description: 'Gửi đơn thuốc, liều dùng, hướng dẫn bảo quản và nhận ảnh chụp xác thực từ cô giáo lúc 14:00 chiều.',
     icon: Pill,
     badge: 'Dặn Thuốc',
   },
   'face-biometric': {
-    uc: 'UC-041',
     title: 'Đăng Ký & Quản Lý Khuôn Mặt Của Bé',
     description: 'Cập nhật ảnh chân dung của con để hệ thống trạm AI tại cổng nhận diện tự động khi đón trả trường.',
     icon: Camera,
     badge: 'Sinh Trắc Học AI',
   },
   guardians: {
-    uc: 'UC-042',
     title: 'Danh Sách Người Thân Đón Bé Ủy Quyền',
     description: 'Đăng ký thông tin ông bà, bố mẹ, người giám hộ được phép đón trẻ kèm CCCD để giáo vụ phê duyệt.',
     icon: Users,
     badge: 'Người Thân Đón',
   },
   invoice: {
-    uc: 'UC-047/048/049',
     title: 'Bảng Kê Học Phí & Thanh Toán VietQR 1-Chạm',
     description: 'Tra cứu hóa đơn học phí chi tiết, chính sách miễn giảm, hoàn tiền ăn và quét mã VietQR PayOS chuyển khoản tức thì.',
     icon: Receipt,
     badge: 'Học Phí VietQR',
   },
   petitions: {
-    uc: 'UC-050',
     title: 'Nộp Đơn Yêu Cầu Sự Vụ Học Sinh & Góp Ý',
     description: 'Gửi đơn đề đạt nguyện vọng, kiến nghị hoặc trao đổi các sự vụ học đường trực tiếp tới ban giám hiệu và giáo vụ.',
     icon: FileCheck2,
     badge: 'Sự Vụ Học Sinh',
   },
   survey: {
-    uc: 'UC-068',
     title: 'Khảo Sát Ý Kiến & Đánh Giá Chất Lượng Dịch Vụ',
     description: 'Đóng góp ý kiến về chất lượng bữa ăn bán trú, chương trình giảng dạy và dịch vụ chăm sóc mầm non của nhà trường.',
     icon: Star,
     badge: 'Khảo Sát Dịch Vụ',
   },
   'privacy-decree13': {
-    uc: 'UC-069',
     title: 'Quyền Xóa Dữ Liệu Sinh Trắc Học (Nghị Định 13/2023/NĐ-CP)',
     description: 'Yêu cầu xóa toàn bộ dữ liệu vector khuôn mặt của trẻ và chuyển đổi sang phương thức thẻ từ/thủ công bảo mật.',
     icon: ShieldAlert,
@@ -186,7 +175,7 @@ export const ParentPage: React.FC = () => {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Trạng thái điểm danh hôm nay của bé (phục vụ đối soát UC-043)
+  // Trạng thái điểm danh hôm nay của bé (phục vụ đối soát )
   const [isStudentPresentToday, setIsStudentPresentToday] = useState(true);
 
   // 1. Tải danh sách học sinh
@@ -316,7 +305,7 @@ export const ParentPage: React.FC = () => {
             </div>
           )}
 
-          {/* Trạng thái có mặt hôm nay (Toggle kiểm thử UC-043) */}
+          {/* Trạng thái có mặt hôm nay (Toggle kiểm thử ) */}
           <button
             type="button"
             onClick={() => setIsStudentPresentToday((prev) => !prev)}
@@ -362,7 +351,7 @@ export const ParentPage: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Tab 1: UC-046 - Nhận Thông Báo Điểm Danh & Đón Trả Kèm Ảnh */}
+          {/* Tab 1:  - Nhận Thông Báo Điểm Danh & Đón Trả Kèm Ảnh */}
           {activeTab === 'gate-notifications' && (
             <GateNotificationsTab
               studentId={currentStudent?.id || ''}
@@ -371,7 +360,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 2: UC-044 - Nộp Đơn Xin Nghỉ Học Trực Tuyến */}
+          {/* Tab 2:  - Nộp Đơn Xin Nghỉ Học Trực Tuyến */}
           {activeTab === 'leave' && (
             <LeaveRequestTab
               studentId={currentStudent?.id || ''}
@@ -380,7 +369,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 3: UC-043 - Ủy Quyền Đón Hộ Đột Xuất Trong Ngày */}
+          {/* Tab 3:  - Ủy Quyền Đón Hộ Đột Xuất Trong Ngày */}
           {activeTab === 'emergency-pickup' && (
             <EmergencyPickupTab
               studentId={currentStudent?.id || ''}
@@ -390,7 +379,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 4: UC-045 - Gửi Đơn Dặn Thuốc Điện Tử */}
+          {/* Tab 4:  - Gửi Đơn Dặn Thuốc Điện Tử */}
           {activeTab === 'medication' && (
             <MedicationRequestTab
               studentId={currentStudent?.id || ''}
@@ -399,7 +388,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 5: UC-041 - Đăng Ký Sinh Trắc Học Khuôn Mặt Bé */}
+          {/* Tab 5:  - Đăng Ký Sinh Trắc Học Khuôn Mặt Bé */}
           {activeTab === 'face-biometric' && (
             <StudentFaceBiometricTab
               studentId={currentStudent?.id || ''}
@@ -407,7 +396,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 6: UC-042 - Đăng Ký Danh Sách Người Thân Đón Bé */}
+          {/* Tab 6:  - Đăng Ký Danh Sách Người Thân Đón Bé */}
           {activeTab === 'guardians' && (
             <AuthorizedGuardiansTab
               studentId={currentStudent?.id || ''}
@@ -415,7 +404,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 7: UC-047, UC-048 & UC-049 - Xem Bảng Kê Học Phí, Khấu Trừ & Thanh Toán VietQR, Tải Biên Lai */}
+          {/* Tab 7: ,  &  - Xem Bảng Kê Học Phí, Khấu Trừ & Thanh Toán VietQR, Tải Biên Lai */}
           {activeTab === 'invoice' && (
             <TuitionInvoicesTab
               studentId={currentStudent?.id || ''}
@@ -424,7 +413,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 8: UC-050 - Nộp Đơn Yêu Cầu Sự Vụ Học Sinh (Giấy xác nhận, đổi tuyến buýt, trích lục...) */}
+          {/* Tab 8:  - Nộp Đơn Yêu Cầu Sự Vụ Học Sinh (Giấy xác nhận, đổi tuyến buýt, trích lục...) */}
           {activeTab === 'petitions' && (
             <StudentAffairsPetitionTab
               studentId={currentStudent?.id || ''}
@@ -433,7 +422,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 9: UC-068 - Khảo Sát Ý Kiến & Đánh Giá Dịch Vụ Mầm Non */}
+          {/* Tab 9:  - Khảo Sát Ý Kiến & Đánh Giá Dịch Vụ Mầm Non */}
           {activeTab === 'survey' && (
             <ServiceSurveyTab
               studentId={currentStudent?.id || ''}
@@ -442,7 +431,7 @@ export const ParentPage: React.FC = () => {
             />
           )}
 
-          {/* Tab 10: UC-069 - Quyền Xóa Dữ Liệu Sinh Trắc Học (Điều 16 Nghị định 13/2023/NĐ-CP) */}
+          {/* Tab 10:  - Quyền Xóa Dữ Liệu Sinh Trắc Học (Điều 16 Nghị định 13/2023/NĐ-CP) */}
           {activeTab === 'privacy-decree13' && (
             <BiometricPurgeDecree13Tab
               studentId={currentStudent?.id || ''}

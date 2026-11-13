@@ -293,7 +293,7 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
         </div>
       )}
 
-      {/* HEADER PHÂN HỆ UC-041 */}
+      {/* HEADER PHÂN HỆ  */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#78C2AD]/15 text-[#1E4D40]">

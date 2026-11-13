@@ -629,7 +629,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* SUB-TAB 1: G3-UC-01 - DANH SÁCH & CẬP NHẬT THÔNG TIN LỚP HỌC        */}
+      {/* SUB-TAB 1:  - DANH SÁCH & CẬP NHẬT THÔNG TIN LỚP HỌC        */}
       {/* =================================================================== */}
       {activeSubTab === 'CLASSES' && (
         <div className="space-y-4">
@@ -795,7 +795,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* SUB-TAB 2: G3-UC-02 - KẾ HOẠCH MỞ LỚP HỌC MỚI                      */}
+      {/* SUB-TAB 2:  - KẾ HOẠCH MỞ LỚP HỌC MỚI                      */}
       {/* =================================================================== */}
       {activeSubTab === 'PROPOSALS' && (
         <div className="space-y-4">
@@ -907,7 +907,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* SUB-TAB 3: G3-UC-04 - PHÂN CÔNG GIÁO VIÊN CHỦ NHIỆM & PHỤ TÁ         */}
+      {/* SUB-TAB 3:  - PHÂN CÔNG GIÁO VIÊN CHỦ NHIỆM & PHỤ TÁ         */}
       {/* =================================================================== */}
       {activeSubTab === 'ASSIGNMENTS' && (
         <div className="space-y-4">

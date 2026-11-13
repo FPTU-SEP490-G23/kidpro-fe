@@ -9,7 +9,6 @@ export type ChildcareTabKey = 'menu' | 'evaluations' | 'quality-report';
 
 interface TabItem {
   key: ChildcareTabKey;
-  uc: string;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -18,21 +17,18 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     key: 'menu',
-    uc: 'UC-041',
     label: 'Thực Đơn Tuần',
     description: 'Thẩm định khẩu phần dinh dưỡng và phê duyệt thực đơn tuần của bộ phận cấp dưỡng.',
     icon: UtensilsCrossed,
   },
   {
     key: 'evaluations',
-    uc: 'UC-072',
     label: 'Đánh Giá Trẻ Định Kỳ',
     description: 'Kiểm duyệt phiếu đánh giá sự phát triển 5 lĩnh vực của trẻ theo chuẩn Bộ GD&ĐT.',
     icon: ClipboardCheck,
   },
   {
     key: 'quality-report',
-    uc: 'UC-078',
     label: 'Báo Cáo Chất Lượng Trẻ',
     description: 'Thống kê tổng hợp tình hình phát triển thể chất, ngôn ngữ, nhận thức toàn trường.',
     icon: Award,
@@ -98,13 +94,7 @@ export const BghChildcareHubPage: React.FC<Props> = ({ initialTab = 'menu' }) =>
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {tab.uc}
-                  </span>
+                  
                 </button>
               );
             })}

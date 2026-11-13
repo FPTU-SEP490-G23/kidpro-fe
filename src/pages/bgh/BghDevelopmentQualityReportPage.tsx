@@ -184,9 +184,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold tracking-wider uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                UC-078
-              </span>
+              
               <h1 className="text-xl font-bold text-gray-900">
                 Báo Cáo Đánh Giá Chất Lượng Phát Triển Của Trẻ
               </h1>

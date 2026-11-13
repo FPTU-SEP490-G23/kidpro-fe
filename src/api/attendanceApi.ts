@@ -10,7 +10,7 @@ import {
 } from '../types/attendance.types';
 
 export const attendanceApi = {
-  // UC-021 & Ghi nhận kết quả quét camera cổng (Check-in & Check-out)
+  //  & Ghi nhận kết quả quét camera cổng (Check-in & Check-out)
   recordFaceLog: (data: {
     studentId?: string;
     guardianId?: string;

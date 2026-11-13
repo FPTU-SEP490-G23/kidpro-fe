@@ -199,7 +199,7 @@ export const StudentAdmissionTab: React.FC = () => {
   });
 
   // =========================================================================
-  // Form State: Tạo mới học sinh (G4-UC-01 & BR-011)
+  // Form State: Tạo mới học sinh ( & BR-011)
   // =========================================================================
   const defaultCreateForm: CreateStudentPayload = {
     fullName: '',
@@ -411,9 +411,7 @@ export const StudentAdmissionTab: React.FC = () => {
                 <h2 className="text-lg sm:text-xl font-black text-slate-800">
                   Danh Mục Hồ Sơ Học Sinh
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1E4D40]/10 text-[#1E4D40]">
-                  G4-UC-01
-                </span>
+                
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 Tiếp nhận hồ sơ mới, cấp mã định danh duy nhất và quản lý tra cứu học sinh toàn trường
@@ -728,7 +726,7 @@ export const StudentAdmissionTab: React.FC = () => {
       </div>
 
       {/* =================================================================== */}
-      {/* MODAL 1: TIẾP NHẬN HỒ SƠ HỌC SINH MỚI (G4-UC-01 & BR-011)          */}
+      {/* MODAL 1: TIẾP NHẬN HỒ SƠ HỌC SINH MỚI ( & BR-011)          */}
       {/* =================================================================== */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1427,7 +1425,7 @@ export const StudentAdmissionTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* MODAL 3: CẬP NHẬT HỒ SƠ HỌC SINH (G4-UC-01 & MSG-046)               */}
+      {/* MODAL 3: CẬP NHẬT HỒ SƠ HỌC SINH ( & MSG-046)               */}
       {/* =================================================================== */}
       {editingStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">

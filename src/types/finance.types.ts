@@ -435,7 +435,7 @@ export interface BatchReminderResult {
 }
 
 // ==========================================
-// UC-058 & KHIẾU NẠI & ĐIỀU CHỈNH HÓA ĐƠN HỌC PHÍ (PAYMENT DISPUTES & ADJUSTMENTS)
+//  & KHIẾU NẠI & ĐIỀU CHỈNH HÓA ĐƠN HỌC PHÍ (PAYMENT DISPUTES & ADJUSTMENTS)
 // ==========================================
 
 export type DisputeCategory =
@@ -587,7 +587,7 @@ export interface FinancialReportData {
 
 
 // ==========================================
-// NEW DB & DTO TYPES FOR KE_TOAN (G8-UC-01 .. G8-UC-12)
+// NEW DB & DTO TYPES FOR KE_TOAN ( .. )
 // ==========================================
 
 export interface ServiceDto {

@@ -22,7 +22,7 @@ export const AuditLogToolbar: React.FC<AuditLogToolbarProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#1E4D40] text-xs font-bold border border-emerald-300">
-              UC-014 Immutable Security Audit Trail
+              Immutable Security Audit Trail
             </span>
             <span className="text-xs text-slate-400">|</span>
             <span className="text-xs font-semibold text-slate-500">Core Schema Audit Logging</span>

@@ -8,7 +8,6 @@ export type CommunicationsTabKey = 'announcements' | 'emergency';
 
 interface TabItem {
   key: CommunicationsTabKey;
-  uc: string;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -17,14 +16,12 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     key: 'announcements',
-    uc: 'UC-079',
     label: 'Thông Báo Toàn Trường',
     description: 'Soạn thảo & ban hành các bản tin, công văn hành chính đến toàn thể giáo viên và phụ huynh.',
     icon: Megaphone,
   },
   {
     key: 'emergency',
-    uc: 'UC-081',
     label: 'Tin Nhắn Khẩn Cấp',
     description: 'Phát sóng cảnh báo tức thời đa kênh (App Push, SMS) trong các tình huống khẩn cấp hoặc thiên tai.',
     icon: ShieldAlert,
@@ -90,13 +87,7 @@ export const BghCommunicationsHubPage: React.FC<Props> = ({ initialTab = 'announ
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {tab.uc}
-                  </span>
+                  
                 </button>
               );
             })}

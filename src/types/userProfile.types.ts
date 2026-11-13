@@ -25,7 +25,7 @@ export interface ChangePasswordPayload {
   confirmPassword: string;
 }
 
-// Danh mục mã thông báo hệ thống theo đặc tả UC-004
+// Danh mục mã thông báo hệ thống theo đặc tả 
 export const PROFILE_MESSAGES = {
   MSG_011: 'Cập nhật hồ sơ cá nhân thành công',
   MSG_012: 'Đổi mật khẩu tài khoản cá nhân thành công.',

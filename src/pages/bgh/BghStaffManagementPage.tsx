@@ -261,7 +261,7 @@ export const BghStaffManagementPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-008 & Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Nhân Sự & Phân Quyền</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">

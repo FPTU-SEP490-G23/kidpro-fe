@@ -84,7 +84,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-04 & LẬP BẢNG TÍNH HỌC PHÍ DỰ THU & PHỤ PHÍ PHÁT SINH
+  //  & LẬP BẢNG TÍNH HỌC PHÍ DỰ THU & PHỤ PHÍ PHÁT SINH
   // ==========================================
   getInvoices: (params?: {
     month?: number;
@@ -154,7 +154,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-10 & THU TIỀN MẶT, XUẤT HÓA ĐƠN & BIÊN LAI THU TIỀN
+  //  & THU TIỀN MẶT, XUẤT HÓA ĐƠN & BIÊN LAI THU TIỀN
   // ==========================================
   recordCashPayment: (invoiceId: string, data: RecordCashPaymentRequestDto) => {
     return axiosClient.post<ReceiptDto>(`/finance/invoices/${invoiceId}/pay-cash`, data);

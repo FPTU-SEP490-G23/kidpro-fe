@@ -199,7 +199,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
         </div>
       )}
 
-      {/* TOP COUNTDOWN & STATUS BANNER (UC-030 Section 2) */}
+      {/* TOP COUNTDOWN & STATUS BANNER ( Section 2) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E4D40] via-[#275A4E] to-[#1E4D40] p-6 text-white shadow-xl">
         {/* Pattern chìm trang trí */}
         <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white/5 blur-2xl pointer-events-none" />

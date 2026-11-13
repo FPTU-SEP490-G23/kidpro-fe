@@ -416,7 +416,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
                     {item.totalDays > 30 && (
                       <div className="p-2.5 bg-amber-100/70 border border-amber-400 rounded-xl text-xs font-bold text-amber-950 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                        <span>Nghỉ trên 30 ngày: Hướng dẫn phụ huynh làm thủ tục Bảo lưu học tập UC-019</span>
+                        <span>Nghỉ trên 30 ngày: Hướng dẫn phụ huynh làm thủ tục Bảo lưu học tập</span>
                       </div>
                     )}
 

@@ -62,7 +62,7 @@ export interface TenantListParams {
   status?: string;
 }
 
-// Danh mục mã thông báo hệ thống theo đặc tả UC-005
+// Danh mục mã thông báo hệ thống theo đặc tả 
 export const TENANT_MESSAGES = {
   MSG_016: 'Khởi tạo phân vùng trường học thành công',
   MSG_017: 'Cập nhật trạng thái hoạt động của trường học thành công.',

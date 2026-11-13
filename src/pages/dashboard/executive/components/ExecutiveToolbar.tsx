@@ -26,7 +26,7 @@ export const ExecutiveToolbar: React.FC<ExecutiveToolbarProps> = ({
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#1E4D40] text-xs font-bold border border-emerald-300">
-            UC-012 Executive Dashboard
+            Executive Dashboard
           </span>
           <span className="text-xs text-slate-400">|</span>
           <span className="text-xs font-semibold text-slate-500">Ban Giám Hiệu & Quản Trị</span>

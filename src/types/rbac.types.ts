@@ -82,7 +82,7 @@ export interface UserListParams {
   keyword?: string;
 }
 
-// Danh mục mã thông báo hệ thống theo đặc tả UC-006
+// Danh mục mã thông báo hệ thống theo đặc tả 
 export const RBAC_MESSAGES = {
   MSG_021: 'Cập nhật ma trận phân quyền vai trò thành công',
   MSG_022: 'Các quyền cốt lõi của Super Admin được bảo vệ tuyệt đối và không thể thu hồi.',

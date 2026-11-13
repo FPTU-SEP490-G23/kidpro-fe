@@ -9,7 +9,6 @@ export type SchoolSetupTabKey = 'years' | 'quotas' | 'classrooms';
 
 interface TabItem {
   key: SchoolSetupTabKey;
-  uc: string;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -18,21 +17,18 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     key: 'years',
-    uc: 'UC-005',
     label: 'Kế Hoạch Năm Học & Học Kỳ',
     description: 'Thiết lập khung thời gian năm học mới, chia kỳ học và cấu hình trạng thái tuyển sinh toàn trường.',
     icon: CalendarDays,
   },
   {
     key: 'quotas',
-    uc: 'UC-006',
     label: 'Khối Lớp & Định Mức Sĩ Số',
     description: 'Cấu hình định mức sĩ số tối đa theo quy chuẩn Bộ GD&ĐT cho từng khối lớp mầm non.',
     icon: Layers,
   },
   {
     key: 'classrooms',
-    uc: 'UC-007',
     label: 'Danh Mục Phòng Học & Chức Năng',
     description: 'Quản lý cơ sở vật chất, hệ thống phòng học tiêu chuẩn và phòng học chức năng chuyên đề.',
     icon: School,
@@ -98,13 +94,7 @@ export const BghSchoolSetupHubPage: React.FC<Props> = ({ initialTab = 'years' })
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {tab.uc}
-                  </span>
+                  
                 </button>
               );
             })}

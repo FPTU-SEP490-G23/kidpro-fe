@@ -67,7 +67,7 @@ export const App: React.FC = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<RoleBasedRedirect />} />
 
-          {/* 1. DÙNG CHUNG CHO MỌI ROLE ĐÃ XÁC THỰC (UC-001 -> UC-004) */}
+          {/* 1. DÙNG CHUNG CHO MỌI ROLE ĐÃ XÁC THỰC ( -> ) */}
           <Route
             path="/profile"
             element={
@@ -93,7 +93,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 2. QUẢN TRỊ VIÊN NỀN TẢNG (SYSTEM_ADMIN - UC-005 -> UC-008) */}
+          {/* 2. QUẢN TRỊ VIÊN NỀN TẢNG (SYSTEM_ADMIN -  -> ) */}
           <Route
             path="/admin/schools"
             element={
@@ -415,7 +415,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 4. CÁN BỘ GIÁO VỤ (GIAO_VU - UC-015 -> UC-020, UC-053, UC-062 -> UC-065) */}
+          {/* 4. CÁN BỘ GIÁO VỤ (GIAO_VU -  -> , ,  -> ) */}
           <Route
             path="/academic"
             element={
@@ -609,7 +609,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 5. GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN - UC-021 -> UC-028, UC-051, UC-052, UC-054, UC-061) */}
+          {/* 5. GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN -  -> , , , , ) */}
           <Route
             path="/attendance"
             element={
@@ -667,7 +667,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 6. NHÂN VIÊN BẾP BÁN TRÚ (BEP - UC-029 -> UC-032, UC-055) */}
+          {/* 6. NHÂN VIÊN BẾP BÁN TRÚ (BEP -  -> , ) */}
           <Route
             path="/kitchen"
             element={
@@ -701,7 +701,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 7. KẾ TOÁN TRƯỜNG HỌC (KE_TOAN - UC-033 -> UC-039, UC-056, UC-057, UC-059, UC-060) */}
+          {/* 7. KẾ TOÁN TRƯỜNG HỌC (KE_TOAN -  -> , , , , ) */}
           <Route
             path="/finance"
             element={
@@ -743,7 +743,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 8. PHỤ HUYNH HỌC SINH (PHU_HUYNH - UC-040 -> UC-050, UC-058, UC-066, UC-068, UC-069) */}
+          {/* 8. PHỤ HUYNH HỌC SINH (PHU_HUYNH -  -> , , , , ) */}
           <Route
             path="/parent"
             element={

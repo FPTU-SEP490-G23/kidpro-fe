@@ -11,7 +11,6 @@ export type AcademicApprovalTabKey = 'classes' | 'assignments' | 'timetable' | '
 
 interface TabItem {
   key: AcademicApprovalTabKey;
-  uc: string;
   label: string;
   description: string;
   icon: React.ElementType;
@@ -20,35 +19,30 @@ interface TabItem {
 const TABS: TabItem[] = [
   {
     key: 'classes',
-    uc: 'UC-013',
     label: 'Duyệt Mở Lớp Học',
     description: 'Phê duyệt tờ trình đề xuất mở nhóm lớp học mầm non mới cho năm học hiện hành.',
     icon: School,
   },
   {
     key: 'assignments',
-    uc: 'UC-015',
     label: 'Phân Công Giảng Dạy',
     description: 'Xét duyệt danh sách điều động và phân công giáo viên chủ nhiệm, bảo mẫu từng lớp.',
     icon: UserCheck,
   },
   {
     key: 'timetable',
-    uc: 'UC-020',
     label: 'Thời Khóa Biểu Tuần',
     description: 'Phê duyệt & ban hành thời khóa biểu sinh hoạt, học tập và hoạt động ngoại khóa.',
     icon: CalendarClock,
   },
   {
     key: 'lesson-plans',
-    uc: 'UC-077',
     label: 'Phê Duyệt Giáo Án',
     description: 'Kiểm duyệt kế hoạch bài giảng và giáo án chuyên đề tuần của giáo viên các khối lớp.',
     icon: FileSpreadsheet,
   },
   {
     key: 'extracurricular',
-    uc: 'UC-067',
     label: 'Lớp CLB Ngoại Khóa',
     description: 'Phê duyệt mở các lớp năng khiếu, kỹ năng sống và câu lạc bộ ngoại khóa sau giờ học.',
     icon: Sparkles,
@@ -120,13 +114,7 @@ export const BghAcademicApprovalsHubPage: React.FC<Props> = ({ initialTab = 'cla
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {tab.uc}
-                  </span>
+                  
                 </button>
               );
             })}
