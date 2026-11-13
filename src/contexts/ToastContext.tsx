@@ -18,6 +18,17 @@ interface ToastContextType {
   info: (message: string) => void;
 }
 
+export const cleanNotificationText = (text: string): string => {
+  if (!text || typeof text !== 'string') return text;
+  return text
+    // Xóa triệt để các tiền tố mã tài liệu: G8-UC-07:, MSG-195:, BR-071:, UC-060:
+    .replace(/(?:\[|\()?(?:G\d+-)?(?:UC|BR|MSG)-?[0-9/]+(?:-[0-9]+)?(?:\s*[\/&,]\s*(?:UC|BR|MSG)-?[0-9/]+)*(?:\]|\))?:?\s*/gi, '')
+    // Xóa các mã nằm trong ngoặc vuông hoặc ngoặc đơn: [G8-UC-04], (BR-071), (MSG-191)
+    .replace(/\[\s*(?:G\d+-)?(?:UC|BR|MSG)[^\]]*\]/gi, '')
+    .replace(/\(\s*(?:G\d+-)?(?:UC|BR|MSG)[^)]*\)/gi, '')
+    .trim();
+};
+
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,8 +40,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback(
     (message: string, type: ToastType = 'info', duration: number = 4000) => {
+      const sanitized = cleanNotificationText(message);
       const id = Date.now().toString() + Math.random().toString(36).substring(2, 7);
-      setToasts((prev) => [...prev, { id, type, message, duration }]);
+      setToasts((prev) => [...prev, { id, type, message: sanitized, duration }]);
 
       if (duration > 0) {
         setTimeout(() => {

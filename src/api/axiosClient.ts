@@ -40,10 +40,34 @@ axiosClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
+// Hàm làm sạch chuỗi thông báo, gỡ bỏ triệt để mã tài liệu nội bộ (UC, BR, MSG)
+const cleanDocCodes = (str?: string): string => {
+  if (!str || typeof str !== 'string') return str || '';
+  return str
+    .replace(/(?:\[|\()?(?:G\d+-)?(?:UC|BR|MSG)-?[0-9/]+(?:-[0-9]+)?(?:\s*[\/&,]\s*(?:UC|BR|MSG)-?[0-9/]+)*(?:\]|\))?:?\s*/gi, '')
+    .replace(/\[\s*(?:G\d+-)?(?:UC|BR|MSG)[^\]]*\]/gi, '')
+    .replace(/\(\s*(?:G\d+-)?(?:UC|BR|MSG)[^)]*\)/gi, '')
+    .trim();
+};
+
+const sanitizeResponsePayload = (payload: any): any => {
+  if (!payload || typeof payload !== 'object') return payload;
+  if (typeof payload.message === 'string') {
+    payload.message = cleanDocCodes(payload.message);
+  }
+  if (payload.data && typeof payload.data === 'object' && typeof payload.data.message === 'string') {
+    payload.data.message = cleanDocCodes(payload.data.message);
+  }
+  return payload;
+};
+
 // Response Interceptor: Handle Global Errors (401, 403, 500)
 axiosClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => sanitizeResponsePayload(response.data),
   async (error: AxiosError<{ message?: string }>) => {
+    if (error.response?.data) {
+      sanitizeResponsePayload(error.response.data);
+    }
     if (error.response?.status === 401) {
       console.warn(
         '⚠️ Backend Spring Boot trả về 401 Unauthorized.'

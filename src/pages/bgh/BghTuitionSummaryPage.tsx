@@ -42,7 +42,21 @@ export const BghTuitionSummaryPage: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Toast
-  const [alertInfo, setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [alertInfo, _setAlertInfo] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const setAlertInfo = (info: { type: 'success' | 'error'; message: string } | null) => {
+    if (!info) {
+      _setAlertInfo(null);
+      return;
+    }
+    const cleanMsg = info.message
+      ? info.message
+          .replace(/(?:\[|\()?(?:G\d+-)?(?:UC|BR|MSG)-?[0-9/]+(?:-[0-9]+)?(?:\s*[\/&,]\s*(?:UC|BR|MSG)-?[0-9/]+)*(?:\]|\))?:?\s*/gi, '')
+          .replace(/\[\s*(?:G\d+-)?(?:UC|BR|MSG)[^\]]*\]/gi, '')
+          .replace(/\(\s*(?:G\d+-)?(?:UC|BR|MSG)[^)]*\)/gi, '')
+          .trim()
+      : '';
+    _setAlertInfo({ type: info.type, message: cleanMsg });
+  };
 
   const fetchSummary = async () => {
     try {
