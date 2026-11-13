@@ -51,7 +51,7 @@ export const HealthCardsGrid: React.FC<HealthCardsGridProps> = ({
       success(`${res.message} (Độ trễ: ${res.latencyMs}ms)`);
       onRefreshNeeded();
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setPingingService(null);
     }
@@ -108,7 +108,7 @@ export const HealthCardsGrid: React.FC<HealthCardsGridProps> = ({
             <div className="mt-3 p-2.5 rounded-xl bg-amber-100/70 border border-amber-300 text-amber-950 text-xs flex items-start gap-1.5">
               <AlertTriangle className="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
               <span className="font-semibold leading-tight">
-                MSG-030: Độ trễ phản hồi cơ sở dữ liệu cao. Hệ thống đang vận hành ở chế độ giảm tải.
+                Độ trễ phản hồi cơ sở dữ liệu cao. Hệ thống đang vận hành ở chế độ giảm tải.
               </span>
             </div>
           )}
@@ -201,7 +201,7 @@ export const HealthCardsGrid: React.FC<HealthCardsGridProps> = ({
             <div className="mt-3 p-2.5 rounded-xl bg-amber-100/70 border border-amber-300 text-amber-950 text-xs flex items-start gap-1.5">
               <AlertTriangle className="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
               <span className="font-semibold leading-tight">
-                MSG-032: Hàng đợi phát thông báo bị chậm trễ. Hệ thống đang tự động mở rộng luồng xử lý.
+                Hàng đợi phát thông báo bị chậm trễ. Hệ thống đang tự động mở rộng luồng xử lý.
               </span>
             </div>
           )}
@@ -295,7 +295,7 @@ export const HealthCardsGrid: React.FC<HealthCardsGridProps> = ({
             <div className="mt-3 p-2.5 rounded-xl bg-rose-100 border border-rose-300 text-rose-900 text-xs flex items-start gap-1.5 animate-pulse">
               <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <span className="font-semibold leading-tight">
-                MSG-031: Máy chủ AI khuôn mặt không phản hồi. Đã kích hoạt chế độ điểm danh thủ công dự phòng (BR-007).
+                Máy chủ AI khuôn mặt không phản hồi. Đã kích hoạt chế độ điểm danh thủ công dự phòng.
               </span>
             </div>
           )}

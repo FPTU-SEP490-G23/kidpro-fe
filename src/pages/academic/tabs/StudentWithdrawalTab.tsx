@@ -96,14 +96,14 @@ export const StudentWithdrawalTab: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-withdrawals'] });
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
-      success('MSG-053: Xử lý hồ sơ rút học bạ và chuyển trường thành công.');
+      success('Xử lý hồ sơ rút học bạ và chuyển trường thành công.');
       setCompletingTarget(null);
     },
     onError: (err: any) => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-054' || msg?.includes('MSG-054') || msg?.includes('công nợ')) {
-        error('MSG-054: Học sinh còn công nợ học phí chưa thanh toán, không thể hoàn tất bàn giao học bạ.');
+        error('Học sinh còn công nợ học phí chưa thanh toán, không thể hoàn tất bàn giao học bạ.');
       } else {
         error(msg || 'Lỗi khi hoàn tất thủ tục bàn giao học bạ.');
       }
@@ -213,7 +213,7 @@ export const StudentWithdrawalTab: React.FC = () => {
             </div>
             <div>
               <h2 className="text-base font-extrabold text-slate-800">
-                G4-UC-04: Xử Lý Hồ Sơ Rút Học Bạ & Chuyển Trường
+                Xử Lý Hồ Sơ Rút Học Bạ & Chuyển Trường
               </h2>
               <p className="text-xs text-slate-500">
                 Đối chiếu quy chuẩn tài chính BR-017, xuất biên bản bàn giao hồ sơ y tế và đóng sĩ số lớp
@@ -286,7 +286,7 @@ export const StudentWithdrawalTab: React.FC = () => {
                   <th className="py-3.5 px-4">Lớp Hiện Tại</th>
                   <th className="py-3.5 px-4">Trường Chuyển Đến</th>
                   <th className="py-3.5 px-4">Lý Do Rút Hồ Sơ</th>
-                  <th className="py-3.5 px-4">Quyết Toán Tài Chính (BR-017)</th>
+                  <th className="py-3.5 px-4">Quyết Toán Tài Chính</th>
                   <th className="py-3.5 px-4">Trạng Thái</th>
                   <th className="py-3.5 px-4 text-right">Thao Tác</th>
                 </tr>
@@ -493,7 +493,7 @@ export const StudentWithdrawalTab: React.FC = () => {
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Quy tắc BR-017:</strong> Sau khi tiếp nhận, hệ thống sẽ đối chiếu dữ liệu công nợ học phí từ phân hệ Kế toán. Chỉ được bàn giao học bạ khi đã hoàn tất nghĩa vụ tài chính.
+                  <strong>Quy tắc:</strong> Sau khi tiếp nhận, hệ thống sẽ đối chiếu dữ liệu công nợ học phí từ phân hệ Kế toán. Chỉ được bàn giao học bạ khi đã hoàn tất nghĩa vụ tài chính.
                 </span>
               </div>
 
@@ -519,14 +519,14 @@ export const StudentWithdrawalTab: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 2: KIỂM TRA QUYẾT TOÁN TÀI CHÍNH (BR-017) */}
+      {/* MODAL 2: KIỂM TRA QUYẾT TOÁN TÀI CHÍNH */}
       {financialCheckTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2.5 text-slate-900">
                 <Receipt className="w-5 h-5 text-purple-700" />
-                <h3 className="text-base font-extrabold">Kiểm Tra Quyết Toán Tài Chính (BR-017)</h3>
+                <h3 className="text-base font-extrabold">Kiểm Tra Quyết Toán Tài Chính</h3>
               </div>
               <button
                 type="button"
@@ -566,7 +566,7 @@ export const StudentWithdrawalTab: React.FC = () => {
                   <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-950 flex items-start gap-2.5">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-bold text-emerald-800">Đủ điều kiện hoàn tất thủ tục (BR-017)</div>
+                      <div className="font-bold text-emerald-800">Đủ điều kiện hoàn tất thủ tục</div>
                       <p className="text-[11px] text-emerald-900 mt-0.5">
                         Toàn bộ các kỳ học phí đã được tất toán (Dư nợ = 0 đ). Đủ điều kiện bàn giao học bạ gốc và sổ theo dõi sức khỏe cho phụ huynh.
                       </p>
@@ -609,7 +609,7 @@ export const StudentWithdrawalTab: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 3: XÁC NHẬN HOÀN TẤT BÀN GIAO HỌC BẠ (BR-017, MSG-053, MSG-054) */}
+      {/* MODAL 3: XÁC NHẬN HOÀN TẤT BÀN GIAO HỌC BẠ */}
       {completingTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
@@ -634,7 +634,7 @@ export const StudentWithdrawalTab: React.FC = () => {
                 <div className="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5">
                   <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Không thể hoàn tất (MSG-054):</span> Học sinh hiện còn nợ học phí chưa thanh toán ({completingTarget.financialCheck.totalDebtAmount.toLocaleString('vi-VN')} đ). Vui lòng yêu cầu phụ huynh tất toán tại phòng Kế toán trước khi bàn giao.
+                    <span className="font-bold">Không thể hoàn tất:</span> Học sinh hiện còn nợ học phí chưa thanh toán ({completingTarget.financialCheck.totalDebtAmount.toLocaleString('vi-VN')} đ). Vui lòng yêu cầu phụ huynh tất toán tại phòng Kế toán trước khi bàn giao.
                   </div>
                 </div>
               ) : (
@@ -727,7 +727,7 @@ export const StudentWithdrawalTab: React.FC = () => {
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1 text-xs">
                   <div>Trường tiếp nhận: <strong>{exportDossierTarget.destinationSchool}</strong></div>
                   <div>Lý do xin chuyển: <em>{exportDossierTarget.reason}</em></div>
-                  <div>Tình trạng tài chính: <strong className="text-emerald-700">Đã tất toán toàn bộ học phí (BR-017)</strong></div>
+                  <div>Tình trạng tài chính: <strong className="text-emerald-700">Đã tất toán toàn bộ học phí</strong></div>
                 </div>
               </div>
 

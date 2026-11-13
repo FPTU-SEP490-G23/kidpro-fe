@@ -47,11 +47,11 @@ export const ParentAccountManagementTab: React.FC = () => {
   // Chế độ xem Tab chính
   const [activeMainView, setActiveMainView] = useState<'STUDENTS_LIST' | 'MULTI_CHILD_ACCOUNTS'>('STUDENTS_LIST');
 
-  // State cho Tab 1: Danh sách học sinh & liên kết phụ huynh (G4-UC-08)
+  // State cho Tab 1: Danh sách học sinh & liên kết phụ huynh
   const [studentSearchKeyword, setStudentSearchKeyword] = useState<string>('');
   const [studentFilter, setStudentFilter] = useState<'ALL' | 'NO_ACCOUNT' | 'HAS_ACCOUNT'>('ALL');
 
-  // State cho Tab 2: Danh sách tài khoản phụ huynh & Đa con (G4-UC-09)
+  // State cho Tab 2: Danh sách tài khoản phụ huynh & Đa con
   const [accountSearchKeyword, setAccountSearchKeyword] = useState<string>('');
   const [accountFilterMode, setAccountFilterMode] = useState<'ALL' | 'MULTI_CHILD'>('ALL');
 
@@ -68,7 +68,7 @@ export const ParentAccountManagementTab: React.FC = () => {
   const [provisionAddress, setProvisionAddress] = useState('');
   const [provisionResult, setProvisionResult] = useState<ProvisionAccountResponse | null>(null);
 
-  // Link child modal (G4-UC-09)
+  // Link child modal
   const [linkingParent, setLinkingParent] = useState<ParentAccountItem | null>(null);
   const [linkStudentId, setLinkStudentId] = useState('');
   const [linkRelationship, setLinkRelationship] = useState<RelationshipType>('GUARDIAN');
@@ -118,7 +118,7 @@ export const ParentAccountManagementTab: React.FC = () => {
     onSuccess: (res: ProvisionAccountResponse) => {
       queryClient.invalidateQueries({ queryKey: ['students-parent-overview'] });
       queryClient.invalidateQueries({ queryKey: ['parent-accounts'] });
-      success('MSG-059: Cấp tài khoản phụ huynh thành công. Mật khẩu mặc định: 123456789. Đã gửi Gmail và phát notification!');
+      success('Cấp tài khoản phụ huynh thành công. Mật khẩu mặc định: 123456789. Đã gửi Gmail và phát notification!');
       setProvisionResult(res);
       setIsProvisionModalOpen(false);
     },
@@ -126,7 +126,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-061' || msg?.includes('MSG-061') || msg?.includes('đăng ký')) {
-        error('MSG-061: Số điện thoại phụ huynh đã được đăng ký cho một tài khoản khác. Vui lòng chuyển sang Tab Liên kết tài khoản.');
+        error('Số điện thoại phụ huynh đã được đăng ký cho một tài khoản khác. Vui lòng chuyển sang Tab Liên kết tài khoản.');
       } else {
         error(msg || 'Lỗi khi cấp tài khoản phụ huynh.');
       }
@@ -149,7 +149,7 @@ export const ParentAccountManagementTab: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-parent-overview'] });
       queryClient.invalidateQueries({ queryKey: ['parent-accounts'] });
-      success('MSG-060: Liên kết hồ sơ học sinh vào tài khoản phụ huynh thành công.');
+      success('Liên kết hồ sơ học sinh vào tài khoản phụ huynh thành công.');
       setLinkingParent(null);
       resetLinkForm();
     },
@@ -157,7 +157,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-063' || msg?.includes('MSG-063') || msg?.includes('khớp')) {
-        error('MSG-063: Thông tin định danh cha mẹ không trùng khớp giữa các hồ sơ học sinh. Hãy tích chọn xác nhận đối chiếu hồ sơ.');
+        error('Thông tin định danh cha mẹ không trùng khớp giữa các hồ sơ học sinh. Hãy tích chọn xác nhận đối chiếu hồ sơ.');
       } else {
         error(msg || 'Lỗi khi liên kết học sinh vào tài khoản phụ huynh.');
       }
@@ -170,7 +170,7 @@ export const ParentAccountManagementTab: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-parent-overview'] });
       queryClient.invalidateQueries({ queryKey: ['parent-accounts'] });
-      success('MSG-062: Hủy liên kết hồ sơ học sinh thành công.');
+      success('Hủy liên kết hồ sơ học sinh thành công.');
       setUnlinkingTarget(null);
     },
     onError: (err: any) => {
@@ -274,7 +274,7 @@ export const ParentAccountManagementTab: React.FC = () => {
             }`}
           >
             <Baby className="w-4 h-4" />
-            <span>Danh Sách Học Sinh & Phụ Huynh (G4-UC-08)</span>
+            <span>Danh Sách Học Sinh & Phụ Huynh</span>
             {studentsWithoutAccount > 0 && (
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                 activeMainView === 'STUDENTS_LIST' ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-800'
@@ -294,7 +294,7 @@ export const ParentAccountManagementTab: React.FC = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Tài Khoản Phụ Huynh & Đa Con (G4-UC-09)</span>
+            <span>Tài Khoản Phụ Huynh & Đa Con</span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-700">
               {accounts.length}
             </span>
@@ -322,7 +322,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* VIEW 1: DANH SÁCH HỌC SINH & PHỤ HUYNH LIÊN KẾT (G4-UC-08) */}
+      {/* VIEW 1: DANH SÁCH HỌC SINH & PHỤ HUYNH LIÊN KẾT */}
       {/* ========================================================================= */}
       {activeMainView === 'STUDENTS_LIST' && (
         <div className="space-y-5 animate-in fade-in duration-200">
@@ -565,7 +565,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 2: TÀI KHOẢN PHỤ HUYNH & ĐA CON (G4-UC-09) */}
+      {/* VIEW 2: TÀI KHOẢN PHỤ HUYNH & ĐA CON */}
       {/* ========================================================================= */}
       {activeMainView === 'MULTI_CHILD_ACCOUNTS' && (
         <div className="space-y-5 animate-in fade-in duration-200">
@@ -676,7 +676,7 @@ export const ParentAccountManagementTab: React.FC = () => {
                             type="button"
                             onClick={() => setLinkingParent(account)}
                             className="p-2 text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 rounded-xl transition border border-purple-200 cursor-pointer text-xs flex items-center gap-1"
-                            title="Liên kết thêm con vào tài khoản này (G4-UC-09)"
+                            title="Liên kết thêm con vào tài khoản này"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span className="text-[11px] font-bold">Thêm con</span>
@@ -748,7 +748,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL CẤP / TẠO TÀI KHOẢN PHỤ HUYNH (G4-UC-08) */}
+      {/* MODAL CẤP / TẠO TÀI KHOẢN PHỤ HUYNH */}
       {/* ========================================================================= */}
       {isProvisionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
@@ -1002,7 +1002,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL LIÊN KẾT CON VÀO TÀI KHOẢN PHỤ HUYNH (G4-UC-09) */}
+      {/* MODAL LIÊN KẾT CON VÀO TÀI KHOẢN PHỤ HUYNH */}
       {/* ========================================================================= */}
       {linkingParent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1078,7 +1078,7 @@ export const ParentAccountManagementTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tùy chọn force confirm khi thông tin không khớp (BR-016) */}
+              {/* Tùy chọn force confirm khi thông tin không khớp */}
               <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 space-y-1 text-xs text-amber-900">
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input
@@ -1088,7 +1088,7 @@ export const ParentAccountManagementTab: React.FC = () => {
                     className="mt-0.5 rounded text-amber-600 focus:ring-amber-500"
                   />
                   <span>
-                    <strong>Xác nhận đối chiếu hồ sơ thực tế (BR-016):</strong> Tích chọn nếu thông tin họ tên cha mẹ ở các hồ sơ có sự sai lệch nhỏ nhưng đã được đối chiếu CCCD/sổ hộ khẩu.
+                    <strong>Xác nhận đối chiếu hồ sơ thực tế:</strong> Tích chọn nếu thông tin họ tên cha mẹ ở các hồ sơ có sự sai lệch nhỏ nhưng đã được đối chiếu CCCD/sổ hộ khẩu.
                   </span>
                 </label>
               </div>
@@ -1130,7 +1130,7 @@ export const ParentAccountManagementTab: React.FC = () => {
                   ) : (
                     <>
                       <LinkIcon className="w-3.5 h-3.5" />
-                      <span>Xác Nhận Liên Kết (G4-UC-09)</span>
+                      <span>Xác Nhận Liên Kết</span>
                     </>
                   )}
                 </button>
@@ -1141,7 +1141,7 @@ export const ParentAccountManagementTab: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL XÁC NHẬN HỦY LIÊN KẾT (MSG-062) */}
+      {/* MODAL XÁC NHẬN HỦY LIÊN KẾT */}
       {/* ========================================================================= */}
       {unlinkingTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">

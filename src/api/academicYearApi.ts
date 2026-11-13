@@ -131,7 +131,7 @@ export const academicYearApi = {
     return list.find((y: AcademicYear) => y.id === id) || null;
   },
 
-  // Tạo mới niên khóa học (UC-005: BR-005)
+  // Tạo mới niên khóa học (BR-005)
   async createAcademicYear(payload: CreateAcademicYearInput): Promise<AcademicYear> {
     try {
       const bePayload = {
@@ -229,7 +229,7 @@ export const academicYearApi = {
     return this.updateStatus(id, 'CLOSED');
   },
 
-  // UC-065: Tiền kiểm tra điều kiện đóng sổ niên khóa
+  // Tiền kiểm tra điều kiện đóng sổ niên khóa
   async getArchivalPreflightCheck(id: string) {
     const list = getStoredYears();
     const target = list.find((y: AcademicYear) => y.id === id);
@@ -253,7 +253,7 @@ export const academicYearApi = {
     };
   },
 
-  // UC-065: Thực hiện đóng khóa sổ & Lưu trữ niên khóa
+  // Thực hiện đóng khóa sổ & Lưu trữ niên khóa
   async executeYearEndArchival(payload: { academicYearId: string; principalAuthCode: string; notes?: string }) {
     return this.updateStatus(payload.academicYearId, 'CLOSED');
   },

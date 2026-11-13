@@ -128,7 +128,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
       const data = (res as any)?.data || res;
       showToast(
         'success',
-        data?.message || 'MSG-173: Phát hành thành công thông báo học phí kèm mã VietQR tới phụ huynh.'
+        data?.message || 'Phát hành thành công thông báo học phí kèm mã VietQR tới phụ huynh.'
       );
       fetchData();
     } catch (err: any) {
@@ -255,7 +255,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
               <button
                 onClick={handlePublish}
                 disabled={publishing || summary?.status !== 'APPROVED' || invoices.length === 0}
-                title={summary?.status !== 'APPROVED' ? 'Chỉ có thể phát hành khi BGH đã phê duyệt bảng tổng hợp học phí tại [G8-UC-06]' : ''}
+                title={summary?.status !== 'APPROVED' ? 'Chỉ có thể phát hành khi BGH đã phê duyệt bảng tổng hợp học phí tại Bảng Tổng Hợp Học Phí' : ''}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {publishing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -318,7 +318,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
                   : 'bg-amber-600 hover:bg-amber-700 text-white'
               }`}
             >
-              <span>Xem Bảng Tổng Hợp [G8-UC-06]</span>
+              <span>Xem Bảng Tổng Hợp </span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

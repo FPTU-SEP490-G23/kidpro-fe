@@ -38,7 +38,7 @@ export const BghClassApprovalsPage: React.FC = () => {
     mutationFn: (classId: string) => classApprovalApi.approveClass(classId),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'MSG-031: Kế hoạch mở lớp học mới đã được phê duyệt thành công. Lớp học chính thức được thành lập.');
+      success(res?.message || 'Kế hoạch mở lớp học mới đã được phê duyệt thành công. Lớp học chính thức được thành lập.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || 'Không thể phê duyệt kế hoạch mở lớp');
@@ -51,7 +51,7 @@ export const BghClassApprovalsPage: React.FC = () => {
       classApprovalApi.rejectClass(classId, reason),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'MSG-032: Đã từ chối kế hoạch mở lớp học. Thông báo và lý do từ chối đã được gửi về Cán bộ Giáo vụ.');
+      success(res?.message || 'Đã từ chối kế hoạch mở lớp học. Thông báo và lý do từ chối đã được gửi về Cán bộ Giáo vụ.');
       closeRejectModal();
     },
     onError: (err: any) => {
@@ -88,7 +88,7 @@ export const BghClassApprovalsPage: React.FC = () => {
   const handleConfirmReject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectionReason.trim()) {
-      setValidationError('MSG-033: Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
+      setValidationError('Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
       return;
     }
     if (!rejectingClass) return;
@@ -112,11 +112,11 @@ export const BghClassApprovalsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-013 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Mở Lớp Học Mới</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Xem xét và ký duyệt hoặc từ chối kế hoạch mở lớp học do Cán bộ Giáo vụ trình duyệt theo quy chuẩn BR-011. Dữ liệu được lưu trực tiếp vào bảng academic.classes.
+            Xem xét và ký duyệt hoặc từ chối kế hoạch mở lớp học do Cán bộ Giáo vụ trình duyệt theo quy chuẩn quy định. Dữ liệu được lưu trực tiếp vào bảng academic.classes.
           </p>
         </div>
         <button
@@ -342,7 +342,7 @@ export const BghClassApprovalsPage: React.FC = () => {
                   disabled={rejectMutation.isPending}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối (MSG-032)'}
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
                 </button>
               </div>
             </form>

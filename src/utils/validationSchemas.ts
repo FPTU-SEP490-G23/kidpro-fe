@@ -24,11 +24,11 @@ export const SCHOOL_CODE_REGEX = /^[A-Za-z0-9_-]+$/;
 export const profileInfoSchema = z.object({
   email: z
     .string()
-    .min(1, 'Email không được để trống (BR-008)')
+    .min(1, 'Email không được để trống')
     .email('Vui lòng nhập đúng định dạng Email'),
   phone: z
     .string()
-    .min(1, 'Số điện thoại không được để trống (BR-008)')
+    .min(1, 'Số điện thoại không được để trống')
     .refine(isValidVietnamPhone, 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 03, 05, 07, 08, 09'),
 });
 
@@ -76,10 +76,10 @@ export const validateAvatarFile = (file: File): { valid: boolean; error?: string
 export const createTenantSchema = z.object({
   schoolCode: z
     .string()
-    .min(1, 'Mã trường học không được để trống (BR-076)')
+    .min(1, 'Mã trường học không được để trống')
     .regex(SCHOOL_CODE_REGEX, 'Mã trường gồm chữ, số, dấu gạch nối hoặc gạch dưới (VD: SM-03, MNMM-2012)'),
   name: z.string().min(3, 'Tên trường học tối thiểu 3 ký tự'),
-  taxCode: z.string().min(1, 'Mã số thuế không được để trống (BR-076)'),
+  taxCode: z.string().min(1, 'Mã số thuế không được để trống'),
   address: z.string().min(5, 'Địa chỉ trường học là bắt buộc'),
   hotline: z
     .string()
@@ -87,11 +87,11 @@ export const createTenantSchema = z.object({
     .regex(/^[0-9+() .-]{8,20}$/, 'Hotline không đúng định dạng'),
   email: z
     .string()
-    .min(1, 'Email công vụ không được để trống (BR-076)')
+    .min(1, 'Email công vụ không được để trống')
     .email('Email công vụ không hợp lệ'),
   licenseNumber: z
     .string()
-    .min(1, 'Số giấy phép hoạt động giáo dục mầm non là bắt buộc (MSG-020)'),
+    .min(1, 'Số giấy phép hoạt động giáo dục mầm non là bắt buộc'),
   adminName: z.string().min(2, 'Họ tên Hiệu trưởng / Quản trị viên là bắt buộc'),
   adminEmail: z.string().min(1, 'Email quản trị là bắt buộc').email('Email quản trị không hợp lệ'),
   adminPhone: z
@@ -117,13 +117,13 @@ export type EditTenantFormValues = z.infer<typeof editTenantSchema>;
 // ==================== UC-006 SCHEMAS ====================
 
 export const createUserAccountSchema = z.object({
-  fullName: z.string().min(2, 'Họ và tên tối thiểu 2 ký tự (BR-076)'),
-  email: z.string().min(1, 'Email không được để trống (BR-076)').email('Email không đúng định dạng'),
+  fullName: z.string().min(2, 'Họ và tên tối thiểu 2 ký tự'),
+  email: z.string().min(1, 'Email không được để trống').email('Email không đúng định dạng'),
   phone: z
     .string()
-    .min(1, 'Số điện thoại không được để trống (BR-076)')
+    .min(1, 'Số điện thoại không được để trống')
     .refine(isValidVietnamPhone, 'Số điện thoại phải gồm 10 chữ số (đầu 03, 05, 07, 08, 09)'),
-  tenantId: z.string().min(1, 'Vui lòng chọn cơ sở trường học trực thuộc (BR-076)'),
+  tenantId: z.string().min(1, 'Vui lòng chọn cơ sở trường học trực thuộc'),
   role: z.enum([
     'SYSTEM_ADMIN',
     'BGH',

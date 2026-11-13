@@ -41,7 +41,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
   const [selectedTerm, setSelectedTerm] = useState<EvaluationTerm>('SEMESTER_1');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
 
-  // Lock status (nếu quá hạn 30 ngày cần mã Giáo vụ - MSG-264)
+  // Lock status (nếu quá hạn 30 ngày cần mã Giáo vụ)
   const [isEvaluationLocked, setIsEvaluationLocked] = useState<boolean>(false);
   const [showUnlockModal, setShowUnlockModal] = useState<boolean>(false);
   const [unlockCodeInput, setUnlockCodeInput] = useState<string>('');
@@ -228,14 +228,14 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
 
   // Xử lý Lưu & Trình Cán Bộ Giáo Vụ Phê Duyệt (Enforce BR-011)
   const handleSubmitToAcademicOffice = async () => {
-    // 1. Kiểm tra khóa sổ quá 30 ngày (MSG-264)
+    // 1. Kiểm tra khóa sổ quá 30 ngày
     if (isEvaluationLocked) {
       setFeedback({ type: 'warning', message: MSG_264 });
       setShowUnlockModal(true);
       return;
     }
 
-    // 2. Kiểm tra BR-011: Tất cả chỉ số bắt buộc thuộc 5 lĩnh vực phải được đánh giá đầy đủ (MSG-263)
+    // 2. Kiểm tra BR-011: Tất cả chỉ số bắt buộc thuộc 5 lĩnh vực phải được đánh giá đầy đủ
     const hasIncomplete = matrixStudents.some(
       (s) =>
         !s.scores.physicalStatus ||
@@ -342,7 +342,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-061: THÔNG TƯ 28/2016/TT-BGDĐT
+                THÔNG TƯ 28/2016/TT-BGDĐT
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Biểu Đồ Radar 5 Trục Chuẩn
@@ -927,7 +927,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
         }
       />
 
-      {/* Modal Nhập Mã Mở Khóa Giáo Vụ (MSG-264) */}
+      {/* Modal Nhập Mã Mở Khóa Giáo Vụ */}
       {showUnlockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -938,7 +938,7 @@ export const EarlyChildhoodEvaluationTab: React.FC = () => {
               </h3>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              <strong>MSG-264:</strong> Thời hạn đánh giá học kỳ đã kết thúc ({'>'} 30 ngày). Để chỉnh sửa dữ liệu phát triển của học sinh, vui lòng nhập mã phê duyệt ủy quyền do Cán bộ Giáo vụ cấp.
+              <strong>Lưu ý:</strong> Thời hạn đánh giá học kỳ đã kết thúc ({'>'} 30 ngày). Để chỉnh sửa dữ liệu phát triển của học sinh, vui lòng nhập mã phê duyệt ủy quyền do Cán bộ Giáo vụ cấp.
             </p>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">

@@ -94,9 +94,9 @@ export const HealthReportTab: React.FC = () => {
       console.error('Error fetching dashboard:', err);
       const backendMsg = err.response?.data?.message || err.message;
       if (backendMsg && backendMsg.includes('MSG-007')) {
-        setErrorMsg('MSG-007: Không tìm thấy dữ liệu sức khỏe trong khoảng thời gian đã chọn.');
+        setErrorMsg('Không tìm thấy dữ liệu sức khỏe trong khoảng thời gian đã chọn.');
       } else {
-        setErrorMsg(backendMsg || 'MSG-007: Không tìm thấy dữ liệu sức khỏe trong khoảng thời gian đã chọn.');
+        setErrorMsg(backendMsg || 'Không tìm thấy dữ liệu sức khỏe trong khoảng thời gian đã chọn.');
       }
       setDashboardData(null);
     } finally {
@@ -114,11 +114,11 @@ export const HealthReportTab: React.FC = () => {
     const activeRound = rounds.find((r) => r.id === selectedRoundId);
     if (!activeRound) return;
 
-    // BR-032 / MSG-143: Đợt đo phải được LOCKED mới cho phép xuất sổ
+    // BR-032 / Đợt đo phải được LOCKED mới cho phép xuất sổ
     if (activeRound.status !== 'LOCKED') {
       showToast(
         'error',
-        'MSG-143: Lớp học được chọn chưa có dữ liệu cân đo được khóa sổ để xuất sổ.'
+        'Lớp học được chọn chưa có dữ liệu cân đo được khóa sổ để xuất sổ.'
       );
       return;
     }
@@ -141,14 +141,14 @@ export const HealthReportTab: React.FC = () => {
         document.body.removeChild(link);
       }
 
-      showToast('success', 'MSG-142: Kết xuất Sổ theo dõi thể lực thành công.');
+      showToast('success', 'Kết xuất Sổ theo dõi thể lực thành công.');
     } catch (err: any) {
       console.error('Export error:', err);
       const msg = err.response?.data?.message || err.message;
       if (msg && msg.includes('MSG-143')) {
-        showToast('error', 'MSG-143: Lớp học được chọn chưa có dữ liệu cân đo được khóa sổ để xuất sổ.');
+        showToast('error', 'Lớp học được chọn chưa có dữ liệu cân đo được khóa sổ để xuất sổ.');
       } else {
-        showToast('error', 'MSG-144: Lỗi hệ thống trong quá trình kết xuất file tài liệu.');
+        showToast('error', 'Lỗi hệ thống trong quá trình kết xuất file tài liệu.');
       }
     } finally {
       setExporting(false);
@@ -238,7 +238,7 @@ export const HealthReportTab: React.FC = () => {
               Báo cáo Tổng hợp Sức khỏe Lớp & Toàn trường
             </h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              G7-UC-04 • TTLT 13/2016
+              TTLT 13/2016
             </span>
           </div>
           <p className="text-xs md:text-sm text-slate-500 max-w-2xl">

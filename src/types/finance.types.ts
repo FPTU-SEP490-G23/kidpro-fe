@@ -6,7 +6,7 @@ export type FeeNature = 'FIXED' | 'DAILY_VARIABLE' | 'SURCHARGE';
 export type AgeGroupFilter = 'ALL' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
 
 // ==========================================
-// UC-033: CẤU HÌNH DANH MỤC KHOẢN THU (FEE CONFIG)
+// CẤU HÌNH DANH MỤC KHOẢN THU (FEE CONFIG)
 // ==========================================
 export interface FeeConfig {
   id: string;
@@ -21,7 +21,7 @@ export interface FeeConfig {
   isRefundableOnAbsence?: boolean; // Có được hoàn tiền khi nghỉ phép hay không
   dailyRefundRate?: number; // Đơn giá hoàn tiền ăn theo ngày
   status: FeeStatus; // ACTIVE | INACTIVE
-  hasTransactions?: boolean; // Đã phát sinh giao dịch thanh toán (Cấm Hard Delete theo BR-077)
+  hasTransactions?: boolean; // Đã phát sinh giao dịch thanh toán (Cấm Hard Delete theo quy định)
   description?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -42,7 +42,7 @@ export interface CreateFeeConfigPayload {
 }
 
 // ==========================================
-// UC-034: CHÍNH SÁCH ĐƠN GIÁ HOÀN TIỀN ĂN (MEAL REFUND)
+// CHÍNH SÁCH ĐƠN GIÁ HOÀN TIỀN ĂN (MEAL REFUND)
 // ==========================================
 export interface MealRefundPolicy {
   feeConfigId: string;
@@ -56,7 +56,7 @@ export interface MealRefundPolicy {
   isApproved?: boolean;
   approvedBy?: string;
   approvedAt?: string;
-  isClosedForRetroactiveChanges?: boolean; // Không thể thay đổi hồi tố kỳ đã đóng sổ (MSG-143)
+  isClosedForRetroactiveChanges?: boolean; // Không thể thay đổi hồi tố kỳ đã đóng sổ
 }
 
 export interface MealRefundAuditLog {
@@ -70,7 +70,7 @@ export interface MealRefundAuditLog {
 }
 
 // ==========================================
-// UC-035: ĐỘNG CƠ QUYẾT TOÁN HỌC PHÍ ĐỘNG (BILLING ENGINE)
+// ĐỘNG CƠ QUYẾT TOÁN HỌC PHÍ ĐỘNG (BILLING ENGINE)
 // ==========================================
 export type DynamicInvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'PARTIAL' | 'OVERDUE' | 'CANCELLED';
 
@@ -95,7 +95,7 @@ export interface DynamicInvoice {
   paymentReferenceCode: string; // Mã VietQR định danh duy nhất (vd: INV202610A7B9C1)
   vietQrUrl?: string;
   status: DynamicInvoiceStatus;
-  isNegativeBalance?: boolean; // Dư nợ âm -> bảo lưu sang kỳ tiếp theo (MSG-148)
+  isNegativeBalance?: boolean; // Dư nợ âm -> bảo lưu sang kỳ tiếp theo
   reservedCreditAmount?: number;
   dueDate: string;
   createdAt: string;
@@ -154,7 +154,7 @@ export interface LatePickupFeeRule {
 }
 
 // ==========================================
-// UC-036: KIỂM TOÁN HOÀN TIỀN ĂN NGHỈ PHÉP (MEAL REFUND AUDIT)
+// KIỂM TOÁN HOÀN TIỀN ĂN NGHỈ PHÉP (MEAL REFUND AUDIT)
 // ==========================================
 export interface AbsenceDetailItem {
   id: string;
@@ -198,7 +198,7 @@ export interface MealRefundAuditSummary {
 }
 
 // ==========================================
-// UC-037: DUYỆT & PHÁT HÀNH HÓA ĐƠN HÀNG LOẠT (BULK ISSUANCE)
+// DUYỆT & PHÁT HÀNH HÓA ĐƠN HÀNG LOẠT (BULK ISSUANCE)
 // ==========================================
 export interface BulkIssuancePayload {
   invoiceIds: string[];
@@ -233,7 +233,7 @@ export interface VietQrInvoiceData {
 }
 
 // ==========================================
-// UC-038: GẠCH NỢ THỦ CÔNG & THU TIỀN MẶT (CASH COLLECTION)
+// GẠCH NỢ THỦ CÔNG & THU TIỀN MẶT (CASH COLLECTION)
 // ==========================================
 export type PaymentMethod = 'CASH' | 'POS';
 
@@ -290,7 +290,7 @@ export interface CashAuditLog {
 }
 
 // ==========================================
-// UC-039: ĐỐI SOÁT WEBHOOK VIETQR GẠCH NỢ TỰ ĐỘNG
+// ĐỐI SOÁT WEBHOOK VIETQR GẠCH NỢ TỰ ĐỘNG
 // ==========================================
 export type WebhookReconciliationStatus =
   | 'MATCHED_PAID'
@@ -311,7 +311,7 @@ export interface WebhookTransactionLog {
   hmacSignatureValid: boolean; // Kết quả xác thực chữ ký HMAC-SHA256
   httpResponseCode: number; // 200 OK
   processingTimeMs: number; // Tốc độ xử lý (< 2s, vd: 420ms)
-  rawPayload: Record<string, any>; // JSONB nguyên trạng từ ngân hàng (BR-065)
+  rawPayload: Record<string, any>; // JSONB nguyên trạng từ ngân hàng
   receivedAt: string; // ISO Timestamp
   discrepancyType?: 'NONE' | 'OVERPAID' | 'UNDERPAID' | 'WRONG_REFERENCE';
   resolvedNote?: string;
@@ -328,7 +328,7 @@ export interface WebhookGatewayStats {
 }
 
 // ==========================================
-// UC-056: TỰ ĐỘNG KHẤU TRỪ TIỀN CỌC NHẬP HỌC (ENROLLMENT DEPOSIT DEDUCTION)
+// TỰ ĐỘNG KHẤU TRỪ TIỀN CỌC NHẬP HỌC (ENROLLMENT DEPOSIT DEDUCTION)
 // ==========================================
 
 export type DepositStatus =
@@ -352,7 +352,7 @@ export interface StudentEnrollmentDeposit {
   status: DepositStatus;
   linkedInvoiceId?: string; // Mã hóa đơn học phí đã liên kết
   linkedInvoiceNumber?: string;
-  campusId: string; // Phân vùng chi nhánh trường (BR-076)
+  campusId: string; // Phân vùng chi nhánh trường
   campusName: string;
   notes?: string;
 }
@@ -379,7 +379,7 @@ export interface DeductDepositPayload {
 }
 
 // ==========================================
-// UC-057: THÔNG BÁO TỰ ĐỘNG NHẮC NỢ QUÁ HẠN (OVERDUE DEBT REMINDER ENGINE)
+// THÔNG BÁO TỰ ĐỘNG NHẮC NỢ QUÁ HẠN (OVERDUE DEBT REMINDER ENGINE)
 // ==========================================
 
 export type AgingDebtBucket =
@@ -407,9 +407,9 @@ export interface OverdueInvoiceItem {
   lastReminderChannel?: ReminderChannel;
   lastReminderAt?: string;
   reminderCount: number;
-  disputeStatus: 'NONE' | 'DISPUTED'; // Hóa đơn đang có phiếu khiếu nại (MSG-254)
+  disputeStatus: 'NONE' | 'DISPUTED'; // Hóa đơn đang có phiếu khiếu nại
   vietQrUrl: string; // Link VietQR 1-Chạm
-  fallbackTeacherNoticeCreated?: boolean; // Phiếu nhắc trực tiếp giáo viên khi SMS lỗi (MSG-253)
+  fallbackTeacherNoticeCreated?: boolean; // Phiếu nhắc trực tiếp giáo viên khi SMS lỗi
 }
 
 export interface BatchDebtReminderPayload {
@@ -435,7 +435,7 @@ export interface BatchReminderResult {
 }
 
 // ==========================================
-// UC-058 & UC-059: KHIẾU NẠI & ĐIỀU CHỈNH HÓA ĐƠN HỌC PHÍ (PAYMENT DISPUTES & ADJUSTMENTS)
+// UC-058 & KHIẾU NẠI & ĐIỀU CHỈNH HÓA ĐƠN HỌC PHÍ (PAYMENT DISPUTES & ADJUSTMENTS)
 // ==========================================
 
 export type DisputeCategory =
@@ -509,7 +509,7 @@ export interface ResolveDisputePayload {
 }
 
 // ==========================================
-// UC-060: BÁO CÁO TÀI CHÍNH TỔNG HỢP & TUỔI NỢ CHUẨN MỰC VAS (FINANCIAL & AGING DEBT REPORTING)
+// BÁO CÁO TÀI CHÍNH TỔNG HỢP & TUỔI NỢ CHUẨN MỰC VAS (FINANCIAL & AGING DEBT REPORTING)
 // ==========================================
 
 export type FinancialReportPeriodType = 'MONTH' | 'QUARTER' | 'ACADEMIC_YEAR';

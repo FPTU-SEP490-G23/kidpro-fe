@@ -70,31 +70,31 @@ export const ElectronicReceiptModal: React.FC<ElectronicReceiptModalProps> = ({
 
         setToastMessage({
           type: 'success',
-          text: 'MSG-196: Tải biên lai điện tử thành công',
+          text: 'Tải biên lai điện tử thành công',
         });
       } else {
         // Kích hoạt chế độ Web Fallback
         setToastMessage({
           type: 'warning',
-          text: 'MSG-198: Đang hiển thị bản xem biên lai dạng web. Việc tải tệp PDF sẽ được thử lại.',
+          text: 'Đang hiển thị bản xem biên lai dạng web. Việc tải tệp PDF sẽ được thử lại.',
         });
       }
     } catch {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-198: Đang hiển thị bản xem biên lai dạng web. Việc tải tệp PDF sẽ được thử lại.',
+        text: 'Đang hiển thị bản xem biên lai dạng web. Việc tải tệp PDF sẽ được thử lại.',
       });
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Cấp lại chứng chỉ chữ ký số bảo mật (MSG-199)
+  // Cấp lại chứng chỉ chữ ký số bảo mật
   const handleReissueCert = async () => {
     setIsReissuingCert(true);
     setToastMessage({
       type: 'info',
-      text: 'MSG-199: Đang cấp lại chứng chỉ chữ ký số bảo mật cho biên lai...',
+      text: 'Đang cấp lại chứng chỉ chữ ký số bảo mật cho biên lai...',
     });
 
     setTimeout(() => {
@@ -144,7 +144,7 @@ export const ElectronicReceiptModal: React.FC<ElectronicReceiptModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">
-                Bản Xem Trước Biên Lai Thu Tiền Điện Tử (UC-049)
+                Bản Xem Trước Biên Lai Thu Tiền Điện Tử
               </h3>
               <p className="text-[11px] text-slate-500">
                 Chuẩn mực kế toán VAS • Mã chứng thư số xác thực toàn vẹn SHA-256
@@ -153,12 +153,12 @@ export const ElectronicReceiptModal: React.FC<ElectronicReceiptModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Nút Cấp lại chứng thư số (MSG-199) */}
+            {/* Nút Cấp lại chứng thư số */}
             <button
               type="button"
               onClick={handleReissueCert}
               disabled={isReissuingCert}
-              title="Cấp lại chứng chỉ chữ ký số bảo mật cho biên lai (MSG-199)"
+              title="Cấp lại chứng chỉ chữ ký số bảo mật cho biên lai"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition min-h-[40px]"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isReissuingCert ? 'animate-spin text-[#275A4E]' : ''}`} />

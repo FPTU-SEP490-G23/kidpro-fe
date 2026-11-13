@@ -139,9 +139,7 @@ export const FinancePage: React.FC = () => {
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
               Phân hệ Kế toán & Quản trị Tài chính
             </span>
-            <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-              {currentMeta.uc}
-            </span>
+            
           </div>
           <h1 className="text-2xl font-black text-slate-900 mt-1 tracking-tight flex items-center gap-2">
             {React.createElement(currentMeta.icon, { className: 'w-7 h-7 text-indigo-600' })}

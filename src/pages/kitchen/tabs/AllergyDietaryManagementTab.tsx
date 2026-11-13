@@ -45,7 +45,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   // State cục bộ lưu danh sách trẻ dị ứng
   const [items, setItems] = useState<DietaryAllergyItem[]>([]);
 
-  // Modal in nhãn định danh dán khay ăn (MSG-129)
+  // Modal in nhãn định danh dán khay ăn
   const [printLabelModalItem, setPrintLabelModalItem] = useState<DietaryAllergyItem | null>(null);
 
   // Modal chỉnh sửa món ăn thay thế
@@ -192,7 +192,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
 
   // Xử lý xác nhận chuẩn bị suất ăn
   const handleConfirmPrepared = (item: DietaryAllergyItem) => {
-    // Kiểm tra cam kết khu vực khử khuẩn cách ly (BR-041, BR-042)
+    // Kiểm tra cam kết khu vực khử khuẩn cách ly
     if (!item.isolatedAreaConfirmed) {
       setToastMessage({
         type: 'warning',
@@ -209,12 +209,12 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       return;
     }
 
-    // Tự động kiểm tra xung đột dị nguyên (BR-045)
+    // Tự động kiểm tra xung đột dị nguyên
     const conflicts = checkAllergenConflict(item.safeSubstituteDish, item.allergyTags);
     if (conflicts.length > 0) {
       setToastMessage({
         type: 'error',
-        text: `MSG-312: CẢNH BÁO SỐC PHẢN VỆ: Món thay thế '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}] của bé! Không thể xác nhận.`
+        text: `CẢNH BÁO SỐC PHẢN VỆ: Món thay thế '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}] của bé! Không thể xác nhận.`
       });
       return;
     }
@@ -231,14 +231,14 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     if (item.severity === 'ANAPHYLAXIS') {
       setToastMessage({
         type: 'info',
-        text: `MSG-128: Đã kiểm tra an toàn sốc phản vệ: Suất ăn thay thế cho bé ${item.studentName} đã được kiểm tra không chứa dị nguyên!`
+        text: `Đã kiểm tra an toàn sốc phản vệ: Suất ăn thay thế cho bé ${item.studentName} đã được kiểm tra không chứa dị nguyên!`
       });
     }
 
     markPrepared(item);
   };
 
-  // Toggle checkbox cam kết khu vực cách ly (BR-041, BR-042)
+  // Toggle checkbox cam kết khu vực cách ly
   const handleToggleIsolation = (item: DietaryAllergyItem, checked: boolean) => {
     setItems((prev) =>
       prev.map((i) => (i.id === item.id ? { ...i, isolatedAreaConfirmed: checked } : i))
@@ -258,7 +258,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       if (conflicts.length > 0) {
         setToastMessage({
           type: 'error',
-          text: `MSG-312: Món '${item.safeSubstituteDish}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}]! Không thể đánh dấu an toàn.`
+          text: `Món '${item.safeSubstituteDish}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}]! Không thể đánh dấu an toàn.`
         });
         return;
       }
@@ -273,12 +273,12 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     });
   };
 
-  // Xử lý in nhãn khay ăn dị ứng (MSG-129)
+  // Xử lý in nhãn khay ăn dị ứng
   const handlePrintLabel = (item: DietaryAllergyItem) => {
     if (!item.roomNumber || !item.className) {
       setToastMessage({
         type: 'error',
-        text: 'MSG-129: Mỗi suất ăn dị ứng bắt buộc phải được gắn thẻ tên bé và phòng học cụ thể.'
+        text: 'Mỗi suất ăn dị ứng bắt buộc phải được gắn thẻ tên bé và phòng học cụ thể.'
       });
       return;
     }
@@ -293,7 +293,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     if (conflicts.length > 0) {
       setToastMessage({
         type: 'error',
-        text: `MSG-312: Món '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}]! Không được in nhãn giao cho lớp.`
+        text: `Món '${item.safeSubstituteDish}' chứa dị nguyên [${conflicts.join(', ')}]! Không được in nhãn giao cho lớp.`
       });
       return;
     }
@@ -325,7 +325,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     if (conflicts.length > 0) {
       setToastMessage({
         type: 'error',
-        text: `MSG-312: CẢNH BÁO: Món '${customSubstituteText}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}] của bé!`
+        text: `CẢNH BÁO: Món '${customSubstituteText}' có nguy cơ chứa dị nguyên [${conflicts.join(', ')}] của bé!`
       });
       return;
     }
@@ -402,13 +402,13 @@ export const AllergyDietaryManagementTab: React.FC = () => {
         <div className="rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs font-semibold text-amber-900 flex items-center gap-3 shadow-xs">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1">
-            <span className="font-bold block text-sm text-amber-950">Lưu ý kiểm tra nhãn thành phần (BR-045):</span>
+            <span className="font-bold block text-sm text-amber-950">Lưu ý kiểm tra nhãn thành phần:</span>
             Thành phần món thay thế cần được bếp kiểm tra thực tế nhãn bao bì và tích chọn xác nhận trước khi hoàn tất hoặc in tem.
           </div>
         </div>
       )}
 
-      {/* CẢNH BÁO SỐC PHẢN VỆ ĐẶC BIỆT NGUY HIỂM (MSG-128) */}
+      {/* CẢNH BÁO SỐC PHẢN VỆ ĐẶC BIỆT NGUY HIỂM */}
       {severeAlertKids.length > 0 && (
         <div className="rounded-3xl border-2 border-red-500 bg-red-50/90 p-5 shadow-lg relative overflow-hidden animate-pulse">
           <div className="flex items-start gap-4">
@@ -425,8 +425,8 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-red-800 leading-relaxed">
-                <strong>MSG-128:</strong> Phát hiện học sinh có tiền sử dị ứng nặng với đậu phộng hoặc hải sản trùng với thực đơn hôm nay.
-                Bếp bắt buộc phải chuẩn bị suất ăn thay thế tại <strong>khu vực cách ly khử khuẩn riêng biệt (BR-041, BR-042)</strong> và dán nhãn định danh chống nhầm lẫn (MSG-129).
+                <strong>Lưu ý:</strong> Phát hiện học sinh có tiền sử dị ứng nặng với đậu phộng hoặc hải sản trùng với thực đơn hôm nay.
+                Bếp bắt buộc phải chuẩn bị suất ăn thay thế tại <strong>khu vực cách ly khử khuẩn riêng biệt</strong> và dán nhãn định danh chống nhầm lẫn.
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {severeAlertKids.map((k) => (
@@ -730,7 +730,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Checkbox cam kết khu vực cách ly (BR-041, BR-042) */}
+                        {/* Checkbox cam kết khu vực cách ly */}
                         <div className="pt-2 border-t border-slate-200/60 flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -744,7 +744,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                             htmlFor={`isolate-${item.id}`}
                             className="text-xs text-slate-700 font-medium cursor-pointer select-none"
                           >
-                            Cam kết chế biến tại <strong>khu vực khử khuẩn tách biệt</strong> để tránh lây nhiễm chéo dị nguyên (BR-041, BR-042).
+                            Cam kết chế biến tại <strong>khu vực khử khuẩn tách biệt</strong> để tránh lây nhiễm chéo dị nguyên.
                           </label>
                         </div>
                         <div className="flex items-start gap-2">
@@ -782,7 +782,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Nút In nhãn khay ăn dị ứng (MSG-129) */}
+                        {/* Nút In nhãn khay ăn dị ứng */}
                         <button
                           onClick={() => handlePrintLabel(item)}
                           className={`w-full inline-flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition min-h-[44px] ${
@@ -948,7 +948,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
             <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
               <Info className="h-3.5 w-3.5 text-amber-600" />
               <span>
-                Quy định <strong>MSG-129</strong>: Mỗi suất ăn dị ứng bắt buộc phải dán tem định danh trước khi chuyển khỏi bếp ăn.
+                Quy định: Mỗi suất ăn dị ứng bắt buộc phải dán tem định danh trước khi chuyển khỏi bếp ăn.
               </span>
             </div>
 

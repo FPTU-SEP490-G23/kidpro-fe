@@ -111,7 +111,7 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
                       : 'bg-rose-100 text-rose-800 border border-rose-300'
                   }`}
                 >
-                  {isHealthy ? 'MSG-029: VẬN HÀNH TỐT' : isDegraded ? 'CẢNH BÁO GIẢM TẢI' : 'SỰ CỐ KHẨN CẤP'}
+                  {isHealthy ? 'VẬN HÀNH TỐT' : isDegraded ? 'CẢNH BÁO GIẢM TẢI' : 'SỰ CỐ KHẨN CẤP'}
                 </span>
               </div>
 

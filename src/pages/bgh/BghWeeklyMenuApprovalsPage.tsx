@@ -45,7 +45,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
     mutationFn: (menuId: number) => weeklyMenuApprovalApi.approveMenu(menuId),
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['weekly-menu-approvals-bgh'] });
-      success(res?.data?.message || res?.message || 'MSG-108: Thực đơn tuần đã được phê duyệt và ban hành thành công lên ứng dụng toàn trường.');
+      success(res?.data?.message || res?.message || 'Thực đơn tuần đã được phê duyệt và ban hành thành công lên ứng dụng toàn trường.');
       setSelectedMenu(null);
     },
     onError: (err: any) => {
@@ -59,7 +59,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
       weeklyMenuApprovalApi.rejectMenu(menuId, reason),
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['weekly-menu-approvals-bgh'] });
-      success(res?.data?.message || res?.message || 'MSG-109: Đã từ chối thực đơn tuần. Lý do và yêu cầu điều chỉnh đã được chuyển đến bộ phận Bếp bán trú.');
+      success(res?.data?.message || res?.message || 'Đã từ chối thực đơn tuần. Lý do và yêu cầu điều chỉnh đã được chuyển đến bộ phận Bếp bán trú.');
       closeRejectModal();
       setSelectedMenu(null);
     },
@@ -97,7 +97,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
   const handleConfirmReject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectionReason.trim()) {
-      setValidationError('MSG-111: Vui lòng nhập lý do từ chối phê duyệt thực đơn để bộ phận Bếp có căn cứ chỉnh sửa.');
+      setValidationError('Vui lòng nhập lý do từ chối phê duyệt thực đơn để bộ phận Bếp có căn cứ chỉnh sửa.');
       return;
     }
     if (!rejectingMenu) return;
@@ -119,11 +119,11 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-041 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt & Ban Hành Thực Đơn Tuần</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Thẩm định cơ cấu dinh dưỡng (Kcal, tỷ lệ P-L-G) theo chuẩn Bộ GD&ĐT (BR-041), ký duyệt ban hành hoặc gửi chỉ đạo điều chỉnh tới Bếp bán trú. Dữ liệu lưu vào bảng catering.weekly_menus.
+            Thẩm định cơ cấu dinh dưỡng (Kcal, tỷ lệ P-L-G) theo chuẩn Bộ GD&ĐT, ký duyệt ban hành hoặc gửi chỉ đạo điều chỉnh tới Bếp bán trú. Dữ liệu lưu vào bảng catering.weekly_menus.
           </p>
         </div>
         <button
@@ -314,7 +314,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Thực Đơn Tuần {selectedMenu.weekNumber}</h3>
-                  <p className="text-xs text-[#78C2AD]">{selectedMenu.startDate} - {selectedMenu.endDate} • UC-041</p>
+                  <p className="text-xs text-[#78C2AD]">{selectedMenu.startDate} - {selectedMenu.endDate} </p>
                 </div>
               </div>
               <button onClick={() => setSelectedMenu(null)} className="p-1 rounded-full text-white/80 hover:bg-white/10">
@@ -372,7 +372,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
                   disabled={approveMutation.isPending}
                   className="px-5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-sm"
                 >
-                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt & Công bố (MSG-108)'}
+                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt & Công bố'}
                 </button>
               </div>
             </div>
@@ -440,7 +440,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
                   disabled={rejectMutation.isPending}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối (MSG-109)'}
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
                 </button>
               </div>
             </form>

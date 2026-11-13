@@ -158,7 +158,7 @@ export interface LeaveRequest {
 }
 
 // ==========================================
-// UC-064: XUẤT SỔ ĐIỂM DANH THEO MẪU BỘ GD&ĐT (MOET ATTENDANCE REPORT)
+// XUẤT SỔ ĐIỂM DANH THEO MẪU BỘ GD&ĐT (MOET ATTENDANCE REPORT)
 // ==========================================
 
 export type MoetAttendanceSymbol =
@@ -195,7 +195,7 @@ export interface MoetAttendanceReportData {
   students: MoetStudentAttendanceRow[];
   teacherSignature?: string;
   principalDigitalStamp?: string;
-  missingAttendanceDates?: string[]; // Danh sách ngày chưa chốt sổ (MSG-276)
+  missingAttendanceDates?: string[]; // Danh sách ngày chưa chốt sổ
   isFinalized: boolean;
 }
 

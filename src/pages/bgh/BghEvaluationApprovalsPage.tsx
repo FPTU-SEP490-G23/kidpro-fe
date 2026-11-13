@@ -83,7 +83,7 @@ export const BghEvaluationApprovalsPage: React.FC = () => {
       const res = await developmentEvaluationApi.approve(ev.evaluationId);
       setAlertInfo({
         type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Phiếu đánh giá sự phát triển của trẻ đã được phê duyệt và công bố thành công lên Sổ liên lạc điện tử (MSG-251).',
+        message: (res as any)?.message || (res as any)?.data?.message || 'Phiếu đánh giá sự phát triển của trẻ đã được phê duyệt và công bố thành công lên Sổ liên lạc điện tử.',
       });
       fetchEvaluations();
     } catch (err: any) {
@@ -118,7 +118,7 @@ export const BghEvaluationApprovalsPage: React.FC = () => {
     if (!rejectReason.trim()) {
       setAlertInfo({
         type: 'error',
-        message: 'MSG-253: Vui lòng nhập đầy đủ lý do và định hướng chỉnh sửa nhận xét sư phạm khi từ chối phê duyệt.',
+        message: 'Vui lòng nhập đầy đủ lý do và định hướng chỉnh sửa nhận xét sư phạm khi từ chối phê duyệt.',
       });
       return;
     }
@@ -150,10 +150,10 @@ export const BghEvaluationApprovalsPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
-                [UC-072] Phê Duyệt Phiếu Đánh Giá Trẻ Định Kỳ
+                Phê Duyệt Phiếu Đánh Giá Trẻ Định Kỳ
               </h1>
               <p className="text-sm text-slate-500">
-                Thẩm định nhận xét chuẩn mực sư phạm 5 lĩnh vực phát triển theo Thông tư Bộ GD&ĐT & công bố Sổ liên lạc điện tử (BR-103, BR-104)
+                Thẩm định nhận xét chuẩn mực sư phạm 5 lĩnh vực phát triển theo Thông tư Bộ GD&ĐT & công bố Sổ liên lạc điện tử
               </p>
             </div>
           </div>
@@ -433,7 +433,7 @@ export const BghEvaluationApprovalsPage: React.FC = () => {
               Yêu Cầu Chỉnh Sửa Nhận Xét Sư Phạm
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-103 & BR-104</strong>, lời nhận xét phải tích cực, mang tính xây dựng. Vui lòng nêu rõ định hướng điều chỉnh cho Giáo viên chủ nhiệm.
+              Theo quy định, lời nhận xét phải tích cực, mang tính xây dựng. Vui lòng nêu rõ định hướng điều chỉnh cho Giáo viên chủ nhiệm.
             </p>
             <div>
               <label className="text-xs font-semibold text-slate-700 mb-1 block">

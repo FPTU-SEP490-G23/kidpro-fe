@@ -68,12 +68,12 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
   const currentInvoice = invoices.find((inv) => inv.status !== 'PAID') || invoices[0];
   const historyInvoices = invoices.filter((inv) => inv.status === 'PAID');
 
-  // Xử lý mở biên lai điện tử chuẩn VAS (UC-049)
+  // Xử lý mở biên lai điện tử chuẩn VAS
   const handleViewReceipt = async (inv: TuitionInvoiceItem) => {
     if (inv.status !== 'PAID') {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-197: Biên lai thu tiền điện tử chỉ được phát hành cho các hóa đơn đã thanh toán đầy đủ.',
+        text: 'Biên lai thu tiền điện tử chỉ được phát hành cho các hóa đơn đã thanh toán đầy đủ.',
       });
       return;
     }
@@ -85,14 +85,14 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
     } catch {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     } finally {
       setIsLoadingReceipt(false);
     }
   };
 
-  // Hủy khiếu nại học phí (UC-058)
+  // Hủy khiếu nại học phí
   const handleCancelDispute = async () => {
     if (!currentInvoice) return;
     try {
@@ -105,7 +105,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
     } catch {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     }
   };
@@ -118,7 +118,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Receipt className="h-5 w-5 text-[#275A4E]" />
-              <span>Bảng Kê Học Phí & Khấu Trừ Bán Trú (UC-047)</span>
+              <span>Bảng Kê Học Phí & Khấu Trừ Bán Trú</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Học sinh: <strong>{studentName}</strong> • {className} • Minh bạch từng khoản thu, phụ phí đón muộn và hoàn tiền ăn
@@ -191,17 +191,17 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
             <Receipt className="h-10 w-10 mx-auto text-slate-300 mb-2" />
             <h4 className="text-sm font-bold text-slate-800">Chưa Có Hóa Đơn Kỳ Này</h4>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              MSG-189: Hóa đơn học phí cho kỳ này chưa được phát hành. Vui lòng kiểm tra lại sau.
+              Hóa đơn học phí cho kỳ này chưa được phát hành. Vui lòng kiểm tra lại sau.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Cảnh báo nếu hóa đơn bị thu hồi điều chỉnh (MSG-191) */}
+            {/* Cảnh báo nếu hóa đơn bị thu hồi điều chỉnh */}
             {currentInvoice.isRecalled && (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-xs text-rose-900 flex items-start gap-3">
                 <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold">HÓA ĐƠN ĐANG ĐƯỢC ĐIỀU CHỈNH (MSG-191)</h5>
+                  <h5 className="font-bold">HÓA ĐƠN ĐANG ĐƯỢC ĐIỀU CHỈNH</h5>
                   <p className="mt-0.5">
                     Hóa đơn này đang được Phòng Kế toán thu hồi để điều chỉnh số liệu theo quy chế.
                     Chức năng thanh toán trực tuyến tạm thời khóa cho đến khi bản cập nhật chính thức được ban hành.
@@ -210,7 +210,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
               </div>
             )}
 
-            {/* Thông báo nếu hóa đơn đang trong trạng thái khiếu nại tra soát (UC-058) */}
+            {/* Thông báo nếu hóa đơn đang trong trạng thái khiếu nại tra soát */}
             {currentInvoice.status === 'DISPUTED' && (
               <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4 text-xs text-purple-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-start gap-3">
@@ -291,7 +291,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                   </div>
 
                   <div className="flex flex-wrap items-center lg:justify-end gap-2.5">
-                    {/* Nút thanh toán VietQR 1-Chạm (UC-048) */}
+                    {/* Nút thanh toán VietQR 1-Chạm */}
                     <button
                       type="button"
                       disabled={currentInvoice.isRecalled || currentInvoice.status === 'PAID'}
@@ -299,17 +299,17 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#275A4E] hover:bg-[#1E4D40] text-white px-5 py-3 text-xs font-bold shadow-md shadow-[#275A4E]/20 transition disabled:opacity-50 min-h-[44px]"
                     >
                       <QrCode className="h-4 w-4" />
-                      <span>THANH TOÁN QUA VIETQR 1-CHẠM (UC-048)</span>
+                      <span>THANH TOÁN QUA VIETQR 1-CHẠM</span>
                     </button>
 
-                    {/* Nút khiếu nại sai lệch số tiền (UC-058 Dispute) */}
+                    {/* Nút khiếu nại sai lệch số tiền */}
                     <button
                       type="button"
                       onClick={() => {
                         if (currentInvoice.status === 'PAID') {
                           setToastMessage({
                             type: 'warning',
-                            text: 'MSG-248: Hóa đơn này đã được thanh toán hoàn tất. Vui lòng liên hệ trực tiếp phòng Kế toán để làm thủ tục hoàn trả hoặc đối trừ kỳ sau.',
+                            text: 'Hóa đơn này đã được thanh toán hoàn tất. Vui lòng liên hệ trực tiếp phòng Kế toán để làm thủ tục hoàn trả hoặc đối trừ kỳ sau.',
                           });
                           return;
                         }
@@ -318,7 +318,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                       className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-3 text-xs font-bold transition shadow-2xs min-h-[44px]"
                     >
                       <FileQuestion className="h-4 w-4 text-amber-600" />
-                      <span>Khiếu Nại Sai Lệch Số Tiền (UC-058)</span>
+                      <span>Khiếu Nại Sai Lệch Số Tiền</span>
                     </button>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                             <span>6. Điều chỉnh giảm trừ hóa đơn (ADJUSTMENT)</span>
                           </td>
                           <td className="py-3.5 px-4 text-purple-800 font-semibold">
-                            {currentInvoice.adjustmentReason || 'Đã giải quyết sau tra soát khiếu nại (BR-062)'}
+                            {currentInvoice.adjustmentReason || 'Đã giải quyết sau tra soát khiếu nại'}
                           </td>
                           <td className="py-3.5 px-4 text-right font-black text-purple-800 text-sm">
                             - {formatCurrency(Math.abs(currentInvoice.adjustmentAmount || 0))}
@@ -481,13 +481,13 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
           </div>
         )
       ) : (
-        /* ================= SUB-TAB 2: LỊCH SỬ THANH TOÁN & BIÊN LAI ĐIỆN TỬ (UC-049) ================= */
+        /* ================= SUB-TAB 2: LỊCH SỬ THANH TOÁN & BIÊN LAI ĐIỆN TỬ ================= */
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-[#275A4E]" />
-                <span>Lịch Sử Thanh Toán & Biên Lai Điện Tử (UC-049)</span>
+                <span>Lịch Sử Thanh Toán & Biên Lai Điện Tử</span>
               </h4>
               <p className="text-xs text-slate-500 mt-0.5">
                 Xem bản xem trước Web, tải tệp PDF chuẩn mực kế toán Việt Nam (VAS) có dấu mộc số và kiểm tra toàn vẹn SHA-256
@@ -635,7 +635,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
         </div>
       )}
 
-      {/* MODAL XEM TRƯỚC BIÊN LAI ĐIỆN TỬ CÓ CHỮ KÝ SỐ (UC-049) */}
+      {/* MODAL XEM TRƯỚC BIÊN LAI ĐIỆN TỬ CÓ CHỮ KÝ SỐ */}
       {selectedReceipt && (
         <ElectronicReceiptModal
           receipt={selectedReceipt}
@@ -644,7 +644,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
         />
       )}
 
-      {/* MODAL THANH TOÁN VIETQR (UC-048) */}
+      {/* MODAL THANH TOÁN VIETQR */}
       {selectedInvoiceForPayment && (
         <VietQrPaymentModal
           invoice={selectedInvoiceForPayment}
@@ -653,14 +653,14 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
           onSuccess={() => {
             setToastMessage({
               type: 'success',
-              text: 'MSG-192: Đã xác nhận thanh toán thành công! Biên lai điện tử đã được tạo',
+              text: 'Đã xác nhận thanh toán thành công! Biên lai điện tử đã được tạo',
             });
             setSelectedInvoiceForPayment(null);
           }}
         />
       )}
 
-      {/* MODAL KHIẾU NẠI SAI LỆCH SỐ TIỀN (UC-047 Dispute) */}
+      {/* MODAL KHIẾU NẠI SAI LỆCH SỐ TIỀN */}
       {selectedInvoiceForDispute && (
         <InvoiceDisputeModal
           invoice={selectedInvoiceForDispute}
@@ -669,7 +669,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
           onSuccess={() => {
             setToastMessage({
               type: 'success',
-              text: 'MSG-247: Gửi phiếu khiếu nại học phí thành công. Kế toán nhà trường sẽ kiểm tra và phản hồi trong vòng 24 giờ làm việc.',
+              text: 'Gửi phiếu khiếu nại học phí thành công. Kế toán nhà trường sẽ kiểm tra và phản hồi trong vòng 24 giờ làm việc.',
             });
             setSelectedInvoiceForDispute(null);
           }}

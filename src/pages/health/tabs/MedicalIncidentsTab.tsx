@@ -176,7 +176,7 @@ export const MedicalIncidentsTab: React.FC = () => {
     onSuccess: () => {
       setToastMessage({
         type: 'success',
-        text: `MSG-216: ${MSG_216}`,
+        text: `${MSG_216}`,
       });
       queryClient.invalidateQueries({ queryKey: ['medical-incidents'] });
       setIsModalOpen(false);
@@ -186,7 +186,7 @@ export const MedicalIncidentsTab: React.FC = () => {
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
       setTimeout(() => setToastMessage(null), 5000);
     },
@@ -194,13 +194,13 @@ export const MedicalIncidentsTab: React.FC = () => {
 
   // Handle Form Submission
   const onFormSubmit = (data: IncidentFormData) => {
-    // Check if fever medicine selected but no parental consent (BR-054)
+    // Check if fever medicine selected but no parental consent
     if (selectedStudent && !selectedStudent.medicalConsentAgreed) {
       const hasMed = data.firstAidMeasures.some((m) => m.includes('thuốc'));
       if (hasMed) {
         setToastMessage({
           type: 'warning',
-          text: `MSG-217: ${MSG_217}`,
+          text: `${MSG_217}`,
         });
         setTimeout(() => setToastMessage(null), 5000);
         return;
@@ -260,7 +260,7 @@ export const MedicalIncidentsTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold tracking-tight text-[#1E4D40] flex items-center gap-2">
             <HeartPulse className="h-6 w-6 text-[#275A4E]" />
-            <span>Nhật Ký Sự Vụ Y Tế Học Đường (UC-052)</span>
+            <span>Nhật Ký Sự Vụ Y Tế Học Đường</span>
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             Ghi nhận thân nhiệt, sơ cấp cứu ban đầu, đối chiếu cam kết y tế & tự động phát thông báo đẩy khẩn cấp
@@ -561,7 +561,7 @@ export const MedicalIncidentsTab: React.FC = () => {
         )}
       </div>
 
-      {/* ================= MODAL GHI NHẬN SỰ VỤ Y TẾ MỚI (UC-052) ================= */}
+      {/* ================= MODAL GHI NHẬN SỰ VỤ Y TẾ MỚI ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
@@ -644,12 +644,12 @@ export const MedicalIncidentsTab: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Kiểm tra Cam kết Y tế Phụ huynh (BR-054) */}
+                    {/* Kiểm tra Cam kết Y tế Phụ huynh */}
                     {!selectedStudent.medicalConsentAgreed ? (
                       <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2">
                         <Lock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                         <div className="text-xs text-amber-800">
-                          <span className="font-bold">MSG-217 (BR-054):</span> {MSG_217}
+                          <span className="font-bold">Lưu ý:</span> {MSG_217}
                         </div>
                       </div>
                     ) : (
@@ -712,7 +712,7 @@ export const MedicalIncidentsTab: React.FC = () => {
                   <Flame className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
                     <div className="text-sm font-bold text-rose-700">
-                      MSG-218: Cảnh báo Sốt Cao Kịch Phát ({watchedTemp}°C)
+                      Cảnh báo Sốt Cao Kịch Phát ({watchedTemp}°C)
                     </div>
                     <p className="text-xs text-rose-600 mt-0.5">{MSG_218}</p>
                   </div>
@@ -723,7 +723,7 @@ export const MedicalIncidentsTab: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   3. Triệu Chứng Lâm Sàng <span className="text-rose-500">*</span>
-                  <span className="text-slate-400 font-normal lowercase ml-1">(tối thiểu 10 ký tự - MSG-219)</span>
+                  <span className="text-slate-400 font-normal lowercase ml-1">(tối thiểu 10 ký tự)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -778,7 +778,7 @@ export const MedicalIncidentsTab: React.FC = () => {
                           <span className="font-medium">{opt.label}</span>
                           {isMedDisabled && (
                             <span className="block text-[11px] text-amber-700 font-semibold mt-0.5">
-                              [Bị khóa theo BR-054: Phụ huynh không đồng thuận dùng thuốc]
+                              [Bị khóa theo quy định: Phụ huynh không đồng thuận dùng thuốc]
                             </span>
                           )}
                         </div>

@@ -221,7 +221,7 @@ export const TimetableManagementTab: React.FC = () => {
       });
     },
     onSuccess: (data: any) => {
-      success('MSG-039: Lưu dự thảo thời khóa biểu tuần thành công, đang chờ Ban Giám hiệu phê duyệt.');
+      success('Lưu dự thảo thời khóa biểu tuần thành công, đang chờ Ban Giám hiệu phê duyệt.');
       queryClient.invalidateQueries({ queryKey: ['weekly-timetable', selectedClassId, selectedWeekNumber] });
     },
     onError: (err: any) => {

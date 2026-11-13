@@ -124,7 +124,7 @@ export const ClassroomEquipmentTab: React.FC = () => {
     }
   }, [selectedClassId]);
 
-  // Kiểm tra tình trạng nứt vỡ nguy cơ sắc nhọn / nuốt nghẹn (MSG-273)
+  // Kiểm tra tình trạng nứt vỡ nguy cơ sắc nhọn / nuốt nghẹn
   useEffect(() => {
     const hasHazard = equipmentList.some(
       (item) => item.condition === 'DAMAGED_DISPOSAL' || item.hasSafetyRisk
@@ -168,12 +168,12 @@ export const ClassroomEquipmentTab: React.FC = () => {
 
   // Lưu biên bản kiểm kê
   const handleSaveInventory = async () => {
-    // 1. Kiểm tra thiết bị dưới định mức (MSG-272)
+    // 1. Kiểm tra thiết bị dưới định mức
     const belowStandardItems = equipmentList.filter(
       (item) => item.actualQuantity < item.standardQuantity
     );
 
-    // 2. Kiểm tra nguy cơ an toàn (MSG-273)
+    // 2. Kiểm tra nguy cơ an toàn
     const hazardItems = equipmentList.filter(
       (item) => item.condition === 'DAMAGED_DISPOSAL' || item.hasSafetyRisk
     );
@@ -318,7 +318,7 @@ export const ClassroomEquipmentTab: React.FC = () => {
 
   // Thêm mới thiết bị quét mã vạch
   const handleAddNewEquipment = () => {
-    // Kiểm tra định dạng mã vạch hợp lệ (MSG-274)
+    // Kiểm tra định dạng mã vạch hợp lệ
     if (!newEquipmentBarcode.trim().startsWith('KP-TB-')) {
       setFeedback({
         type: 'error',
@@ -395,7 +395,7 @@ export const ClassroomEquipmentTab: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-063: THÔNG TƯ 34/2013/TT-BGDĐT
+                THÔNG TƯ 34/2013/TT-BGDĐT
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Cơ Sở Vật Chất & An Toàn Đồ Chơi

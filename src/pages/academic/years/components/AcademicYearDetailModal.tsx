@@ -65,7 +65,7 @@ export const AcademicYearDetailModal: React.FC<AcademicYearDetailModalProps> = (
               <Clock className="w-5 h-5 text-emerald-700" />
               <div>
                 <span className="text-xs font-bold text-emerald-900 block">Thời lượng thực học</span>
-                <span className="text-xs text-emerald-700">Khung chuẩn Bộ GD&ĐT (BR-005)</span>
+                <span className="text-xs text-emerald-700">Khung chuẩn Bộ GD&ĐT</span>
               </div>
             </div>
             <span className="text-base font-extrabold text-emerald-800">{weeks} tuần</span>

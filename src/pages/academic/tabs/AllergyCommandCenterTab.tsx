@@ -48,7 +48,7 @@ const allergyFormSchema = z
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // MSG-221: Severe anaphylaxis requires protocol & medication location
+    // Severe anaphylaxis requires protocol & medication location
     if (data.severity === 'SEVERE_ANAPHYLAXIS') {
       if (!data.emergencyProtocol || data.emergencyProtocol.trim().length < 5) {
         ctx.addIssue({
@@ -153,7 +153,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
     onSuccess: () => {
       setToastMessage({
         type: 'success',
-        text: `MSG-220: ${MSG_220}`,
+        text: `${MSG_220}`,
       });
       // System-wide Invalidations: attendance, kitchen, health, student list!
       queryClient.invalidateQueries({ queryKey: ['students'] });
@@ -168,13 +168,13 @@ export const AllergyCommandCenterTab: React.FC = () => {
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
       setTimeout(() => setToastMessage(null), 5000);
     },
   });
 
-  // Handle Form Submit with Duplicate Allergen Check (MSG-222)
+  // Handle Form Submit with Duplicate Allergen Check
   const onSubmit = (formData: AllergyFormData) => {
     // Duplicate allergen check
     const existingProfile = allergyProfiles.find(
@@ -188,7 +188,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
       if (hasDuplicate) {
         setToastMessage({
           type: 'warning',
-          text: `MSG-222: ${MSG_222}`,
+          text: `${MSG_222}`,
         });
         setTimeout(() => setToastMessage(null), 5000);
         return;
@@ -221,7 +221,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -276,7 +276,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold tracking-tight text-[#1E4D40] flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-rose-600" />
-            <span>Trung Tâm Quản Lý Dị Ứng Học Đường (UC-053)</span>
+            <span>Trung Tâm Quản Lý Dị Ứng Học Đường</span>
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             Phát sóng huy hiệu khiên đỏ cảnh báo dị ứng tới Sổ điểm danh, Bếp ăn và Hồ sơ y tế theo thời gian thực
@@ -594,7 +594,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
         )}
       </div>
 
-      {/* ================= MODAL THÊM / CẬP NHẬT CẢNH BÁO DỊ ỨNG (UC-053) ================= */}
+      {/* ================= MODAL THÊM / CẬP NHẬT CẢNH BÁO DỊ ỨNG ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
           <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden my-8 animate-in fade-in zoom-in-95">
@@ -738,7 +738,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
                 />
               </div>
 
-              {/* Phác đồ sơ cứu & Vị trí thuốc (Bắt buộc nếu Sốc phản vệ nặng - MSG-221) */}
+              {/* Phác đồ sơ cứu & Vị trí thuốc (Bắt buộc nếu Sốc phản vệ nặng) */}
               <div
                 className={`p-3.5 rounded-xl border space-y-3 ${
                   watchedSeverity === 'SEVERE_ANAPHYLAXIS'
@@ -751,7 +751,7 @@ export const AllergyCommandCenterTab: React.FC = () => {
                   <span>
                     Phác Đồ Sơ Cứu Khẩn Cấp & Vị Trí Thuốc
                     {watchedSeverity === 'SEVERE_ANAPHYLAXIS' && (
-                      <span className="text-rose-600 ml-1 font-bold">(BẮT BUỘC - MSG-221)</span>
+                      <span className="text-rose-600 ml-1 font-bold">(BẮT BUỘC)</span>
                     )}
                   </span>
                 </div>

@@ -13,7 +13,7 @@ export interface Announcement {
   targetAudienceLabel?: string;
   attachmentUrl?: string;
   attachmentName?: string;
-  attachmentSizeMb?: number; // < 20MB (MSG-288)
+  attachmentSizeMb?: number; // < 20MB
   isScheduled?: boolean;
   scheduledAt?: string;
   readCount?: number;

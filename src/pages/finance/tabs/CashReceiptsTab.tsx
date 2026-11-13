@@ -96,7 +96,7 @@ export const CashReceiptsTab: React.FC = () => {
       setSubmittingPayment(true);
       const res = await financeApi.recordCashPayment(selectedInvoice.invoiceId, payload);
       const receipt = (res as any)?.data || res;
-      showToast('success', 'MSG-145: Ghi nhận thu học phí tiền mặt và gạch nợ thành công.');
+      showToast('success', 'Ghi nhận thu học phí tiền mặt và gạch nợ thành công.');
       setIsPayModalOpen(false);
       fetchInvoices();
 
@@ -279,7 +279,7 @@ export const CashReceiptsTab: React.FC = () => {
                           <button
                             onClick={() => openCashPayModal(inv)}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
-                            title="Xác nhận thu tiền mặt và gạch nợ (G8-UC-10)"
+                            title="Xác nhận thu tiền mặt và gạch nợ"
                           >
                             <Banknote className="w-3.5 h-3.5" />
                             Thu tiền mặt
@@ -288,7 +288,7 @@ export const CashReceiptsTab: React.FC = () => {
                           <button
                             onClick={() => handleViewReceipt(inv)}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors border border-indigo-200/50"
-                            title="Xuất hóa đơn điện tử & in biên lai (G8-UC-11)"
+                            title="Xuất hóa đơn điện tử & in biên lai"
                           >
                             <Printer className="w-3.5 h-3.5" />
                             In biên lai
@@ -309,7 +309,7 @@ export const CashReceiptsTab: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-800">[G8-UC-10] Xác Nhận Thu Tiền Mặt Trực Tiếp</h3>
+                <h3 className="text-base font-bold text-slate-800">Xác Nhận Thu Tiền Mặt Trực Tiếp</h3>
                 <p className="text-xs text-slate-500">Mã phiếu: {selectedInvoice.invoiceCode} — Học sinh: {selectedInvoice.studentName}</p>
               </div>
               <button
@@ -411,7 +411,7 @@ export const CashReceiptsTab: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between print:hidden">
               <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
-                <ReceiptIcon className="w-4 h-4" /> [G8-UC-11] Biên lai Thu tiền Điện tử
+                <ReceiptIcon className="w-4 h-4" /> Biên lai Thu tiền Điện tử
               </span>
               <button
                 onClick={() => setIsReceiptModalOpen(false)}

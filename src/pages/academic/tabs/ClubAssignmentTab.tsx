@@ -98,17 +98,17 @@ export const ClubAssignmentTab: React.FC = () => {
     const selectedLead = teachers.find((t) => t.teacherId === leadTeacherId);
     if (selectedLead) {
       if (!selectedLead.active) {
-        setValidationError('MSG-195: Hồ sơ giáo viên đang ở trạng thái Tạm nghỉ hoặc Hết hạn hợp đồng.');
+        setValidationError('Hồ sơ giáo viên đang ở trạng thái Tạm nghỉ hoặc Hết hạn hợp đồng.');
         return;
       }
       if (selectedLead.hasScheduleConflict) {
         setValidationError(
-          `MSG-029: Giáo viên được chọn bị trùng lịch dạy chính khóa hoặc lớp Năng khiếu khác. (${selectedLead.conflictDetail || ''})`
+          `Giáo viên được chọn bị trùng lịch dạy chính khóa hoặc lớp Năng khiếu khác. (${selectedLead.conflictDetail || ''})`
         );
         return;
       }
       if (selectedLead.currentClubHours >= selectedLead.maxWeeklyClubHours) {
-        setValidationError('MSG-199: Giáo viên đã đạt định mức tiết dạy tối đa trong tuần theo quy chế.');
+        setValidationError('Giáo viên đã đạt định mức tiết dạy tối đa trong tuần theo quy chế.');
         return;
       }
     }
@@ -128,7 +128,7 @@ export const ClubAssignmentTab: React.FC = () => {
       };
 
       await extracurricularAssignmentService.assignTeachers(selectedClass.classId, payload);
-      showToast('success', 'MSG-198: Phân công giáo viên phụ trách câu lạc bộ thành công.');
+      showToast('success', 'Phân công giáo viên phụ trách câu lạc bộ thành công.');
       setSelectedClass(null);
       fetchClubClasses();
     } catch (err: any) {
@@ -188,7 +188,7 @@ export const ClubAssignmentTab: React.FC = () => {
               Phân công Giáo viên Phụ trách Câu lạc bộ Ngoại khóa
             </h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              G9-UC-02 • BR-046
+              BR-046
             </span>
           </div>
           <p className="text-xs md:text-sm text-slate-500 max-w-2xl">
@@ -431,7 +431,7 @@ export const ClubAssignmentTab: React.FC = () => {
                           {selectedLead.hasScheduleConflict && (
                             <div className="flex items-center gap-1.5 text-rose-600 font-semibold">
                               <AlertTriangle className="w-4 h-4" />
-                              Cảnh báo BR-046: Trùng lịch ({selectedLead.conflictDetail})
+                              Cảnh báo: Trùng lịch ({selectedLead.conflictDetail})
                             </div>
                           )}
                           {selectedLead.currentClubHours >= selectedLead.maxWeeklyClubHours && (

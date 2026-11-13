@@ -192,12 +192,12 @@ export const LatePickupTrackingTab: React.FC = () => {
       if (data.feeWaived) {
         setToastMessage({
           type: 'info',
-          text: 'MSG-102: Đã áp dụng miễn giảm phụ phí đón muộn theo phê duyệt của Hiệu trưởng.'
+          text: 'Đã áp dụng miễn giảm phụ phí đón muộn theo phê duyệt của Hiệu trưởng.'
         });
       } else {
         setToastMessage({
           type: 'success',
-          text: `MSG-101: Đã ghi nhận đón muộn thành công (${data.checkoutTime}). Biên nhận điện tử đã gửi tới phụ huynh.`
+          text: `Đã ghi nhận đón muộn thành công (${data.checkoutTime}). Biên nhận điện tử đã gửi tới phụ huynh.`
         });
       }
 
@@ -268,17 +268,17 @@ export const LatePickupTrackingTab: React.FC = () => {
         </div>
       )}
 
-      {/* Extreme Emergency: Past 19:30 Campus Closure (BR-078 & MSG-104) */}
+      {/* Extreme Emergency: Past 19:30 Campus Closure */}
       {isPastCampusClosing && (
         <div className="p-5 bg-rose-600 text-white rounded-3xl shadow-xl border-4 border-rose-800 animate-pulse flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <ShieldAlert className="w-9 h-9 text-amber-300 shrink-0 animate-bounce" />
             <div>
               <div className="text-base font-extrabold uppercase tracking-wide">
-                CẢNH BÁO KHẨN CẤP: VƯỢT QUÁ 19:30 GIỜ ĐÓNG CỬA CƠ SỞ (MSG-104)
+                CẢNH BÁO KHẨN CẤP: VƯỢT QUÁ 19:30 GIỜ ĐÓNG CỬA CƠ SỞ
               </div>
               <div className="text-xs text-rose-100 mt-0.5">
-                Vẫn còn trẻ chưa có người đón sau 19:30. Giáo viên chủ nhiệm &amp; Ban Giám Hiệu kích hoạt quy trình liên lạc toàn bộ số điện thoại khẩn cấp theo BR-078.
+                Vẫn còn trẻ chưa có người đón sau 19:30. Giáo viên chủ nhiệm &amp; Ban Giám Hiệu kích hoạt quy trình liên lạc toàn bộ số điện thoại khẩn cấp theo quy định.
               </div>
             </div>
           </div>
@@ -294,7 +294,7 @@ export const LatePickupTrackingTab: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
               <Clock className="w-6 h-6 text-[#275A4E]" />
-              <span>Ghi Nhận Mốc Giờ Trẻ Đón Muộn &amp; Phụ Phí (UC-025)</span>
+              <span>Ghi Nhận Mốc Giờ Trẻ Đón Muộn &amp; Phụ Phí</span>
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Khung giờ tan học tiêu chuẩn kết thúc lúc 17:30. Tự động tính phụ phí từ 17:31 theo các block 15 phút (Tổng quy mô trường: {students.length || 35} học sinh).
@@ -551,7 +551,7 @@ export const LatePickupTrackingTab: React.FC = () => {
               </div>
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  Biên Nhận Điện Tử Trông Muộn (UC-025)
+                  Biên Nhận Điện Tử Trông Muộn
                 </span>
                 <h3 className="text-xl font-bold text-slate-900">
                   Xác Nhận Trả Trẻ &amp; Tính Phụ Phí
@@ -573,7 +573,7 @@ export const LatePickupTrackingTab: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">Mốc bắt đầu tính muộn:</span>
-                <span className="text-xs font-mono font-bold text-slate-700">17:31 (BR-030)</span>
+                <span className="text-xs font-mono font-bold text-slate-700">17:31</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -624,7 +624,7 @@ export const LatePickupTrackingTab: React.FC = () => {
                     className="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#78C2AD]"
                   />
                   <span className="text-[10px] text-amber-800 block mt-1">
-                    MSG-102: Áp dụng miễn giảm phụ phí đón muộn theo phê duyệt của Hiệu trưởng.
+                    Áp dụng miễn giảm phụ phí đón muộn theo phê duyệt của Hiệu trưởng.
                   </span>
                 </div>
               )}

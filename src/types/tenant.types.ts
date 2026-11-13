@@ -64,10 +64,10 @@ export interface TenantListParams {
 
 // Danh mục mã thông báo hệ thống theo đặc tả UC-005
 export const TENANT_MESSAGES = {
-  MSG_016: 'MSG-016: Khởi tạo phân vùng trường học thành công',
-  MSG_017: 'MSG-017: Cập nhật trạng thái hoạt động của trường học thành công.',
-  MSG_018: 'MSG-018: Mã trường học hoặc Mã số thuế đã tồn tại trên hệ thống. Vui lòng chọn định danh duy nhất.',
-  MSG_019: 'MSG-019: Địa chỉ email đã được đăng ký. Vui lòng chỉ định một email công vụ khác.',
-  MSG_020: 'MSG-020: Số giấy phép hoạt động giáo dục mầm non là thông tin bắt buộc khi khởi tạo trường.',
-  MSG_004: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+  MSG_016: 'Khởi tạo phân vùng trường học thành công',
+  MSG_017: 'Cập nhật trạng thái hoạt động của trường học thành công.',
+  MSG_018: 'Mã trường học hoặc Mã số thuế đã tồn tại trên hệ thống. Vui lòng chọn định danh duy nhất.',
+  MSG_019: 'Địa chỉ email đã được đăng ký. Vui lòng chỉ định một email công vụ khác.',
+  MSG_020: 'Số giấy phép hoạt động giáo dục mầm non là thông tin bắt buộc khi khởi tạo trường.',
+  MSG_004: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
 } as const;

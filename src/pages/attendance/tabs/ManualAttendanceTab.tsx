@@ -220,7 +220,7 @@ export const ManualAttendanceTab: React.FC = () => {
     }
   });
 
-  // 3. Fetch Kitchen Headcounts Status for Today (BR-025, BR-031)
+  // 3. Fetch Kitchen Headcounts Status for Today
   const { data: kitchenHeadcount } = useQuery({
     queryKey: ['kitchen-headcount', attendanceDate],
     queryFn: async () => {
@@ -293,12 +293,12 @@ export const ManualAttendanceTab: React.FC = () => {
       if (res?.offline) {
         setToastMessage({
           type: 'warning',
-          text: 'MSG-004: Mất kết nối máy chủ. Đã lưu tạm danh sách vào bộ nhớ máy tính bảng, sẽ tự động đồng bộ khi có mạng.'
+          text: 'Mất kết nối máy chủ. Đã lưu tạm danh sách vào bộ nhớ máy tính bảng, sẽ tự động đồng bộ khi có mạng.'
         });
       } else {
         setToastMessage({
           type: 'success',
-          text: 'MSG-089: Đã lưu điểm danh lớp thủ công thành công. Dữ liệu đã đồng bộ sang Bếp ăn!'
+          text: 'Đã lưu điểm danh lớp thủ công thành công. Dữ liệu đã đồng bộ sang Bếp ăn!'
         });
       }
       queryClient.invalidateQueries({ queryKey: ['todayAttendance'] });
@@ -309,7 +309,7 @@ export const ManualAttendanceTab: React.FC = () => {
       console.error('Batch attendance submit error:', err);
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng. Dữ liệu đã được lưu tạm.'
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng. Dữ liệu đã được lưu tạm.'
       });
       setTimeout(() => setToastMessage(null), 6000);
     }
@@ -370,21 +370,21 @@ export const ManualAttendanceTab: React.FC = () => {
 
   // Action: Submit Batch Attendance
   const handleSubmitBatch = () => {
-    // 1. Business Rule Validation: Lock after 08:30 AM (BR-025, BR-031)
+    // 1. Business Rule Validation: Lock after 08:30 AM
     if (timeLeftToLock.isPastLock && !kitchenOverride && attendanceDate === todayStr) {
       setToastMessage({
         type: 'error',
-        text: 'MSG-090: Điểm danh buổi sáng đã bị khóa sau 08:30 để chuẩn bị suất ăn. Việc điều chỉnh cần sự xác nhận của Quản lý Bếp.'
+        text: 'Điểm danh buổi sáng đã bị khóa sau 08:30 để chuẩn bị suất ăn. Việc điều chỉnh cần sự xác nhận của Quản lý Bếp.'
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
     }
 
-    // 2. Business Rule Validation: Mandatory explanation reason when modifying or late (BR-032)
+    // 2. Business Rule Validation: Mandatory explanation reason when modifying or late
     if ((timeLeftToLock.isPastLock || kitchenOverride) && !manualReason.trim()) {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-091: Vui lòng nhập lý do giải trình khi điều chỉnh bản ghi điểm danh đã được ghi nhận.'
+        text: 'Vui lòng nhập lý do giải trình khi điều chỉnh bản ghi điểm danh đã được ghi nhận.'
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
@@ -486,7 +486,7 @@ export const ManualAttendanceTab: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
               <ClipboardCheck className="w-6 h-6 text-[#275A4E]" />
-              <span>Điểm Danh Thủ Công Dự Phòng Trên Tablet (UC-022)</span>
+              <span>Điểm Danh Thủ Công Dự Phòng Trên Tablet</span>
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Dành cho Giáo viên Chủ nhiệm khi trạm camera AI sự cố hoặc học sinh quấy khóc. Chốt sĩ số trước 08:30 sáng để chuyển phân hệ Bếp.
@@ -520,7 +520,7 @@ export const ManualAttendanceTab: React.FC = () => {
               </div>
               <div className="text-sm font-mono font-extrabold">
                 {timeLeftToLock.isPastLock ? (
-                  <span className="text-rose-700">Khóa cứng theo BR-025</span>
+                  <span className="text-rose-700">Khóa cứng theo quy định</span>
                 ) : (
                   <span>
                     Còn {String(timeLeftToLock?.hours ?? 0).padStart(2, '0')}:
@@ -648,12 +648,12 @@ export const ManualAttendanceTab: React.FC = () => {
           </span>
         </div>
 
-        {/* Mandatory Reason Box (BR-032) */}
+        {/* Mandatory Reason Box */}
         {(timeLeftToLock.isPastLock || kitchenOverride) && (
           <div className="p-4 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-2">
             <div className="flex items-center gap-2 text-amber-900 text-xs font-bold">
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>Văn bản giải trình lý do điểm danh thủ công / điều chỉnh sau 08:30 (Bắt buộc theo BR-032):</span>
+              <span>Văn bản giải trình lý do điểm danh thủ công / điều chỉnh sau 08:30 (Bắt buộc):</span>
             </div>
             <textarea
               value={manualReason}

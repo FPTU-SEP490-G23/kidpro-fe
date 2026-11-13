@@ -37,7 +37,7 @@ export const AuditLogsPage: React.FC = () => {
   const [verifyingIntegrity, setVerifyingIntegrity] = useState(false);
   const [integrityStatus, setIntegrityStatus] = useState<'VALID' | 'CORRUPTED' | null>(null);
 
-  // Kiểm tra điều kiện vượt quá 90 ngày (MSG-057)
+  // Kiểm tra điều kiện vượt quá 90 ngày
   const isDateOver90Days = useMemo(() => {
     if (!filter.fromDate || !filter.toDate) return false;
     const from = new Date(filter.fromDate).getTime();
@@ -69,7 +69,7 @@ export const AuditLogsPage: React.FC = () => {
     await new Promise((r) => setTimeout(r, 700));
     setVerifyingIntegrity(false);
     setIntegrityStatus('VALID');
-    showToast('success', 'MSG-054: Chuỗi băm SHA-256 đã khớp 100%. Toàn bộ dữ liệu kiểm toán hợp lệ và không bị can thiệp.');
+    showToast('success', 'Chuỗi băm SHA-256 đã khớp 100%. Toàn bộ dữ liệu kiểm toán hợp lệ và không bị can thiệp.');
   };
 
   const getActionBadge = (action: AuditAction) => {
@@ -240,7 +240,7 @@ export const AuditLogsPage: React.FC = () => {
           ) : isError ? (
             <div className="p-12 text-center text-red-500">
               <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-400" />
-              <p className="text-xs font-bold">MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.</p>
+              <p className="text-xs font-bold">Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.</p>
             </div>
           ) : logs.length === 0 ? (
             <div className="p-12 text-center text-slate-500">

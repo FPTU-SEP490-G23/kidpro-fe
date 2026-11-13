@@ -33,13 +33,13 @@ export const timetableApprovalApi = {
     return res?.data || res;
   },
 
-  // Phê duyệt & Ban hành thời khóa biểu (BR-011, BR-013)
+  // Phê duyệt & Ban hành thời khóa biểu
   approveTimetable: async (classId: string): Promise<{ message: string; data: TimetableClassApproval }> => {
     const res: any = await axiosClient.post(`/bgh/timetables/class/${classId}/approve`);
     return res?.data || res;
   },
 
-  // Yêu cầu chỉnh sửa kèm góp ý chuyên môn (MSG-033, MSG-047)
+  // Yêu cầu chỉnh sửa kèm góp ý chuyên môn
   requestRevision: async (classId: string, reason: string): Promise<{ message: string; data: TimetableClassApproval }> => {
     const res: any = await axiosClient.post(`/bgh/timetables/class/${classId}/request-revision`, { reason });
     return res?.data || res;

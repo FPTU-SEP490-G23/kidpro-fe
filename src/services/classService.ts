@@ -21,7 +21,7 @@ export interface PageResponse<T> {
 
 export const classService = {
   // =========================================================================
-  // G3-UC-01: Quản lý Danh sách & Cập nhật Thông tin Lớp học
+  // Quản lý Danh sách & Cập nhật Thông tin Lớp học
   // =========================================================================
 
   /**
@@ -64,7 +64,7 @@ export const classService = {
   },
 
   /**
-   * Cập nhật tên lớp hoặc phòng học phân bổ (BR-005, MSG-024, MSG-025)
+   * Cập nhật tên lớp hoặc phòng học phân bổ
    */
   updateClass: async (id: string, payload: UpdateClassPayload): Promise<ApiResponse<ClassDetail>> => {
     const res: any = await axiosClient.put(`/classes/${id}`, payload);
@@ -72,7 +72,7 @@ export const classService = {
   },
 
   // =========================================================================
-  // G3-UC-02: Lập Kế hoạch Mở Lớp học Mới
+  // Lập Kế hoạch Mở Lớp học Mới
   // =========================================================================
 
   /**
@@ -118,7 +118,7 @@ export const classService = {
   },
 
   // =========================================================================
-  // G3-UC-12: Đóng & Lưu trữ Hồ sơ Lớp học
+  // Đóng & Lưu trữ Hồ sơ Lớp học
   // =========================================================================
 
   /**
@@ -132,7 +132,7 @@ export const classService = {
   },
 
   /**
-   * Đóng và lưu trữ hồ sơ lớp học khi kết thúc niên khóa (BR-010, MSG-043, MSG-044)
+   * Đóng và lưu trữ hồ sơ lớp học khi kết thúc niên khóa
    */
   archiveClass: async (classId: string): Promise<ApiResponse<void>> => {
     const res: any = await axiosClient.post(`/classes/${classId}/archive`);

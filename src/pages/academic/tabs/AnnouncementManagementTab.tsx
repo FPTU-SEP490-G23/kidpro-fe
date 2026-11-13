@@ -133,7 +133,7 @@ export const AnnouncementManagementTab: React.FC = () => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    // Client-side validation: Max 20MB (BR-056, MSG-231)
+    // Client-side validation: Max 20MB
     const maxBytes = 20 * 1024 * 1024;
     const allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'docx'];
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -174,7 +174,7 @@ export const AnnouncementManagementTab: React.FC = () => {
   };
 
   const handleSubmit = async (isDraft: boolean = false) => {
-    // Client Validation 1: BR-055 (MSG-010)
+    // Client Validation 1: BR-055
     if (!title.trim() || title.trim().length < 10 || !content.trim() || content.trim().length < 10) {
       setFeedback({
         type: 'error',
@@ -184,7 +184,7 @@ export const AnnouncementManagementTab: React.FC = () => {
       return;
     }
 
-    // Client Validation 2: BR-056 (MSG-230)
+    // Client Validation 2: BR-056
     if (isScheduled && !isDraft) {
       if (!scheduledAt) {
         setFeedback({
@@ -542,7 +542,7 @@ export const AnnouncementManagementTab: React.FC = () => {
               <div className="space-y-1">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950">
                   <Sparkles className="w-3.5 h-3.5" />
-                  G11-UC-01 • Cán bộ Giáo vụ
+                  Cán bộ Giáo vụ
                 </span>
                 <h2 className="text-xl font-bold">
                   {editingId ? 'Chỉnh Sửa Thông Báo' : 'Soạn Thảo & Phát Hành Thông Báo Mới'}
@@ -561,7 +561,7 @@ export const AnnouncementManagementTab: React.FC = () => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Tiêu đề (BR-055) */}
+              {/* Tiêu đề */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -653,7 +653,7 @@ export const AnnouncementManagementTab: React.FC = () => {
                 )}
               </div>
 
-              {/* Rich Text Editor for Content (BR-055) */}
+              {/* Rich Text Editor for Content */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -748,7 +748,7 @@ export const AnnouncementManagementTab: React.FC = () => {
                 )}
               </div>
 
-              {/* Lên lịch hẹn giờ phát hành (BR-056) */}
+              {/* Lên lịch hẹn giờ phát hành */}
               <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -783,7 +783,7 @@ export const AnnouncementManagementTab: React.FC = () => {
                 )}
               </div>
 
-              {/* Tệp đính kèm tối đa 20MB (BR-056) */}
+              {/* Tệp đính kèm tối đa 20MB */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">

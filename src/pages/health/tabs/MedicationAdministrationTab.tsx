@@ -117,11 +117,11 @@ export const MedicationAdministrationTab: React.FC = () => {
       showToast('success', 'Đã xác nhận nhận thuốc tại lớp vào buổi sáng thành công.');
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   });
 
-  // 4. Administer Medication with Photo Proof Mutation (UC-027)
+  // 4. Administer Medication with Photo Proof Mutation
   const administerMutation = useMutation({
     mutationFn: async ({
       id,
@@ -159,10 +159,10 @@ export const MedicationAdministrationTab: React.FC = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       closeCameraModal();
-      showToast('success', 'MSG-111: Đã ghi nhận cho trẻ uống thuốc thành công kèm ảnh minh chứng');
+      showToast('success', 'Đã ghi nhận cho trẻ uống thuốc thành công kèm ảnh minh chứng');
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   });
 
@@ -190,7 +190,7 @@ export const MedicationAdministrationTab: React.FC = () => {
       showToast('success', 'Đã lưu đơn dặn thuốc của phụ huynh thành công.');
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   });
 
@@ -217,7 +217,7 @@ export const MedicationAdministrationTab: React.FC = () => {
       }
     } catch (err: any) {
       console.warn('Camera error:', err);
-      setCameraError('Không thể khởi động Camera. Bạn có thể chọn chế độ có Giáo viên phụ tá ký chứng kiến (BR-048).');
+      setCameraError('Không thể khởi động Camera. Bạn có thể chọn chế độ có Giáo viên phụ tá ký chứng kiến.');
     }
   };
 
@@ -258,13 +258,13 @@ export const MedicationAdministrationTab: React.FC = () => {
   const openCameraModal = (med: MedicationRecord) => {
     // BR-049 Validation: Thuốc kháng sinh và kê đơn bắt buộc phải có ảnh toa thuốc
     if (med.isAntibioticOrPrescription && !med.prescriptionPhotoUrl) {
-      showToast('error', 'MSG-112: Quy tắc an toàn: Không được phép cho trẻ uống thuốc khi chưa có đơn thuốc bác sĩ được duyệt.');
+      showToast('error', 'Quy tắc an toàn: Không được phép cho trẻ uống thuốc khi chưa có đơn thuốc bác sĩ được duyệt.');
       return;
     }
 
     // BR-047 Validation: Giới hạn số lần uống
     if (med.dosesAdministeredToday >= med.maxDosesPerDay) {
-      showToast('error', 'MSG-113: Đã đạt số lần uống thuốc tối đa trong ngày. Không được uống vượt quá chỉ định.');
+      showToast('error', 'Đã đạt số lần uống thuốc tối đa trong ngày. Không được uống vượt quá chỉ định.');
       return;
     }
 
@@ -295,7 +295,7 @@ export const MedicationAdministrationTab: React.FC = () => {
     }
 
     if (bypassCameraHardware && !witnessTeacherName.trim()) {
-      showToast('warning', 'MSG-114: Bỏ qua chụp ảnh. Yêu cầu giáo viên cùng lớp ký xác nhận chứng kiến.');
+      showToast('warning', 'Bỏ qua chụp ảnh. Yêu cầu giáo viên cùng lớp ký xác nhận chứng kiến.');
       return;
     }
 
@@ -698,7 +698,7 @@ export const MedicationAdministrationTab: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL 1: CHỤP ẢNH LƯU VẾT LÚC UỐNG THUỐC (UC-027) ================= */}
+      {/* ================= MODAL 1: CHỤP ẢNH LƯU VẾT LÚC UỐNG THUỐC ================= */}
       {selectedMedicationForProof && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 overflow-hidden shadow-2xl relative">
@@ -820,13 +820,13 @@ export const MedicationAdministrationTab: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                /* Hardware Error Fallback Mode (BR-048, MSG-114) */
+                /* Hardware Error Fallback Mode */
                 <div className="bg-[#FEF9EE] p-4 rounded-2xl border border-[#E5A93C] space-y-3">
                   <div className="flex items-start gap-2.5">
                     <ShieldAlert className="h-5 w-5 text-[#E5A93C] shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-xs font-bold text-[#9A6B1F]">
-                        Chế độ Dự phòng: Giáo viên Phụ tá Ký Chứng kiến (BR-048)
+                        Chế độ Dự phòng: Giáo viên Phụ tá Ký Chứng kiến
                       </h4>
                       <p className="text-[11px] text-slate-600 mt-0.5">
                         Khi camera máy tính bảng gặp lỗi phần cứng hoặc sự cố kết nối, bắt buộc phải có giáo viên cùng lớp ký nhận chứng kiến việc cho bé uống thuốc.
@@ -862,7 +862,7 @@ export const MedicationAdministrationTab: React.FC = () => {
                     }}
                     className="rounded-md text-[#275A4E] focus:ring-[#275A4E]"
                   />
-                  <span>Camera lỗi phần cứng / Xác nhận bằng chữ ký giáo viên (BR-048)</span>
+                  <span>Camera lỗi phần cứng / Xác nhận bằng chữ ký giáo viên</span>
                 </label>
               </div>
 

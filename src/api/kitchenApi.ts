@@ -15,7 +15,7 @@ import {
 
 export const kitchenApi = {
   // ==========================================
-  // UC-030: KHÓA SỐ SUẤT ĂN 08:30 AM
+  // KHÓA SỐ SUẤT ĂN 08:30 AM
   // ==========================================
   // Lấy dữ liệu báo bếp tổng quan theo ngày
   getDailySummary: (date?: string) => {
@@ -35,7 +35,7 @@ export const kitchenApi = {
   },
 
   // ==========================================
-  // UC-031: QUẢN LÝ DỊ ỨNG & CHẾ ĐỘ ĂN RIÊNG
+  // QUẢN LÝ DỊ ỨNG & CHẾ ĐỘ ĂN RIÊNG
   // ==========================================
   // Lấy danh sách học sinh có thẻ cảnh báo dị ứng thực phẩm kèm thông tin lớp
   getStudentsByAllergy: (date?: string) => {
@@ -48,7 +48,7 @@ export const kitchenApi = {
   },
 
   // ==========================================
-  // UC-029: THỰC ĐƠN TUẦN BÁN TRÚ
+  // THỰC ĐƠN TUẦN BÁN TRÚ
   // ==========================================
   getWeeklyMenus: (weekStartDate?: string, dayOfWeek?: number) => {
     const params: Record<string, string | number> = {};
@@ -74,7 +74,7 @@ export const kitchenApi = {
   },
 
   // ==========================================
-  // UC-032: TIÊU HAO THỰC PHẨM & LƯU MẪU 24H
+  // TIÊU HAO THỰC PHẨM & LƯU MẪU 24H
   // ==========================================
   // Ghi nhật ký lưu mẫu thức ăn từng bữa kèm ảnh chụp và nhiệt độ tủ bảo quản
   createFoodSample: (data: FoodSampleCreatePayload) => {
@@ -97,7 +97,7 @@ export const kitchenApi = {
   },
 
   // ==========================================
-  // UC-055: SỔ KIỂM THỰC 3 BƯỚC & LƯU MẪU THỨC ĂN (QĐ 1246/QĐ-BYT)
+  // SỔ KIỂM THỰC 3 BƯỚC & LƯU MẪU THỨC ĂN (QĐ 1246/QĐ-BYT)
   // ==========================================
   getThreeStepInspectionLog: (date: string) => {
     return axiosClient.get<ThreeStepFoodSafetyInspectionLog>('/kitchen/inspection-logs', { params: { date } });

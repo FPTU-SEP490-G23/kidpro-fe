@@ -38,7 +38,7 @@ const academicYearSchema = z
       return weeks >= 35;
     },
     {
-      message: 'MSG-034: Năm học phải đảm bảo tối thiểu 35 tuần thực học theo đúng khung thời gian của Bộ GD&ĐT.',
+      message: 'Năm học phải đảm bảo tối thiểu 35 tuần thực học theo đúng khung thời gian của Bộ GD&ĐT.',
       path: ['endDate'],
     }
   );
@@ -141,7 +141,7 @@ export const AcademicYearModal: React.FC<AcademicYearModalProps> = ({
                 {isEditing ? 'Cập Nhật Niên Khóa' : 'Thiết Lập Niên Khóa Mới'}
               </h3>
               <p className="text-xs text-[#78C2AD]">
-                UC-005 • Ban Giám Hiệu • Đồng bộ cơ sở dữ liệu
+                Ban Giám Hiệu • Đồng bộ cơ sở dữ liệu
               </p>
             </div>
           </div>
@@ -233,7 +233,7 @@ export const AcademicYearModal: React.FC<AcademicYearModalProps> = ({
             </div>
           </div>
 
-          {/* Thẻ kiểm tra số tuần thực học tự động (BR-005) */}
+          {/* Thẻ kiểm tra số tuần thực học tự động */}
           <div
             className={`p-4 rounded-2xl border transition-all ${
               isWeeksValid

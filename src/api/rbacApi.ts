@@ -622,7 +622,7 @@ export const rbacApi = {
       throw new Error(RBAC_MESSAGES.MSG_022);
     }
 
-    // Kiểm tra xung đột đồng thời (Concurrency check - MSG-024)
+    // Kiểm tra xung đột đồng thời (Concurrency check)
     if (clientUpdatedAt && targetUser.updatedAt && clientUpdatedAt !== targetUser.updatedAt) {
       throw new Error(RBAC_MESSAGES.MSG_024);
     }

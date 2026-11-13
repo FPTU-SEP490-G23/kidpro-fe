@@ -104,7 +104,7 @@ export const healthApi = {
     return axiosClient.delete(`/health/meal-records/${id}`);
   },
 
-  // 6. Quản lý cho uống thuốc (UC-027) (/api/health/medications)
+  // 6. Quản lý cho uống thuốc (/api/health/medications)
   getMedications: (date?: string, classId?: string) => {
     const params: any = {};
     if (date) params.date = date;
@@ -135,7 +135,7 @@ export const healthApi = {
   },
 
   // ==========================================
-  // UC-051: GHI NHẬN CHỈ SỐ CHIỀU CAO & CÂN NẶNG CHUẨN WHO
+  // GHI NHẬN CHỈ SỐ CHIỀU CAO & CÂN NẶNG CHUẨN WHO
   // ==========================================
   // Lưu sổ theo dõi thể chất cả lớp theo đợt khám (POST /api/health/metrics/batch)
   saveBatchHealthMetrics: async (payload: BatchHealthMetricsPayload) => {
@@ -168,7 +168,7 @@ export const healthApi = {
   },
 
   // ==========================================
-  // UC-052: GHI CHÉP NHẬT KÝ SỰ VỤ Y TẾ HỌC ĐƯỜNG
+  // GHI CHÉP NHẬT KÝ SỰ VỤ Y TẾ HỌC ĐƯỜNG
   // ==========================================
   // Danh sách nhật ký sự vụ y tế (GET /api/health/incidents)
   getMedicalIncidents: async (

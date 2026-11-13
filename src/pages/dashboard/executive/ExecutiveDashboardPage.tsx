@@ -34,9 +34,9 @@ export const ExecutiveDashboardPage: React.FC = () => {
   const handleRefresh = async () => {
     try {
       await refetch();
-      success('MSG-046: Dữ liệu điều hành đã được đồng bộ với luồng camera cổng và kế toán');
+      success('Dữ liệu điều hành đã được đồng bộ với luồng camera cổng và kế toán');
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   };
 

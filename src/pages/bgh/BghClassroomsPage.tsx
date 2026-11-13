@@ -53,14 +53,14 @@ export const BghClassroomsPage: React.FC = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['facility-classrooms'] });
-      success(data?.message || 'MSG-017: Thông tin phòng học đã được lưu thành công vào cơ sở dữ liệu.');
+      success(data?.message || 'Thông tin phòng học đã được lưu thành công vào cơ sở dữ liệu.');
       closeModal();
     },
     onError: (err: any) => {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        'MSG-018: Tên phòng học đã tồn tại hoặc dữ liệu không hợp lệ.';
+        'Tên phòng học đã tồn tại hoặc dữ liệu không hợp lệ.';
       setValidationError(msg);
       error(msg);
     },
@@ -154,7 +154,7 @@ export const BghClassroomsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-007 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Phòng Học</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
@@ -287,7 +287,7 @@ export const BghClassroomsPage: React.FC = () => {
                     {editingRoom ? 'Cập Nhật Phòng Học' : 'Thêm Phòng Học Mới'}
                   </h3>
                   <p className="text-xs text-[#78C2AD]">
-                    UC-007 • Ban Giám Hiệu • Cơ sở dữ liệu
+                    Ban Giám Hiệu • Cơ sở dữ liệu
                   </p>
                 </div>
               </div>

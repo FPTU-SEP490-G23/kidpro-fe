@@ -133,7 +133,7 @@ export const MedicalBulletinTab: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    // 1. BR-055: Kiểm tra tiêu đề hoặc nội dung rỗng (MSG-010)
+    // 1. BR-055: Kiểm tra tiêu đề hoặc nội dung rỗng
     if (!title.trim() || !preventionAdvice.trim()) {
       setFeedback({
         type: 'error',
@@ -143,7 +143,7 @@ export const MedicalBulletinTab: React.FC = () => {
       return;
     }
 
-    // 2. BR-058: Bản tin y tế gắn nhãn khẩn cấp (URGENT) bắt buộc phải ghi rõ tên dịch bệnh và hướng dẫn triệu chứng (MSG-238)
+    // 2. BR-058: Bản tin y tế gắn nhãn khẩn cấp (URGENT) bắt buộc phải ghi rõ tên dịch bệnh và hướng dẫn triệu chứng
     if (priority === 'URGENT') {
       if (!diseaseName.trim() || !symptomsGuide.trim()) {
         setFeedback({
@@ -426,7 +426,7 @@ export const MedicalBulletinTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Symptoms Guide Box (BR-058) */}
+              {/* Symptoms Guide Box */}
               {item.symptomsGuide && (
                 <div className="p-3.5 bg-rose-50/60 border border-rose-200/80 rounded-xl space-y-1 text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-rose-900 uppercase tracking-wider">
@@ -475,7 +475,7 @@ export const MedicalBulletinTab: React.FC = () => {
               <div className="space-y-1">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950">
                   <Sparkles className="w-3.5 h-3.5" />
-                  G11-UC-08 • Cán bộ Giáo vụ
+                  Cán bộ Giáo vụ
                 </span>
                 <h2 className="text-xl font-bold">Đăng Bản Tin Y Tế & Cảnh Báo Dịch Bệnh</h2>
                 <p className="text-xs text-emerald-100/80">
@@ -492,7 +492,7 @@ export const MedicalBulletinTab: React.FC = () => {
 
             {/* Body */}
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              {/* Tiêu đề (BR-055) */}
+              {/* Tiêu đề */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Tiêu đề bản tin y tế <span className="text-rose-500">*</span>
@@ -562,7 +562,7 @@ export const MedicalBulletinTab: React.FC = () => {
                 <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 animate-fadeIn">
                   <Volume2 className="w-5 h-5 text-rose-600 shrink-0 mt-0.5 animate-bounce" />
                   <div className="text-xs text-rose-900 leading-relaxed font-medium">
-                    <strong>Chế độ Khẩn cấp (High Priority FCM):</strong> Bắt buộc phải nhập <strong>Tên dịch bệnh</strong> và <strong>Dấu hiệu nhận biết ban đầu</strong> (BR-058, MSG-238). Khi phát hành, hệ thống sẽ đẩy Push Notification kèm âm thanh cảnh báo y tế tới 100% phụ huynh.
+                    <strong>Chế độ Khẩn cấp (High Priority FCM):</strong> Bắt buộc phải nhập <strong>Tên dịch bệnh</strong> và <strong>Dấu hiệu nhận biết ban đầu</strong>. Khi phát hành, hệ thống sẽ đẩy Push Notification kèm âm thanh cảnh báo y tế tới 100% phụ huynh.
                   </div>
                 </div>
               )}
@@ -595,7 +595,7 @@ export const MedicalBulletinTab: React.FC = () => {
                 />
               </div>
 
-              {/* Hướng dẫn phòng dịch & Chăm sóc (BR-055) */}
+              {/* Hướng dẫn phòng dịch & Chăm sóc */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Hướng dẫn phòng ngừa & Khuyến nghị cách ly y tế <span className="text-rose-500">*</span>
@@ -678,7 +678,7 @@ export const MedicalBulletinTab: React.FC = () => {
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                <span>Xuất Bản Bản Tin (MSG-237)</span>
+                <span>Xuất Bản Bản Tin</span>
               </button>
             </div>
           </div>

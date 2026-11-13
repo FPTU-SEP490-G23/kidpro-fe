@@ -60,9 +60,9 @@ export const SmsTab: React.FC<SmsTabProps> = ({ initialConfig, onUpdateSuccess }
         rateLimitPerHour: Number(data.rateLimitPerHour),
       });
       onUpdateSuccess(updated);
-      success('MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
+      success('Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setIsSaving(false);
     }
@@ -81,9 +81,9 @@ export const SmsTab: React.FC<SmsTabProps> = ({ initialConfig, onUpdateSuccess }
     try {
       const res = await integrationApi.testSmsOtp(testPhone.trim());
       setTestResult(res);
-      success('MSG-025: Đã gửi mã OTP thử nghiệm thành công!');
+      success('Đã gửi mã OTP thử nghiệm thành công!');
     } catch {
-      error('MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
+      error('Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
     } finally {
       setIsSendingTest(false);
     }
@@ -172,7 +172,7 @@ export const SmsTab: React.FC<SmsTabProps> = ({ initialConfig, onUpdateSuccess }
             {errors.providerApiKey && <p className="text-xs text-rose-600 mt-1">{errors.providerApiKey.message}</p>}
           </div>
 
-          {/* Hạn mức gửi tin/giờ (BR-003) */}
+          {/* Hạn mức gửi tin/giờ */}
           <div className="md:col-span-2 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -181,7 +181,7 @@ export const SmsTab: React.FC<SmsTabProps> = ({ initialConfig, onUpdateSuccess }
               </label>
             </div>
             <p className="text-xs text-slate-500 mb-3">
-              Quy tắc BR-003: Giới hạn số lượng tin nhắn gửi đi tối đa trong mỗi giờ nhằm phòng chống spam và kiểm soát chi phí viễn thông của cơ sở trường.
+              Quy tắc: Giới hạn số lượng tin nhắn gửi đi tối đa trong mỗi giờ nhằm phòng chống spam và kiểm soát chi phí viễn thông của cơ sở trường.
             </p>
             <div className="flex items-center gap-3">
               <input

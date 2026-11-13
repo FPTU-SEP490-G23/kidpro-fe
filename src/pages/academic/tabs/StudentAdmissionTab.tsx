@@ -239,13 +239,13 @@ export const StudentAdmissionTab: React.FC = () => {
   // Mutations
   // =========================================================================
 
-  // G4-UC-01: Tiếp nhận tạo mới học sinh
+  // Tiếp nhận tạo mới học sinh
   const createStudentMutation = useMutation({
     mutationFn: (payload: CreateStudentPayload) => studentService.createStudent(payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
-      success(res?.message || 'MSG-045: Tạo mới và cấp mã hồ sơ học sinh thành công.');
+      success(res?.message || 'Tạo mới và cấp mã hồ sơ học sinh thành công.');
       setIsCreateModalOpen(false);
       setCreateForm(defaultCreateForm);
       setCreateStep(1);
@@ -254,28 +254,28 @@ export const StudentAdmissionTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-018' || msg?.includes('MSG-018') || msg?.includes('12') || msg?.includes('72')) {
-        error('MSG-018: Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
+        error('Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
       } else {
         error(msg || 'Lỗi khi tiếp nhận tạo mới hồ sơ học sinh.');
       }
     },
   });
 
-  // G4-UC-01: Cập nhật hồ sơ học sinh
+  // Cập nhật hồ sơ học sinh
   const updateStudentMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateStudentPayload }) =>
       studentService.updateStudent(id, payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
       queryClient.invalidateQueries({ queryKey: ['student-detail', editingStudent?.studentId] });
-      success(res?.message || 'MSG-046: Cập nhật hồ sơ học sinh thành công.');
+      success(res?.message || 'Cập nhật hồ sơ học sinh thành công.');
       setEditingStudent(null);
     },
     onError: (err: any) => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-018' || msg?.includes('MSG-018')) {
-        error('MSG-018: Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
+        error('Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
       } else {
         error(msg || 'Lỗi khi cập nhật hồ sơ học sinh.');
       }
@@ -307,7 +307,7 @@ export const StudentAdmissionTab: React.FC = () => {
     // BR-011: Kiểm tra độ tuổi 12 - 72 tháng
     const months = calculateAgeInMonths(createForm.dateOfBirth, createForm.admissionDate);
     if (months < 12 || months > 72) {
-      error('MSG-018: Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi). Hiện tại: ' + months + ' tháng.');
+      error('Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi). Hiện tại: ' + months + ' tháng.');
       return;
     }
     if (!createForm.address?.trim()) {
@@ -381,7 +381,7 @@ export const StudentAdmissionTab: React.FC = () => {
     if (editForm.dateOfBirth && editForm.admissionDate) {
       const months = calculateAgeInMonths(editForm.dateOfBirth, editForm.admissionDate);
       if (months < 12 || months > 72) {
-        error('MSG-018: Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
+        error('Độ tuổi của trẻ không thuộc phạm vi tiếp nhận mầm non (từ 12 đến 72 tháng tuổi).');
         return;
       }
     }
@@ -416,7 +416,7 @@ export const StudentAdmissionTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Tiếp nhận hồ sơ mới, cấp mã định danh duy nhất (BR-011) và quản lý tra cứu học sinh toàn trường
+                Tiếp nhận hồ sơ mới, cấp mã định danh duy nhất và quản lý tra cứu học sinh toàn trường
               </p>
             </div>
           </div>
@@ -863,7 +863,7 @@ export const StudentAdmissionTab: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* THÔNG BÁO TÍNH ĐỘ TUỔI TỰ ĐỘNG (BR-011 & MSG-018) */}
+                  {/* THÔNG BÁO TÍNH ĐỘ TUỔI TỰ ĐỘNG */}
                   {createForm.dateOfBirth && (
                     <div
                       className={`p-3.5 rounded-xl border flex items-center justify-between ${
@@ -885,7 +885,7 @@ export const StudentAdmissionTab: React.FC = () => {
                                     ? GRADE_LABELS[suggestGradeFromAge(createAgeMonths)!]
                                     : 'Chọn khối'
                                 }`
-                              : 'MSG-018: Không thuộc phạm vi tiếp nhận mầm non (12 - 72 tháng)!'}
+                              : 'Không thuộc phạm vi tiếp nhận mầm non (12 - 72 tháng)!'}
                           </div>
                         </div>
                       </div>
@@ -969,7 +969,7 @@ export const StudentAdmissionTab: React.FC = () => {
               {createStep === 2 && (
                 <div className="space-y-4">
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-xs">
-                    <span className="font-bold">Quy tắc BR-011:</span> Bắt buộc phải có thông tin liên lạc của ít nhất 01 phụ huynh/người giám hộ để liên hệ trong các trường hợp khẩn cấp.
+                    <span className="font-bold">Quy tắc:</span> Bắt buộc phải có thông tin liên lạc của ít nhất 01 phụ huynh/người giám hộ để liên hệ trong các trường hợp khẩn cấp.
                   </div>
 
                   {createForm.guardians.map((g, idx) => (
@@ -1176,7 +1176,7 @@ export const StudentAdmissionTab: React.FC = () => {
                           ))}
                       </select>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Nếu để trống, học sinh sẽ nhận trạng thái <strong>WAITING_PLACEMENT</strong> để Cán bộ Giáo vụ phân bổ lớp tập trung trong tính năng Xếp Trẻ Vào Lớp (G3-UC-06).
+                        Nếu để trống, học sinh sẽ nhận trạng thái <strong>WAITING_PLACEMENT</strong> để Cán bộ Giáo vụ phân bổ lớp tập trung trong tính năng Xếp Trẻ Vào Lớp.
                       </p>
                     </div>
 
@@ -1247,7 +1247,7 @@ export const StudentAdmissionTab: React.FC = () => {
                   {createStudentMutation.isPending && (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   )}
-                  <span>Cấp Mã & Tiếp Nhận Hồ Sơ (MSG-045)</span>
+                  <span>Cấp Mã & Tiếp Nhận Hồ Sơ</span>
                 </button>
               )}
             </div>
@@ -1568,7 +1568,7 @@ export const StudentAdmissionTab: React.FC = () => {
                 {updateStudentMutation.isPending && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
-                <span>Lưu Thay Đổi (MSG-046)</span>
+                <span>Lưu Thay Đổi</span>
               </button>
             </div>
           </div>

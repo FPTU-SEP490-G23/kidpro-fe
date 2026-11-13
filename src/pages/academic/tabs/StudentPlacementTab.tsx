@@ -154,7 +154,7 @@ export const StudentPlacementTab: React.FC = () => {
       });
     },
     onSuccess: (data: any) => {
-      const msg = data?.message || 'MSG-034: Xếp học sinh vào lớp học thành công.';
+      const msg = data?.message || 'Xếp học sinh vào lớp học thành công.';
       success(msg);
       setSelectedStudentIds([]);
       queryClient.invalidateQueries({ queryKey: ['unassigned-students'] });

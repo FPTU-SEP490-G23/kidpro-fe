@@ -53,7 +53,7 @@ export const FirebaseTab: React.FC<FirebaseTabProps> = ({ initialConfig, onUpdat
 
     // Kiểm tra định dạng .json
     if (!file.name.endsWith('.json')) {
-      showToast('MSG-027: Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
+      showToast('Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
       return;
     }
 
@@ -73,7 +73,7 @@ export const FirebaseTab: React.FC<FirebaseTabProps> = ({ initialConfig, onUpdat
 
         // Client-side validation: bắt buộc phải có project_id, private_key, client_email
         if (!json.project_id || !json.private_key || !json.client_email) {
-          showToast('MSG-027: Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
+          showToast('Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
           setIsUploading(false);
           return;
         }
@@ -86,16 +86,16 @@ export const FirebaseTab: React.FC<FirebaseTabProps> = ({ initialConfig, onUpdat
           clientEmail: json.client_email,
         });
         onUpdateSuccess(updated);
-        success('MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
+        success('Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
       } catch {
-        showToast('MSG-027: Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
+        showToast('Định dạng tệp chứng chỉ Firebase không hợp lệ. Thiếu các trường khóa bắt buộc.', 'error');
       } finally {
         setIsUploading(false);
       }
     };
 
     reader.onerror = () => {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
       setIsUploading(false);
     };
 
@@ -112,7 +112,7 @@ export const FirebaseTab: React.FC<FirebaseTabProps> = ({ initialConfig, onUpdat
       success(`Đã ${nextState ? 'kích hoạt' : 'tạm ngắt'} dịch vụ Push Notification (app.fcm.enabled)`);
     } catch {
       setEnabled(!nextState);
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   };
 
@@ -127,10 +127,10 @@ export const FirebaseTab: React.FC<FirebaseTabProps> = ({ initialConfig, onUpdat
     try {
       const res = await integrationApi.testFirebasePing();
       if (res.success) {
-        success(`MSG-025: Gửi thông báo thử nghiệm thành công! (Độ trễ: ${res.latencyMs}ms)`);
+        success(`Gửi thông báo thử nghiệm thành công! (Độ trễ: ${res.latencyMs}ms)`);
       }
     } catch {
-      error('MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
+      error('Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
     } finally {
       setIsTestingPing(false);
     }

@@ -75,14 +75,14 @@ export const FaceAiTab: React.FC<FaceAiTabProps> = ({ initialConfig, onUpdateSuc
     try {
       const res = await integrationApi.pingAiService(baseUrlValue, apiKeyValue);
       setPingResult(res);
-      success(`MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công (${res.latencyMs}ms)`);
+      success(`Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công (${res.latencyMs}ms)`);
     } catch {
       setPingResult({
         status: 'DISCONNECTED',
         latencyMs: 0,
-        message: 'MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.',
+        message: 'Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.',
       });
-      error('MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
+      error('Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
     } finally {
       setIsPinging(false);
     }
@@ -96,9 +96,9 @@ export const FaceAiTab: React.FC<FaceAiTabProps> = ({ initialConfig, onUpdateSuc
         threshold: Number(data.threshold),
       });
       onUpdateSuccess(updated);
-      success('MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
+      success('Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setIsSaving(false);
     }

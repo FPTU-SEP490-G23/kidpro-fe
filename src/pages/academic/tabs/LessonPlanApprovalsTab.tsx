@@ -123,7 +123,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
     if (!selectedPlan) return;
     if (!canReview) return;
 
-    // Kiểm tra xung đột phiên làm việc đồng thời (MSG-268)
+    // Kiểm tra xung đột phiên làm việc đồng thời
     const currentOnServer = lessonPlansData.find((p) => p.id === selectedPlan.id);
     if (currentOnServer && currentOnServer.status !== selectedPlan.status) {
       setFeedback({ type: 'warning', message: MSG_268 });
@@ -166,13 +166,13 @@ export const LessonPlanApprovalsTab: React.FC = () => {
     if (!selectedPlan) return;
     if (!canReview) return;
 
-    // BR: Bắt buộc phải có lý do và hướng dẫn chuyên môn (MSG-269)
+    // BR: Bắt buộc phải có lý do và hướng dẫn chuyên môn
     if (!reviewFeedbackText || reviewFeedbackText.trim().length < 10) {
       setFeedback({ type: 'error', message: MSG_269 });
       return;
     }
 
-    // Kiểm tra xung đột phiên làm việc đồng thời (MSG-268)
+    // Kiểm tra xung đột phiên làm việc đồng thời
     const currentOnServer = lessonPlansData.find((p) => p.id === selectedPlan.id);
     if (currentOnServer && currentOnServer.status !== selectedPlan.status) {
       setFeedback({ type: 'warning', message: MSG_268 });
@@ -219,7 +219,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-062: QUẢN LÝ CHUYÊN MÔN
+                QUẢN LÝ CHUYÊN MÔN
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Hạn Chót 17:00 Thứ Sáu
@@ -564,7 +564,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3">
                   <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="text-xs leading-relaxed">
-                    <strong>MSG-302:</strong> Giáo án được nộp sau thời hạn quy định (17:00 Thứ Sáu). Hệ thống đã ghi nhận trạng thái nộp trễ vào hồ sơ đánh giá thi đua chuyên môn của giáo viên.
+                    <strong>Lưu ý:</strong> Giáo án được nộp sau thời hạn quy định (17:00 Thứ Sáu). Hệ thống đã ghi nhận trạng thái nộp trễ vào hồ sơ đánh giá thi đua chuyên môn của giáo viên.
                   </div>
                 </div>
               )}
@@ -746,7 +746,7 @@ export const LessonPlanApprovalsTab: React.FC = () => {
                   <MessageSquare className="w-4 h-4 text-[#275A4E]" />
                   <span>Ý Kiến Nhận Xét & Chỉ Đạo Chuyên Môn Của Cán Bộ Giáo Vụ</span>
                   <span className="text-rose-500 font-normal">
-                    (Bắt buộc khi yêu cầu sửa đổi - MSG-269)
+                    (Bắt buộc khi yêu cầu sửa đổi)
                   </span>
                 </label>
                 <textarea

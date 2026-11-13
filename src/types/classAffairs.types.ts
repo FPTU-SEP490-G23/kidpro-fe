@@ -12,7 +12,7 @@ export type TeacherRole = 'HOMEROOM' | 'ASSISTANT';
 export type AssignmentStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
 
 // =========================================================================
-// G3-UC-01: Quản lý Danh sách & Cập nhật Thông tin Lớp học
+// Quản lý Danh sách & Cập nhật Thông tin Lớp học
 // =========================================================================
 
 export interface ClassSummary {
@@ -48,7 +48,7 @@ export interface UpdateClassPayload {
 }
 
 // =========================================================================
-// G3-UC-02: Lập Kế hoạch Mở Lớp học Mới
+// Lập Kế hoạch Mở Lớp học Mới
 // =========================================================================
 
 export type ProposalStatus = ClassStatus;
@@ -85,7 +85,7 @@ export interface ClassProposalResponse {
 }
 
 // =========================================================================
-// G3-UC-04: Lập Kế hoạch Phân công Giáo viên Chủ nhiệm & Phụ tá
+// Lập Kế hoạch Phân công Giáo viên Chủ nhiệm & Phụ tá
 // =========================================================================
 
 export interface TeacherAssignmentRequest {

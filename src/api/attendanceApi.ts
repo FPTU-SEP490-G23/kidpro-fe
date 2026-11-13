@@ -10,7 +10,7 @@ import {
 } from '../types/attendance.types';
 
 export const attendanceApi = {
-  // UC-021 & UC-023: Ghi nhận kết quả quét camera cổng (Check-in & Check-out)
+  // UC-021 & Ghi nhận kết quả quét camera cổng (Check-in & Check-out)
   recordFaceLog: (data: {
     studentId?: string;
     guardianId?: string;
@@ -24,12 +24,12 @@ export const attendanceApi = {
     return axiosClient.post<FaceLog>('/attendance/face-logs', data);
   },
 
-  // UC-021: Giám sát cảnh báo người lạ / quét thất bại tại cổng
+  // Giám sát cảnh báo người lạ / quét thất bại tại cổng
   getUnresolvedAlerts: () => {
     return axiosClient.get<FaceLog[]>('/attendance/face-logs/unresolved-alerts');
   },
 
-  // UC-022: Điểm danh hàng loạt (Dành cho Giáo viên trên Tablet)
+  // Điểm danh hàng loạt (Dành cho Giáo viên trên Tablet)
   recordBatchAttendance: (data: BatchAttendancePayload | BatchAttendanceRequest | any) => {
     return axiosClient.post<Attendance[]>('/teachers/attendance/batch', data);
   },
@@ -40,18 +40,18 @@ export const attendanceApi = {
     return axiosClient.get<Attendance[]>(`/teachers/attendance${query}`);
   },
 
-  // UC-022: Lấy dữ liệu khóa sổ báo bếp 08:30
+  // Lấy dữ liệu khóa sổ báo bếp 08:30
   getMealHeadcounts: (date?: string) => {
     const query = date ? `?date=${date}` : '';
     return axiosClient.get<any>(`/kitchen/meal-headcounts${query}`);
   },
 
-  // UC-023: Lấy danh sách ủy quyền đón khẩn cấp trong ngày
+  // Lấy danh sách ủy quyền đón khẩn cấp trong ngày
   getTodayEmergencyPickups: () => {
     return axiosClient.get<EmergencyPickupAuthorization[]>('/academic/emergency-pickups/today');
   },
 
-  // UC-023: Xác nhận trao trả trẻ bằng ủy quyền khẩn cấp (chuyển sang USED)
+  // Xác nhận trao trả trẻ bằng ủy quyền khẩn cấp (chuyển sang USED)
   useEmergencyPickup: (id: string) => {
     return axiosClient.put<EmergencyPickupAuthorization>(`/academic/emergency-pickups/${id}/use`);
   },
@@ -61,17 +61,17 @@ export const attendanceApi = {
     return axiosClient.post<LeaveRequest>('/parents/leave-requests', data);
   },
 
-  // UC-024: Giải tỏa cảnh báo người lạ tại cổng (ghi nhận alert_resolved_at & mở khóa)
+  // Giải tỏa cảnh báo người lạ tại cổng (ghi nhận alert_resolved_at & mở khóa)
   resolveStrangerAlert: (id: string, data: { notes: string; strangerName?: string; idCard?: string; outcome?: string }) => {
     return axiosClient.put<FaceLog>(`/attendance/face-logs/${id}/resolve-alert`, data);
   },
 
-  // UC-025: Lấy danh sách quy tắc khung phạt đón muộn
+  // Lấy danh sách quy tắc khung phạt đón muộn
   getLatePickupRules: () => {
     return axiosClient.get<any[]>('/admin/late-pickup-rules');
   },
 
-  // UC-026: Phê duyệt / Từ chối đơn xin nghỉ học của phụ huynh
+  // Phê duyệt / Từ chối đơn xin nghỉ học của phụ huynh
   reviewLeaveRequest: (id: string, data: { status: 'APPROVED' | 'REJECTED'; reviewNotes?: string; mealRefundApplied?: boolean }) => {
     return axiosClient.put<LeaveRequest>(`/parents/leave-requests/${id}`, data);
   },

@@ -52,9 +52,9 @@ export const ReAuthExportModal: React.FC<ReAuthExportModalProps> = ({
 
       if (!isValid) {
         setAuthError(
-          'MSG-055: Xác thực danh tính thất bại. Đã hủy bỏ thao tác xuất nhật ký an ninh.'
+          'Xác thực danh tính thất bại. Đã hủy bỏ thao tác xuất nhật ký an ninh.'
         );
-        onError('MSG-055: Xác thực danh tính thất bại. Đã hủy bỏ thao tác xuất nhật ký an ninh.');
+        onError('Xác thực danh tính thất bại. Đã hủy bỏ thao tác xuất nhật ký an ninh.');
         setLoading(false);
         return;
       }
@@ -118,12 +118,12 @@ export const ReAuthExportModal: React.FC<ReAuthExportModalProps> = ({
         URL.revokeObjectURL(url);
       }
 
-      onSuccess('MSG-054: Truy xuất các bản ghi nhật ký an ninh thành công.');
+      onSuccess('Truy xuất các bản ghi nhật ký an ninh thành công.');
       setPassword('');
       onClose();
     } catch {
-      setAuthError('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
-      onError('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      setAuthError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      onError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setLoading(false);
     }

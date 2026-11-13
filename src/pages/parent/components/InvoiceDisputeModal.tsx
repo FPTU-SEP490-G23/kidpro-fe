@@ -15,9 +15,9 @@ import parentApi from '../../../api/parentApi';
 import { TuitionInvoiceItem, DisputeCategoryType } from '../../../types/parent.types';
 
 // System Messages
-const MSG_248 = 'MSG-248: Hóa đơn này đã được thanh toán hoàn tất. Vui lòng liên hệ trực tiếp phòng Kế toán để làm thủ tục hoàn trả hoặc đối trừ kỳ sau.';
-const MSG_014 = 'MSG-014: Tệp ảnh minh chứng phải có định dạng JPG/PNG và dung lượng dưới 5MB.';
-const MSG_004 = 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
+const MSG_248 = 'Hóa đơn này đã được thanh toán hoàn tất. Vui lòng liên hệ trực tiếp phòng Kế toán để làm thủ tục hoàn trả hoặc đối trừ kỳ sau.';
+const MSG_014 = 'Tệp ảnh minh chứng phải có định dạng JPG/PNG và dung lượng dưới 5MB.';
+const MSG_004 = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
 
 interface InvoiceDisputeModalProps {
   invoice: TuitionInvoiceItem;
@@ -108,7 +108,7 @@ export const InvoiceDisputeModal: React.FC<InvoiceDisputeModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Business Rule: Không cho phép khiếu nại hóa đơn đã thanh toán hoàn tất (MSG-248)
+    // 1. Business Rule: Không cho phép khiếu nại hóa đơn đã thanh toán hoàn tất
     if (invoice.status === 'PAID') {
       setErrorText(MSG_248);
       return;

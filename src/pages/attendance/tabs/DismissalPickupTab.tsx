@@ -220,7 +220,7 @@ export const DismissalPickupTab: React.FC = () => {
         cameraPhotoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
         authorizationType: 'FIXED_GUARDIAN',
         authorizationStatus: 'VERIFIED',
-        confidenceScore: 0.93, // >= 0.85 (BR-023)
+        confidenceScore: 0.93, // >= 0.85
         arrivedAt: nowStr
       });
     } else if (type === 'EMERGENCY_VALID') {
@@ -321,31 +321,31 @@ export const DismissalPickupTab: React.FC = () => {
   const handleConfirmDismissal = () => {
     if (!activeAlert) return;
 
-    // Rule 1: Check if already picked up (MSG-096)
+    // Rule 1: Check if already picked up
     if (activeAlert.hasAlreadyLeft) {
       setToastMessage({
         type: 'error',
-        text: `MSG-096: Học sinh này đã được đón về hôm nay lúc ${activeAlert.leftAtTime}. Cần tiến hành kiểm tra làm rõ ngay.`
+        text: `Học sinh này đã được đón về hôm nay lúc ${activeAlert.leftAtTime}. Cần tiến hành kiểm tra làm rõ ngay.`
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
     }
 
-    // Rule 2: Check revoked or expired authorization (MSG-095)
+    // Rule 2: Check revoked or expired authorization
     if (activeAlert.authorizationStatus === 'EXPIRED' || activeAlert.authorizationStatus === 'REVOKED') {
       setToastMessage({
         type: 'error',
-        text: 'MSG-095: Giấy ủy quyền đón trẻ của người này đã hết hạn hoặc bị thu hồi. Tuyệt đối không giao trẻ.'
+        text: 'Giấy ủy quyền đón trẻ của người này đã hết hạn hoặc bị thu hồi. Tuyệt đối không giao trẻ.'
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
     }
 
-    // Rule 3: Check AI confidence score >= 0.85 (BR-023 & MSG-087)
+    // Rule 3: Check AI confidence score >= 0.85
     if (activeAlert.confidenceScore < 0.85) {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-087: Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt (Độ tin cậy < 0.85).'
+        text: 'Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt (Độ tin cậy < 0.85).'
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
@@ -373,7 +373,7 @@ export const DismissalPickupTab: React.FC = () => {
 
     setToastMessage({
       type: 'success',
-      text: `MSG-093: Đã trao trả bé an toàn cho ${activeAlert.pickupPersonName} (Lúc ${timeStr}). FCM thông báo đã gửi đến phụ huynh.`
+      text: `Đã trao trả bé an toàn cho ${activeAlert.pickupPersonName} (Lúc ${timeStr}). FCM thông báo đã gửi đến phụ huynh.`
     });
 
     // Close alert modal
@@ -437,7 +437,7 @@ export const DismissalPickupTab: React.FC = () => {
             <ShieldAlert className="w-8 h-8 shrink-0 text-amber-300" />
             <div>
               <div className="text-base font-extrabold uppercase tracking-wide">
-                BÁO ĐỘNG AN NINH: PHONG TỎA QUYỀN TRẢ TRẺ TẠI CỔNG (UC-024)
+                BÁO ĐỘNG AN NINH: PHONG TỎA QUYỀN TRẢ TRẺ TẠI CỔNG
               </div>
               <div className="text-xs text-rose-100 mt-0.5">
                 {securityAlertDetails}
@@ -458,7 +458,7 @@ export const DismissalPickupTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-[#275A4E]" />
-            <span>Xác Thực Người Đón Lúc Tan Trường Bằng AI (UC-023)</span>
+            <span>Xác Thực Người Đón Lúc Tan Trường Bằng AI</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Khung giờ tan học (16:00 - 17:30). Nhận diện khuôn mặt người đón, đối chiếu CCCD và ủy quyền khẩn cấp để ngăn chặn nhầm lẫn hoặc người lạ tiếp cận trẻ.
@@ -551,7 +551,7 @@ export const DismissalPickupTab: React.FC = () => {
               <button
                 onClick={() => simulateArrival('LOW_CONFIDENCE')}
                 className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer"
-                title="Test người lạ hoặc độ tương đồng < 0.85 (BR-023)"
+                title="Test người lạ hoặc độ tương đồng < 0.85"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 <span>Test Lỗi &lt; 0.85</span>
@@ -560,17 +560,17 @@ export const DismissalPickupTab: React.FC = () => {
               <button
                 onClick={() => simulateArrival('ALREADY_PICKED')}
                 className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer"
-                title="Test bé đã được đón trước đó trong ngày (MSG-096)"
+                title="Test bé đã được đón trước đó trong ngày"
               >
-                <span>Test Đón Trùng (MSG-096)</span>
+                <span>Test Đón Trùng</span>
               </button>
 
               <button
                 onClick={() => simulateArrival('REVOKED')}
                 className="px-3 py-2 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer"
-                title="Test ủy quyền đã bị thu hồi (MSG-095)"
+                title="Test ủy quyền đã bị thu hồi"
               >
-                <span>Test Thu Hồi (MSG-095)</span>
+                <span>Test Thu Hồi</span>
               </button>
             </div>
           </div>
@@ -608,7 +608,7 @@ export const DismissalPickupTab: React.FC = () => {
               <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-200 text-xs text-rose-800 flex items-center gap-3">
                 <ShieldAlert className="w-6 h-6 text-rose-600 shrink-0" />
                 <div>
-                  <span className="font-bold">Quy tắc ngăn chặn đón trùng (MSG-096): </span>
+                  <span className="font-bold">Quy tắc ngăn chặn đón trùng: </span>
                   Nếu học sinh đã có giờ về trong ngày hôm nay, nút trả trẻ sẽ bị khóa và còi cảnh báo sẽ vang lên để bảo vệ trẻ tuyệt đối.
                 </div>
               </div>
@@ -855,7 +855,7 @@ export const DismissalPickupTab: React.FC = () => {
               <div className="p-4 bg-rose-50 border-2 border-rose-400 rounded-2xl flex items-center gap-3 text-rose-900">
                 <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />
                 <div>
-                  <div className="font-extrabold text-sm">CẢNH BÁO ĐÓN TRÙNG (MSG-096)</div>
+                  <div className="font-extrabold text-sm">CẢNH BÁO ĐÓN TRÙNG</div>
                   <div className="text-xs">
                     Học sinh {activeAlert.studentName} đã được đón về hôm nay lúc <strong>{activeAlert.leftAtTime}</strong>. Cần tiến hành kiểm tra làm rõ ngay!
                   </div>
@@ -867,7 +867,7 @@ export const DismissalPickupTab: React.FC = () => {
               <div className="p-4 bg-rose-50 border-2 border-rose-400 rounded-2xl flex items-center gap-3 text-rose-900">
                 <ShieldAlert className="w-6 h-6 text-rose-600 shrink-0" />
                 <div>
-                  <div className="font-extrabold text-sm">ỦY QUYỀN ĐÃ BỊ THU HỒI (MSG-095)</div>
+                  <div className="font-extrabold text-sm">ỦY QUYỀN ĐÃ BỊ THU HỒI</div>
                   <div className="text-xs">
                     Giấy ủy quyền đón trẻ của người này đã hết hạn hoặc bị phụ huynh thu hồi trên app. Tuyệt đối không giao trẻ!
                   </div>
@@ -879,9 +879,9 @@ export const DismissalPickupTab: React.FC = () => {
               <div className="p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl flex items-center gap-3 text-amber-900">
                 <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
                 <div>
-                  <div className="font-extrabold text-sm">ĐỘ TƯƠNG ĐỒNG AI THẤP (MSG-087)</div>
+                  <div className="font-extrabold text-sm">ĐỘ TƯƠNG ĐỒNG AI THẤP</div>
                   <div className="text-xs">
-                    Độ tương đồng khuôn mặt {Math.round(activeAlert.confidenceScore * 100)}% chưa đạt ngưỡng an ninh tối thiểu 85% (BR-023). Vui lòng xác minh thủ công hoặc phong tỏa an ninh.
+                    Độ tương đồng khuôn mặt {Math.round(activeAlert.confidenceScore * 100)}% chưa đạt ngưỡng an ninh tối thiểu 85%. Vui lòng xác minh thủ công hoặc phong tỏa an ninh.
                   </div>
                 </div>
               </div>

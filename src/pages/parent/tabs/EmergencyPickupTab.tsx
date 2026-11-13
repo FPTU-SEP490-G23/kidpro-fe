@@ -88,13 +88,13 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
         setToastMessage({
           type: 'warning',
           code: 'MSG-176',
-          text: 'MSG-176: Ủy quyền nộp sát giờ. Nhà trường sẽ gọi điện thoại xác nhận trực tiếp với cha mẹ.',
+          text: 'Ủy quyền nộp sát giờ. Nhà trường sẽ gọi điện thoại xác nhận trực tiếp với cha mẹ.',
         });
       } else {
         setToastMessage({
           type: 'success',
           code: 'MSG-175',
-          text: 'MSG-175: Đã tạo ủy quyền đón hộ thành công. Vui lòng chia sẻ mã QR cho người đón',
+          text: 'Đã tạo ủy quyền đón hộ thành công. Vui lòng chia sẻ mã QR cho người đón',
         });
       }
 
@@ -108,7 +108,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-004',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -205,7 +205,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-096',
-        text: 'MSG-096: Học sinh đã rời trường hôm nay hoặc vắng mặt. Không thể tạo ủy quyền đón hộ.',
+        text: 'Học sinh đã rời trường hôm nay hoặc vắng mặt. Không thể tạo ủy quyền đón hộ.',
       });
       return;
     }
@@ -267,7 +267,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-177',
-        text: 'MSG-177: Mã PIN bảo mật không chính xác (phải gồm 6 chữ số). Chưa thể xác nhận ủy quyền đón hộ.',
+        text: 'Mã PIN bảo mật không chính xác (phải gồm 6 chữ số). Chưa thể xác nhận ủy quyền đón hộ.',
       });
       return;
     }
@@ -277,7 +277,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-177',
-        text: 'MSG-177: Mã PIN bảo mật không chính xác. Chưa thể xác nhận ủy quyền đón hộ.',
+        text: 'Mã PIN bảo mật không chính xác. Chưa thể xác nhận ủy quyền đón hộ.',
       });
       return;
     }
@@ -341,7 +341,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-amber-950 flex items-center gap-2">
-              <span>ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY (UC-043)</span>
+              <span>ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY</span>
               <span className="rounded-full bg-amber-200/70 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                 Hiệu lực 1 ngày duy nhất
               </span>
@@ -571,7 +571,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Cảnh báo (MSG-176):</strong> Thời gian nộp đơn sau 16:30 là sát khung giờ tan trường.
+                  <strong>Cảnh báo:</strong> Thời gian nộp đơn sau 16:30 là sát khung giờ tan trường.
                   Nhà trường sẽ gọi điện thoại xác nhận trực tiếp với cha mẹ trước khi mở cổng cho người đón.
                 </span>
               </div>

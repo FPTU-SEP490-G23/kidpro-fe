@@ -186,7 +186,7 @@ export const EquipmentManagementTab: React.FC = () => {
     }
   };
 
-  // Submit Create Equipment (BR-051, MSG-212, MSG-195, MSG-211)
+  // Submit Create Equipment
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCode.trim()) {
@@ -198,7 +198,7 @@ export const EquipmentManagementTab: React.FC = () => {
       return;
     }
     if (newQuantity <= 0) {
-      setCreateError('MSG-195: Số lượng thiết bị khai báo không hợp lệ (phải lớn hơn 0).');
+      setCreateError('Số lượng thiết bị khai báo không hợp lệ (phải lớn hơn 0).');
       return;
     }
     if (!newRoomId) {
@@ -221,7 +221,7 @@ export const EquipmentManagementTab: React.FC = () => {
       };
 
       await equipmentService.createEquipment(payload);
-      showToast('success', 'MSG-211: Khai báo và cấp phát thiết bị mầm non thành công.');
+      showToast('success', 'Khai báo và cấp phát thiết bị mầm non thành công.');
       setShowCreateModal(false);
       // Reset form
       setNewCode('');
@@ -233,9 +233,9 @@ export const EquipmentManagementTab: React.FC = () => {
       console.error('Create equipment error:', err);
       const msg = err.response?.data?.message || err.message;
       if (msg && msg.includes('MSG-212')) {
-        setCreateError('MSG-212: Mã định danh tài sản/thiết bị đã tồn tại trong hệ thống.');
+        setCreateError('Mã định danh tài sản/thiết bị đã tồn tại trong hệ thống.');
       } else if (msg && msg.includes('MSG-195')) {
-        setCreateError('MSG-195: Số lượng thiết bị khai báo không hợp lệ (phải lớn hơn 0).');
+        setCreateError('Số lượng thiết bị khai báo không hợp lệ (phải lớn hơn 0).');
       } else {
         setCreateError(msg || 'Lỗi hệ thống khi tạo thiết bị.');
       }
@@ -244,7 +244,7 @@ export const EquipmentManagementTab: React.FC = () => {
     }
   };
 
-  // Submit Transfer (BR-051, MSG-213, MSG-211)
+  // Submit Transfer
   const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!transferTarget) return;
@@ -263,12 +263,12 @@ export const EquipmentManagementTab: React.FC = () => {
       return;
     }
     if (transferQty <= 0) {
-      setTransferError('MSG-195: Số lượng thiết bị điều chuyển phải lớn hơn 0.');
+      setTransferError('Số lượng thiết bị điều chuyển phải lớn hơn 0.');
       return;
     }
     if (transferQty > transferTarget.quantity) {
       setTransferError(
-        `MSG-213: Số lượng thiết bị điều chuyển (${transferQty}) vượt quá số lượng hiện có tại phòng học nguồn (${transferTarget.quantity}).`
+        `Số lượng thiết bị điều chuyển (${transferQty}) vượt quá số lượng hiện có tại phòng học nguồn (${transferTarget.quantity}).`
       );
       return;
     }
@@ -290,7 +290,7 @@ export const EquipmentManagementTab: React.FC = () => {
       };
 
       await equipmentService.transferEquipment(payload);
-      showToast('success', 'MSG-211: Điều chuyển thiết bị mầm non thành công.');
+      showToast('success', 'Điều chuyển thiết bị mầm non thành công.');
       setShowTransferModal(false);
       setTransferTarget(null);
       fetchInventories();
@@ -298,7 +298,7 @@ export const EquipmentManagementTab: React.FC = () => {
       console.error('Transfer equipment error:', err);
       const msg = err.response?.data?.message || err.message;
       if (msg && msg.includes('MSG-213')) {
-        setTransferError('MSG-213: Số lượng thiết bị điều chuyển vượt quá số lượng hiện có tại phòng học nguồn.');
+        setTransferError('Số lượng thiết bị điều chuyển vượt quá số lượng hiện có tại phòng học nguồn.');
       } else {
         setTransferError(msg || 'Lỗi khi điều chuyển thiết bị.');
       }
@@ -353,7 +353,7 @@ export const EquipmentManagementTab: React.FC = () => {
               Quản lý Danh mục Thiết bị & Đồ chơi Mầm non
             </h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              G9-UC-06 • BR-051
+              BR-051
             </span>
           </div>
           <p className="text-xs md:text-sm text-slate-500 max-w-2xl">
@@ -572,7 +572,7 @@ export const EquipmentManagementTab: React.FC = () => {
                   Khai báo & Cấp phát Thiết bị Mới
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Đăng ký mã định danh duy nhất (BR-051) và cấp phát số lượng ban đầu về phòng học.
+                  Đăng ký mã định danh duy nhất và cấp phát số lượng ban đầu về phòng học.
                 </p>
               </div>
               <button

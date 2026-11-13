@@ -77,7 +77,7 @@ export const BghStaffManagementPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['bgh-staff-list'] });
       const createdStaff = res?.data || res;
       setCreatedResult(createdStaff);
-      success(res?.message || 'MSG-019: Tạo hồ sơ, cấp tài khoản và đã gửi thông báo đến Gmail thành công.');
+      success(res?.message || 'Tạo hồ sơ, cấp tài khoản và đã gửi thông báo đến Gmail thành công.');
       closeCreateModal();
     },
     onError: (err: any) => {
@@ -107,7 +107,7 @@ export const BghStaffManagementPage: React.FC = () => {
     mutationFn: ({ id, reason }: { id: string; reason: string }) => staffApi.lockStaff(id, reason),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['bgh-staff-list'] });
-      success(res?.message || 'MSG-020: Tài khoản nhân sự đã bị khóa thành công và thu hồi phiên đăng nhập.');
+      success(res?.message || 'Tài khoản nhân sự đã bị khóa thành công và thu hồi phiên đăng nhập.');
       setLockingStaff(null);
     },
     onError: (err: any) => {
@@ -121,7 +121,7 @@ export const BghStaffManagementPage: React.FC = () => {
     mutationFn: (id: string) => staffApi.unlockStaff(id),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['bgh-staff-list'] });
-      success(res?.message || 'MSG-021: Mở khóa tài khoản nhân sự thành công. Nhân sự có thể đăng nhập lại vào hệ thống.');
+      success(res?.message || 'Mở khóa tài khoản nhân sự thành công. Nhân sự có thể đăng nhập lại vào hệ thống.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || 'Không thể mở khóa tài khoản');
@@ -133,7 +133,7 @@ export const BghStaffManagementPage: React.FC = () => {
     mutationFn: ({ id, role }: { id: string; role: string }) => staffApi.updateStaffRole(id, role),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['bgh-staff-list'] });
-      success(res?.message || 'MSG-024: Gán vai trò và cập nhật quyền hạn cho nhân sự thành công.');
+      success(res?.message || 'Gán vai trò và cập nhật quyền hạn cho nhân sự thành công.');
       setRoleStaff(null);
     },
     onError: (err: any) => {
@@ -174,7 +174,7 @@ export const BghStaffManagementPage: React.FC = () => {
   const openLockModal = (staff: StaffMember) => {
     // Client-side BR-008 pre-check: Không được tự khóa chính mình
     if (user && (user.id === staff.accountId || user.email === staff.email)) {
-      error('MSG-023: Không được phép tự khóa tài khoản của chính mình.');
+      error('Không được phép tự khóa tài khoản của chính mình.');
       return;
     }
     setLockingStaff(staff);
@@ -261,11 +261,11 @@ export const BghStaffManagementPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-008 & UC-009 • Ban Giám Hiệu</span>
+            <span>UC-008 & Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Nhân Sự & Phân Quyền</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Quản lý hồ sơ cán bộ giáo viên, kiểm soát trạng thái hoạt động (khóa/mở khóa) và phân bổ vai trò quyền hạn nhà trường (BR-008, BR-009).
+            Quản lý hồ sơ cán bộ giáo viên, kiểm soát trạng thái hoạt động (khóa/mở khóa) và phân bổ vai trò quyền hạn nhà trường.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -425,11 +425,11 @@ export const BghStaffManagementPage: React.FC = () => {
                       {/* Thao tác */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Phân quyền vai trò (UC-009) */}
+                          {/* Phân quyền vai trò */}
                           <button
                             type="button"
                             onClick={() => openRoleModal(staff)}
-                            title="Gán vai trò & phân quyền (UC-009)"
+                            title="Gán vai trò & phân quyền"
                             className="p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition cursor-pointer"
                           >
                             <ShieldCheck className="w-4 h-4" />
@@ -450,7 +450,7 @@ export const BghStaffManagementPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => unlockMutation.mutate(staff.staffId)}
-                              title="Mở khóa tài khoản (MSG-021)"
+                              title="Mở khóa tài khoản"
                               className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
                             >
                               <Unlock className="w-4 h-4" />
@@ -460,7 +460,7 @@ export const BghStaffManagementPage: React.FC = () => {
                               type="button"
                               onClick={() => openLockModal(staff)}
                               disabled={Boolean(isCurrentUser)}
-                              title={isCurrentUser ? 'Không thể tự khóa chính mình (MSG-023)' : 'Khóa tài khoản'}
+                              title={isCurrentUser ? 'Không thể tự khóa chính mình' : 'Khóa tài khoản'}
                               className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                             >
                               <Lock className="w-4 h-4" />
@@ -477,7 +477,7 @@ export const BghStaffManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Thêm Nhân Sự Mới (UC-008) */}
+      {/* Modal Thêm Nhân Sự Mới */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
@@ -488,7 +488,7 @@ export const BghStaffManagementPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Thêm Hồ Sơ Cán Bộ Mới</h3>
-                  <p className="text-xs text-[#78C2AD]">UC-008 • Ban Giám Hiệu</p>
+                  <p className="text-xs text-[#78C2AD]">Ban Giám Hiệu</p>
                 </div>
               </div>
               <button onClick={closeCreateModal} className="p-1 rounded-full hover:bg-white/10 text-white/80">
@@ -794,7 +794,7 @@ export const BghStaffManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Phân Quyền Vai Trò (UC-009) */}
+      {/* Modal Phân Quyền Vai Trò */}
       {roleStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4">

@@ -391,12 +391,12 @@ export const WeeklyLessonPlanTab: React.FC = () => {
         if (deadlineTimer.isExpired) {
           setToastMessage({
             type: 'warning',
-            text: `MSG-302: ${MSG_302}`,
+            text: `${MSG_302}`,
           });
         } else {
           setToastMessage({
             type: 'success',
-            text: `MSG-301: ${MSG_301}`,
+            text: `${MSG_301}`,
           });
         }
       }
@@ -405,7 +405,7 @@ export const WeeklyLessonPlanTab: React.FC = () => {
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
       setTimeout(() => setToastMessage(null), 5000);
     },
@@ -450,13 +450,13 @@ export const WeeklyLessonPlanTab: React.FC = () => {
   const handleFinalSubmit = (isDraft: boolean) => {
     const values = watch();
 
-    // Check 5 objectives if official submission (MSG-303)
+    // Check 5 objectives if official submission
     if (!isDraft) {
       const obj = values.objectives;
       if (!obj.physical || !obj.cognitive || !obj.language || !obj.socialEmotional || !obj.aesthetic) {
         setToastMessage({
           type: 'error',
-          text: `MSG-303: ${MSG_303}`,
+          text: `${MSG_303}`,
         });
         setTimeout(() => setToastMessage(null), 5000);
         return;
@@ -507,7 +507,7 @@ export const WeeklyLessonPlanTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold tracking-tight text-[#1E4D40] flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-[#275A4E]" />
-            <span>Kế Hoạch & Phê Duyệt Giáo Án Tuần (UC-054)</span>
+            <span>Kế Hoạch & Phê Duyệt Giáo Án Tuần</span>
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             Soạn thảo, nộp kế hoạch bài giảng 5 lĩnh vực mầm non và thẩm định chuyên môn trước 17:00 Thứ Sáu
@@ -846,12 +846,12 @@ export const WeeklyLessonPlanTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mục tiêu phát triển 5 lĩnh vực (BẮT BUỘC - MSG-303) */}
+              {/* Mục tiêu phát triển 5 lĩnh vực (BẮT BUỘC) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4 text-[#275A4E]" />
-                    <span>Mục Tiêu Phát Triển 5 Lĩnh Vực Mầm Non (Bắt buộc không được để trống - MSG-303)</span>
+                    <span>Mục Tiêu Phát Triển 5 Lĩnh Vực Mầm Non (Bắt buộc không được để trống)</span>
                   </label>
                 </div>
 

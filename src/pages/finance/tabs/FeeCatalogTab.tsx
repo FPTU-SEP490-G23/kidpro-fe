@@ -84,7 +84,7 @@ export const FeeCatalogTab: React.FC = () => {
       return;
     }
     if (unitPrice <= 0) {
-      showToast('error', 'MSG-145: Đơn giá khoản thu phải là số dương lớn hơn 0 VNĐ.');
+      showToast('error', 'Đơn giá khoản thu phải là số dương lớn hơn 0 VNĐ.');
       return;
     }
 
@@ -101,7 +101,7 @@ export const FeeCatalogTab: React.FC = () => {
         showToast('success', 'Cập nhật khoản thu thành công.');
       } else {
         await financeApi.createService(payload);
-        showToast('success', 'MSG-147: Thiết lập khoản thu mới vào biểu phí năm học thành công.');
+        showToast('success', 'Thiết lập khoản thu mới vào biểu phí năm học thành công.');
       }
       setIsModalOpen(false);
       fetchServices();
@@ -117,7 +117,7 @@ export const FeeCatalogTab: React.FC = () => {
       showToast('success', 'Đã xóa khoản thu khỏi danh mục.');
       fetchServices();
     } catch (err: any) {
-      showToast('error', err?.response?.data?.message || 'MSG-146: Không thể xóa khoản thu đã phát sinh dữ liệu.');
+      showToast('error', err?.response?.data?.message || 'Không thể xóa khoản thu đã phát sinh dữ liệu.');
     }
   };
 

@@ -92,14 +92,14 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     if (formData.maxCapacity < 10 || formData.maxCapacity > 30) {
       setAlertInfo({
         type: 'error',
-        message: 'MSG-229: Sĩ số tối đa vượt quá quy chuẩn phòng học chức năng (tối đa không quá 30 trẻ/lớp).',
+        message: 'Sĩ số tối đa vượt quá quy chuẩn phòng học chức năng (tối đa không quá 30 trẻ/lớp).',
       });
       return;
     }
     if (formData.tuitionFee <= 0) {
       setAlertInfo({
         type: 'error',
-        message: 'MSG-230: Mức học phí câu lạc bộ năng khiếu phải lớn hơn 0 VNĐ.',
+        message: 'Mức học phí câu lạc bộ năng khiếu phải lớn hơn 0 VNĐ.',
       });
       return;
     }
@@ -113,7 +113,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
       const res = await extracurricularApi.createAndApproveClass(payload);
       setAlertInfo({
         type: 'success',
-        message: (res as any)?.message || (res as any)?.data?.message || 'Lớp câu lạc bộ năng khiếu ngoại khóa đã được phê duyệt mở thành công và kích hoạt nhận đăng ký (MSG-228).',
+        message: (res as any)?.message || (res as any)?.data?.message || 'Lớp câu lạc bộ năng khiếu ngoại khóa đã được phê duyệt mở thành công và kích hoạt nhận đăng ký.',
       });
       setCreateModalOpen(false);
       setFormData({
@@ -167,12 +167,12 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     if (editFormData.maxCapacity < 10 || editFormData.maxCapacity > 30) {
       setAlertInfo({
         type: 'error',
-        message: 'MSG-229: Sĩ số tối đa vượt quá quy chuẩn phòng học chức năng (10 - 30 trẻ/lớp).',
+        message: 'Sĩ số tối đa vượt quá quy chuẩn phòng học chức năng (10 - 30 trẻ/lớp).',
       });
       return;
     }
     if (editFormData.tuitionFee <= 0) {
-      setAlertInfo({ type: 'error', message: 'MSG-230: Mức học phí phải lớn hơn 0 VNĐ.' });
+      setAlertInfo({ type: 'error', message: 'Mức học phí phải lớn hơn 0 VNĐ.' });
       return;
     }
 
@@ -233,10 +233,10 @@ export const BghExtracurricularClassesPage: React.FC = () => {
             <span>Ban Giám Hiệu • Phê Duyệt Mở Lớp & Quản Trị CLB</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Quản Lý & Phê Duyệt Lớp Ngoại Khóa (UC-067)
+            Quản Lý & Phê Duyệt Lớp Ngoại Khóa
           </h1>
           <p className="text-emerald-100/90 text-sm mt-1 max-w-2xl">
-            Khởi tạo & phê duyệt các lớp năng khiếu (Vẽ, Võ, Múa, Tiếng Anh, STEAM), cấu hình biểu phí học phí và kích hoạt nhận đăng ký trực tuyến (BR-090, BR-091, BR-092).
+            Khởi tạo & phê duyệt các lớp năng khiếu (Vẽ, Võ, Múa, Tiếng Anh, STEAM), cấu hình biểu phí học phí và kích hoạt nhận đăng ký trực tuyến.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Phòng học chức năng (BR-091)
+                    Phòng học chức năng
                   </label>
                   <select
                     value={formData.classroomId}
@@ -424,7 +424,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Lịch học & Khung giờ (BR-091) <span className="text-rose-500">*</span>
+                  Lịch học & Khung giờ <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -497,7 +497,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
                   disabled={submitting}
                   className="px-5 py-2.5 bg-[#275A4E] text-white rounded-xl text-sm font-bold hover:bg-[#1E4D40] cursor-pointer disabled:opacity-50 transition shadow-sm"
                 >
-                  {submitting ? 'Đang tạo...' : 'Phê Duyệt Mở Lớp (MSG-228)'}
+                  {submitting ? 'Đang tạo...' : 'Phê Duyệt Mở Lớp'}
                 </button>
               </div>
             </form>
@@ -535,7 +535,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Phòng học chức năng (BR-091)
+                  Phòng học chức năng
                 </label>
                 <select
                   value={editFormData.classroomId}
@@ -553,7 +553,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Lịch học & Khung giờ (BR-091) <span className="text-rose-500">*</span>
+                  Lịch học & Khung giờ <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"

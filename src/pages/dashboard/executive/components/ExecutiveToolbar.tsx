@@ -81,12 +81,12 @@ export const ExecutiveToolbar: React.FC<ExecutiveToolbarProps> = ({
           {isCacheData ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-300">
               <Clock className="w-3 h-3 text-[#E5A93C]" />
-              MSG-047: Đang hiển thị bộ nhớ đệm. Đang đồng bộ...
+              Đang hiển thị bộ nhớ đệm. Đang đồng bộ...
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-[#1E4D40] border border-[#78C2AD]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
-              MSG-046: Dữ liệu đã đồng bộ với Camera & Kế toán
+              Dữ liệu đã đồng bộ với Camera & Kế toán
             </span>
           )}
         </div>

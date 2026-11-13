@@ -83,13 +83,13 @@ export const healthMonitoringApi = {
 
     if (isFaceAiDown) {
       overallStatus = 'DOWN';
-      incidentAlert = 'MSG-031: Máy chủ AI khuôn mặt không phản hồi. Đã kích hoạt chế độ điểm danh thủ công dự phòng.';
+      incidentAlert = 'Máy chủ AI khuôn mặt không phản hồi. Đã kích hoạt chế độ điểm danh thủ công dự phòng.';
     } else if (isDbOverload) {
       overallStatus = 'DEGRADED';
-      incidentAlert = 'MSG-030: Độ trễ phản hồi cơ sở dữ liệu cao. Hệ thống đang vận hành ở chế độ giảm tải.';
+      incidentAlert = 'Độ trễ phản hồi cơ sở dữ liệu cao. Hệ thống đang vận hành ở chế độ giảm tải.';
     } else if (isQueueClogged) {
       overallStatus = 'DEGRADED';
-      incidentAlert = 'MSG-032: Hàng đợi phát thông báo bị chậm trễ. Hệ thống đang tự động mở rộng luồng xử lý.';
+      incidentAlert = 'Hàng đợi phát thông báo bị chậm trễ. Hệ thống đang tự động mở rộng luồng xử lý.';
     }
 
     return {

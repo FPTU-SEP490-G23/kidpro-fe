@@ -93,7 +93,7 @@ export const KitchenPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950 shadow-xs">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Bếp Bán Trú • {currentMeta.uc}</span>
+              <span>Bếp Bán Trú</span>
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
               Quyết định 1246/QĐ-BYT

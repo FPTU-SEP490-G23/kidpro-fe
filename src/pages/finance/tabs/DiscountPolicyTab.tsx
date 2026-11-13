@@ -101,7 +101,7 @@ export const DiscountPolicyTab: React.FC = () => {
       return;
     }
     if (discountPercentage < 0 || discountPercentage > 100) {
-      showToast('error', 'MSG-011: Tỷ lệ miễn giảm phải từ 0% đến 100%.');
+      showToast('error', 'Tỷ lệ miễn giảm phải từ 0% đến 100%.');
       return;
     }
 
@@ -117,7 +117,7 @@ export const DiscountPolicyTab: React.FC = () => {
         showToast('success', 'Cập nhật chính sách miễn giảm thành công.');
       } else {
         await financeApi.createDiscountPolicy(payload);
-        showToast('success', 'MSG-154: Thiết lập chính sách miễn giảm thành công.');
+        showToast('success', 'Thiết lập chính sách miễn giảm thành công.');
       }
       setIsPolicyModalOpen(false);
       fetchAllData();
@@ -133,7 +133,7 @@ export const DiscountPolicyTab: React.FC = () => {
       showToast('success', 'Đã xóa chính sách miễn giảm.');
       fetchAllData();
     } catch (err: any) {
-      showToast('error', err?.response?.data?.message || 'MSG-153: Không thể xóa chính sách đang được áp dụng.');
+      showToast('error', err?.response?.data?.message || 'Không thể xóa chính sách đang được áp dụng.');
     }
   };
 
@@ -273,7 +273,7 @@ export const DiscountPolicyTab: React.FC = () => {
                   <th className="py-3.5 px-4">Tên chính sách ưu đãi</th>
                   <th className="py-3.5 px-4">Tỷ lệ miễn giảm (%)</th>
                   <th className="py-3.5 px-4">Số tiền giảm cố định</th>
-                  <th className="py-3.5 px-4">Phạm vi áp dụng (BR-034)</th>
+                  <th className="py-3.5 px-4">Phạm vi áp dụng</th>
                   <th className="py-3.5 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>

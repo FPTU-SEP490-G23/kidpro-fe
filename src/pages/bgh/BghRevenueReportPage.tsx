@@ -92,7 +92,7 @@ export const BghRevenueReportPage: React.FC = () => {
     } catch (err: any) {
       setAlertInfo({
         type: 'error',
-        message: err?.response?.data?.message || 'Lỗi gửi nhắc nợ (BR-088).',
+        message: err?.response?.data?.message || 'Lỗi gửi nhắc nợ.',
       });
     } finally {
       setSending(false);
@@ -124,10 +124,10 @@ export const BghRevenueReportPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
-                [UC-066] Báo Cáo Doanh Thu & Công Nợ Quá Hạn
+                Báo Cáo Doanh Thu & Công Nợ Quá Hạn
               </h1>
               <p className="text-sm text-slate-500">
-                Theo dõi tỷ lệ hoàn thành thu học phí, phân loại tuổi nợ và gửi nhắc nợ phụ huynh (BR-087, BR-088, BR-089)
+                Theo dõi tỷ lệ hoàn thành thu học phí, phân loại tuổi nợ và gửi nhắc nợ phụ huynh
               </p>
             </div>
           </div>
@@ -261,7 +261,7 @@ export const BghRevenueReportPage: React.FC = () => {
               Danh Sách Học Sinh Nợ Học Phí Quá Hạn
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Phân loại tuổi nợ tự động theo BR-087: Nhắc nhở nhẹ (1-3 ngày), Cảnh báo Cấp 1 (4-7 ngày), Cảnh báo Cấp 2 (&gt;7 ngày)
+              Phân loại tuổi nợ tự động theo quy định: Nhắc nhở nhẹ (1-3 ngày), Cảnh báo Cấp 1 (4-7 ngày), Cảnh báo Cấp 2 (&gt;7 ngày)
             </p>
           </div>
 
@@ -270,7 +270,7 @@ export const BghRevenueReportPage: React.FC = () => {
               onClick={() => {
                 setAlertInfo({
                   type: 'success',
-                  message: 'Báo cáo công nợ đã được kết xuất thành công và ghi nhận vào Audit Log (BR-089).',
+                  message: 'Báo cáo công nợ đã được kết xuất thành công và ghi nhận vào Audit Log.',
                 });
               }}
               className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50"
@@ -409,7 +409,7 @@ export const BghRevenueReportPage: React.FC = () => {
               Phát Lệnh Nhắc Nợ Tới {selectedInvoices.length} Phụ Huynh
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-088</strong>, hệ thống tự động giới hạn tối đa chỉ phát thông báo nhắc nợ 01 lần/ngày cho mỗi học sinh để tránh làm phiền phụ huynh.
+              Theo quy định, hệ thống tự động giới hạn tối đa chỉ phát thông báo nhắc nợ 01 lần/ngày cho mỗi học sinh để tránh làm phiền phụ huynh.
             </p>
             <div>
               <label className="text-xs font-semibold text-slate-600 mb-1 block">

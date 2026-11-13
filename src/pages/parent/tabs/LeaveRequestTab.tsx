@@ -123,7 +123,7 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
       setToastMessage({
         type: 'success',
         code: 'MSG-178',
-        text: 'MSG-178: Nộp đơn xin nghỉ học thành công. Đang chờ giáo viên xác nhận',
+        text: 'Nộp đơn xin nghỉ học thành công. Đang chờ giáo viên xác nhận',
       });
       // Reset form
       setReason('');
@@ -136,7 +136,7 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-004',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -201,12 +201,12 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Validation: Ngày trong quá khứ (MSG-179)
+    // 1. Validation: Ngày trong quá khứ
     if (startDate < todayStr) {
       setToastMessage({
         type: 'error',
         code: 'MSG-179',
-        text: 'MSG-179: Không thể nộp đơn xin nghỉ cho các ngày trong quá khứ. Vui lòng trao đổi trực tiếp với cô giáo.',
+        text: 'Không thể nộp đơn xin nghỉ cho các ngày trong quá khứ. Vui lòng trao đổi trực tiếp với cô giáo.',
       });
       return;
     }
@@ -225,12 +225,12 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-109',
-        text: 'MSG-109: Nghỉ học trên 30 ngày bắt buộc phải làm thủ tục Bảo lưu học tập chính thức (UC-019).',
+        text: 'Nghỉ học trên 30 ngày bắt buộc phải làm thủ tục Bảo lưu học tập chính thức.',
       });
       return;
     }
 
-    // 4. Validation: Kiểm tra trùng lặp khoảng ngày (MSG-180)
+    // 4. Validation: Kiểm tra trùng lặp khoảng ngày
     const hasOverlap = leaveList.some((existing) => {
       if (existing.status === 'REJECTED') return false;
       const existStart = existing.startDate;
@@ -242,7 +242,7 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-180',
-        text: 'MSG-180: Đã có đơn xin nghỉ học được nộp cho khoảng thời gian này.',
+        text: 'Đã có đơn xin nghỉ học được nộp cho khoảng thời gian này.',
       });
       return;
     }
@@ -256,11 +256,11 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
       return;
     }
 
-    // 6. Validation: Nghỉ ốm >= 3 ngày bắt buộc đính kèm ảnh đơn thuốc (BR-035)
+    // 6. Validation: Nghỉ ốm >= 3 ngày bắt buộc đính kèm ảnh đơn thuốc
     if (reasonCategory === 'ILLNESS' && totalDays >= 3 && !attachmentPreview) {
       setToastMessage({
         type: 'error',
-        text: 'Theo quy định y tế học đường (BR-035): Nghỉ ốm từ 3 ngày trở lên bắt buộc phải đính kèm ảnh chụp đơn thuốc của bác sĩ.',
+        text: 'Theo quy định y tế học đường: Nghỉ ốm từ 3 ngày trở lên bắt buộc phải đính kèm ảnh chụp đơn thuốc của bác sĩ.',
       });
       return;
     }

@@ -143,17 +143,17 @@ export const GuardianVerificationTab: React.FC = () => {
     mutationFn: async ({ id, status, notes }: { id: string, status: 'VERIFIED' | 'REJECTED', notes: string }) => {
       // 1. Validate CCCD
       if (status === 'VERIFIED' && !isValidCccd) {
-        throw new Error('MSG-173: Số CCCD không hợp lệ. Phải bao gồm đúng 12 chữ số theo quy chuẩn quốc gia.');
+        throw new Error('Số CCCD không hợp lệ. Phải bao gồm đúng 12 chữ số theo quy chuẩn quốc gia.');
       }
 
       // 2. Validate full documents
       if (status === 'VERIFIED' && !hasFullDocuments) {
-        throw new Error('MSG-174: Bắt buộc phải có đầy đủ ảnh chân dung và 2 mặt CCCD trước khi xác minh.');
+        throw new Error('Bắt buộc phải có đầy đủ ảnh chân dung và 2 mặt CCCD trước khi xác minh.');
       }
 
-      // 3. Validate Guardian limit (BR-022)
+      // 3. Validate Guardian limit
       if (status === 'VERIFIED' && isExceedingGuardianLimit) {
-        throw new Error('MSG-084: Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh.');
+        throw new Error('Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh.');
       }
 
       // 4. Call Backend API
@@ -177,9 +177,9 @@ export const GuardianVerificationTab: React.FC = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['guardians'] });
       if (variables.status === 'VERIFIED') {
-        setToastMessage({ type: 'success', text: 'MSG-081: Đã xác minh người đón ủy quyền và kích hoạt dữ liệu nhận diện khuôn mặt' });
+        setToastMessage({ type: 'success', text: 'Đã xác minh người đón ủy quyền và kích hoạt dữ liệu nhận diện khuôn mặt' });
       } else {
-        setToastMessage({ type: 'warning', text: 'MSG-082: Đã gửi yêu cầu chụp lại ảnh nhận diện chân dung tới phụ huynh học sinh.' });
+        setToastMessage({ type: 'warning', text: 'Đã gửi yêu cầu chụp lại ảnh nhận diện chân dung tới phụ huynh học sinh.' });
       }
 
       setIsModalOpen(false);
@@ -188,7 +188,7 @@ export const GuardianVerificationTab: React.FC = () => {
       setTimeout(() => setToastMessage(null), 5000);
     },
     onError: (error: any) => {
-      let msg = 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
+      let msg = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
       if (error.message?.includes('MSG-')) msg = error.message;
       else if (error.response?.data?.message) msg = error.response.data.message;
       setToastMessage({ type: 'error', text: msg });
@@ -204,7 +204,7 @@ export const GuardianVerificationTab: React.FC = () => {
       await new Promise(res => setTimeout(res, 1200));
 
       if (!selectedGuardian?.avatarUrl) {
-        throw new Error('MSG-083: AI không thể trích xuất vector khuôn mặt từ ảnh này. Vui lòng yêu cầu phụ huynh chụp lại chân dung rõ nét.');
+        throw new Error('AI không thể trích xuất vector khuôn mặt từ ảnh này. Vui lòng yêu cầu phụ huynh chụp lại chân dung rõ nét.');
       }
 
       // Generate simulated 512-dim embedding float array
@@ -236,7 +236,7 @@ export const GuardianVerificationTab: React.FC = () => {
     },
     onError: (error: any) => {
       setIsExtractingVector(false);
-      let msg = 'MSG-083: AI không thể trích xuất vector khuôn mặt từ ảnh này. Vui lòng yêu cầu phụ huynh chụp lại chân dung rõ nét.';
+      let msg = 'AI không thể trích xuất vector khuôn mặt từ ảnh này. Vui lòng yêu cầu phụ huynh chụp lại chân dung rõ nét.';
       if (error.response?.data?.message) msg = error.response.data.message;
       setToastMessage({ type: 'error', text: msg });
       setTimeout(() => setToastMessage(null), 6000);
@@ -289,7 +289,7 @@ export const GuardianVerificationTab: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
               <ShieldCheck className="w-6 h-6 text-[#275A4E]" />
-              <span>Thẩm Định Hồ Sơ Người Đón Ủy Quyền (UC-020)</span>
+              <span>Thẩm Định Hồ Sơ Người Đón Ủy Quyền</span>
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Kiểm tra giấy tờ CCCD 2 mặt, đối chiếu ảnh chân dung và cập nhật vector AI 512-dim cho camera cổng
@@ -731,7 +731,7 @@ export const GuardianVerificationTab: React.FC = () => {
                   className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {verifyMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
-                  <span>Yêu Cầu Tải Lại Ảnh (MSG-082)</span>
+                  <span>Yêu Cầu Tải Lại Ảnh</span>
                 </button>
 
                 {/* Approve & Verify Button */}
@@ -752,16 +752,16 @@ export const GuardianVerificationTab: React.FC = () => {
                   }`}
                   title={
                     !isValidCccd
-                      ? 'Số CCCD không hợp lệ (MSG-173)'
+                      ? 'Số CCCD không hợp lệ'
                       : !hasFullDocuments
-                      ? 'Thiếu ảnh chân dung hoặc 2 mặt CCCD (MSG-174)'
+                      ? 'Thiếu ảnh chân dung hoặc 2 mặt CCCD'
                       : isExceedingGuardianLimit
-                      ? 'Đã đạt giới hạn tối đa 5 người đón (MSG-084)'
+                      ? 'Đã đạt giới hạn tối đa 5 người đón'
                       : 'Xác minh và kích hoạt nhận diện AI'
                   }
                 >
                   {verifyMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 text-[#78C2AD]" />}
-                  <span>Xác Minh & Kích Hoạt Nhận Diện AI (MSG-081)</span>
+                  <span>Xác Minh & Kích Hoạt Nhận Diện AI</span>
                 </button>
               </div>
             </div>

@@ -193,7 +193,7 @@ export const BiometricPurgeDecree13Tab: React.FC<BiometricPurgeDecree13TabProps>
 
       setSystemMessage({
         type: 'success',
-        text: `${MSG_297} Kèm cảnh báo: ${MSG_087} - Hệ thống tự động chuyển sang chế độ đối chiếu danh sách thủ công (BR-023).`,
+        text: `${MSG_297} Kèm cảnh báo: ${MSG_087} - Hệ thống tự động chuyển sang chế độ đối chiếu danh sách thủ công.`,
       });
 
       // Cơ chế revalidation TanStack Query
@@ -315,7 +315,7 @@ export const BiometricPurgeDecree13Tab: React.FC<BiometricPurgeDecree13TabProps>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-500 text-white flex items-center gap-1.5 shadow-xs">
                 <Flame className="w-3.5 h-3.5" />
-                UC-069: QUYỀN RIÊNG TƯ & XÓA SINH TRẮC HỌC
+                QUYỀN RIÊNG TƯ & XÓA SINH TRẮC HỌC
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-xs">
                 Điều 16 Nghị định 13/2023/NĐ-CP
@@ -558,7 +558,7 @@ export const BiometricPurgeDecree13Tab: React.FC<BiometricPurgeDecree13TabProps>
                   onChange={(e) => setIsSimulateDispute(e.target.checked)}
                   className="rounded text-amber-600 focus:ring-amber-500"
                 />
-                <span>Mô phỏng trường hợp hồ sơ đang có tranh chấp quyền nuôi dưỡng (MSG-299)</span>
+                <span>Mô phỏng trường hợp hồ sơ đang có tranh chấp quyền nuôi dưỡng</span>
               </label>
             </div>
 
@@ -646,7 +646,7 @@ export const BiometricPurgeDecree13Tab: React.FC<BiometricPurgeDecree13TabProps>
               • Thao tác này sẽ xóa vĩnh viễn vector 512 chiều và tệp ảnh của bé khỏi CSDL sinh trắc học.
             </p>
             <p>
-              • Khi đứng trước camera cổng trường, hệ thống sẽ báo <span className="font-bold text-rose-700">MSG-087</span> và chuyển sang hình thức đối chiếu danh sách thủ công tại lớp (BR-023).
+              • Khi đứng trước camera cổng trường, hệ thống sẽ chuyển sang hình thức đối chiếu danh sách thủ công tại lớp.
             </p>
           </div>
 
@@ -755,7 +755,7 @@ export const BiometricPurgeDecree13Tab: React.FC<BiometricPurgeDecree13TabProps>
           <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-3 text-xs text-amber-950 font-medium">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <strong>Trạng thái cổng trường hiện tại:</strong> Khuôn mặt của bé và người thân không còn tồn tại trong AI Cache ({MSG_087}). Khi đưa đón bé, phụ huynh vui lòng xuất trình Thẻ học sinh hoặc đối chiếu danh sách lớp thủ công với giáo viên đón trả (BR-023).
+              <strong>Trạng thái cổng trường hiện tại:</strong> Khuôn mặt của bé và người thân không còn tồn tại trong AI Cache ({MSG_087}). Khi đưa đón bé, phụ huynh vui lòng xuất trình Thẻ học sinh hoặc đối chiếu danh sách lớp thủ công với giáo viên đón trả.
             </div>
           </div>
 

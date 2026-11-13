@@ -67,27 +67,27 @@ export const BghAnnouncementsPage: React.FC = () => {
   }, []);
 
   const handleCreate = async (isDraft: boolean) => {
-    // BR-118: Tiêu đề và nội dung tối thiểu 10 ký tự (MSG-277)
+    // BR-118: Tiêu đề và nội dung tối thiểu 10 ký tự
     if (!formData.title || formData.title.trim().length < 10) {
       setToastMsg({
         type: 'warning',
-        text: 'MSG-277: Tiêu đề thông báo phải có ít nhất 10 ký tự. Vui lòng nhập đầy đủ.'
+        text: 'Tiêu đề thông báo phải có ít nhất 10 ký tự. Vui lòng nhập đầy đủ.'
       });
       return;
     }
     if (!formData.content || formData.content.trim().length < 10) {
       setToastMsg({
         type: 'warning',
-        text: 'MSG-277: Nội dung thông báo phải có ít nhất 10 ký tự. Vui lòng nhập đầy đủ.'
+        text: 'Nội dung thông báo phải có ít nhất 10 ký tự. Vui lòng nhập đầy đủ.'
       });
       return;
     }
 
-    // BR-119: Tệp đính kèm tối đa 20MB (MSG-279)
+    // BR-119: Tệp đính kèm tối đa 20MB
     if (formData.attachmentSize && formData.attachmentSize > 20 * 1024 * 1024) {
       setToastMsg({
         type: 'error',
-        text: 'MSG-279: Tệp đính kèm vượt quá dung lượng tối đa cho phép (20MB).'
+        text: 'Tệp đính kèm vượt quá dung lượng tối đa cho phép (20MB).'
       });
       return;
     }
@@ -105,8 +105,8 @@ export const BghAnnouncementsPage: React.FC = () => {
       setToastMsg({
         type: 'success',
         text: isDraft
-          ? 'Bản nháp thông báo đã được lưu thành công (MSG-278).'
-          : 'MSG-276: Thông báo toàn trường đã được phát hành thành công và gửi push notification tới người nhận.'
+          ? 'Bản nháp thông báo đã được lưu thành công.'
+          : 'Thông báo toàn trường đã được phát hành thành công và gửi push notification tới người nhận.'
       });
 
       setShowModal(false);
@@ -226,7 +226,7 @@ export const BghAnnouncementsPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Phát hành bảng tin chính thức • Gửi push notifications tới Phụ huynh & Cán bộ (BR-118, BR-119)
+              Phát hành bảng tin chính thức • Gửi push notifications tới Phụ huynh & Cán bộ
             </p>
           </div>
         </div>

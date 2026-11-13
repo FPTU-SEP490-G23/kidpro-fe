@@ -278,7 +278,7 @@ export const MoetAttendanceReportTab: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-064: BIỂU MẪU CHUẨN PHÒNG / BỘ GD&ĐT
+                BIỂU MẪU CHUẨN PHÒNG / BỘ GD&ĐT
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Sổ Điểm Danh & Bán Trú Mầm Non

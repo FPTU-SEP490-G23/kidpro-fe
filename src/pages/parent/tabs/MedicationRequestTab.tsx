@@ -73,7 +73,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
       setToastMessage({
         type: 'success',
         code: 'MSG-181',
-        text: 'MSG-181: Đã gửi đơn dặn thuốc thành công. Vui lòng bàn giao gói thuốc dán nhãn tên bé cho cô giáo vào buổi sáng',
+        text: 'Đã gửi đơn dặn thuốc thành công. Vui lòng bàn giao gói thuốc dán nhãn tên bé cho cô giáo vào buổi sáng',
       });
 
       // Reset form
@@ -88,7 +88,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-004',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -171,7 +171,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
       return;
     }
 
-    // 3. Validation: Khung giờ hoạt động tại trường (07:30 - 17:00) (MSG-183)
+    // 3. Validation: Khung giờ hoạt động tại trường (07:30 - 17:00)
     const selectedTime = timingOption === 'CUSTOM' ? customTime : timingOption;
     const [h, m] = selectedTime.split(':').map(Number);
     const timeMinutes = h * 60 + m;
@@ -182,22 +182,22 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
       setToastMessage({
         type: 'error',
         code: 'MSG-183',
-        text: 'MSG-183: Nhà trường chỉ hỗ trợ cho trẻ uống thuốc trong khung giờ sinh hoạt tại trường (07:30 - 17:00).',
+        text: 'Nhà trường chỉ hỗ trợ cho trẻ uống thuốc trong khung giờ sinh hoạt tại trường (07:30 - 17:00).',
       });
       return;
     }
 
-    // 4. Validation: Thuốc kháng sinh / kê đơn bắt buộc có ảnh đơn thuốc (BR-049, MSG-182)
+    // 4. Validation: Thuốc kháng sinh / kê đơn bắt buộc có ảnh đơn thuốc
     if (category === 'PRESCRIPTION_ANTIBIOTIC' && !prescriptionPreview) {
       setToastMessage({
         type: 'error',
         code: 'MSG-182',
-        text: 'MSG-182: Ảnh chụp đơn thuốc của bác sĩ là bắt buộc đối với thuốc kê đơn theo quy định y tế học đường.',
+        text: 'Ảnh chụp đơn thuốc của bác sĩ là bắt buộc đối với thuốc kê đơn theo quy định y tế học đường.',
       });
       return;
     }
 
-    // 5. Validation: Cam kết y tế (BR-047)
+    // 5. Validation: Cam kết y tế
     if (!agreedConsent) {
       setToastMessage({
         type: 'error',
@@ -232,7 +232,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-blue-950 flex items-center gap-2">
-              <span>QUY ĐỊNH Y TẾ HỌC ĐƯỜNG & AN TOÀN DÙNG THUỐC (UC-045)</span>
+              <span>QUY ĐỊNH Y TẾ HỌC ĐƯỜNG & AN TOÀN DÙNG THUỐC</span>
               <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">
                 07:30 - 17:00
               </span>
@@ -464,7 +464,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
                 </label>
                 {category === 'PRESCRIPTION_ANTIBIOTIC' && (
                   <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                    Bắt buộc (BR-049)
+                    Bắt buộc
                   </span>
                 )}
               </div>
@@ -546,7 +546,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
               )}
             </div>
 
-            {/* Cam kết trách nhiệm y tế điện tử (BR-047) */}
+            {/* Cam kết trách nhiệm y tế điện tử */}
             <div className="pt-1">
               <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer leading-relaxed">
                 <input
@@ -556,7 +556,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
                   className="mt-0.5 rounded text-[#275A4E] focus:ring-[#275A4E] h-4 w-4 shrink-0"
                 />
                 <span>
-                  <strong>Cam kết điện tử (BR-047):</strong> Tôi xác nhận thông tin đơn thuốc là chính xác theo chỉ định của bác sĩ và đồng ý ủy quyền cho giáo viên hỗ trợ cho bé uống thuốc tại lớp.
+                  <strong>Cam kết điện tử:</strong> Tôi xác nhận thông tin đơn thuốc là chính xác theo chỉ định của bác sĩ và đồng ý ủy quyền cho giáo viên hỗ trợ cho bé uống thuốc tại lớp.
                 </span>
               </label>
             </div>
@@ -668,7 +668,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
                     </div>
                   )}
 
-                  {/* Minh chứng đã uống thuốc lúc 14:00 (UC-027 Proof) */}
+                  {/* Minh chứng đã uống thuốc lúc 14:00 */}
                   {item.status === 'ADMINISTERED' && item.proofPhotoUrl && (
                     <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3 flex items-center justify-between gap-3">
                       <div className="space-y-0.5 text-xs">

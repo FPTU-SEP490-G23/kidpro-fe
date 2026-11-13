@@ -120,7 +120,7 @@ export const StudentPromotionTab: React.FC = () => {
       return await studentPromotionService.executePromotion(payload);
     },
     onSuccess: () => {
-      success('MSG-042: Lập kế hoạch kết chuyển học sinh vào năm học mới thành công.');
+      success('Lập kế hoạch kết chuyển học sinh vào năm học mới thành công.');
       setIsConfirmDialogOpen(false);
       refetchPreview();
       queryClient.invalidateQueries({ queryKey: ['classes'] });
@@ -143,7 +143,7 @@ export const StudentPromotionTab: React.FC = () => {
   // Lưu lý do giữ lại khối cũ
   const handleSaveRetain = () => {
     if (!tempReason.trim()) {
-      setRetainError('MSG-010: Vui lòng nhập lý do giữ học sinh học lại khối cũ.');
+      setRetainError('Vui lòng nhập lý do giữ học sinh học lại khối cũ.');
       return;
     }
     if (retainModalStudent) {
@@ -172,7 +172,7 @@ export const StudentPromotionTab: React.FC = () => {
     for (const st of previewList) {
       const dec = promotionDecisions[st.studentId];
       if (dec?.action === 'RETAIN' && (!dec.retentionReason || !dec.retentionReason.trim())) {
-        error(`Học sinh ${st.fullName} chưa có lý do giữ lại khối cũ (MSG-010).`);
+        error(`Học sinh ${st.fullName} chưa có lý do giữ lại khối cũ.`);
         return;
       }
     }
@@ -212,9 +212,9 @@ export const StudentPromotionTab: React.FC = () => {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Quy Trình Kết Chuyển Học Sinh Đầu Năm (G3-UC-11)</h2>
+              <h2 className="text-lg font-bold text-slate-900">Quy Trình Kết Chuyển Học Sinh Đầu Năm</h2>
               <p className="text-xs text-slate-500">
-                Lũy tiến khối theo niên khóa: Nhà trẻ $\rightarrow$ Mầm $\rightarrow$ Chồi $\rightarrow$ Lá $\rightarrow$ Tốt nghiệp (BR-009)
+                Lũy tiến khối theo niên khóa: Nhà trẻ $\rightarrow$ Mầm $\rightarrow$ Chồi $\rightarrow$ Lá $\rightarrow$ Tốt nghiệp
               </p>
             </div>
           </div>
@@ -370,7 +370,7 @@ export const StudentPromotionTab: React.FC = () => {
                   <th className="py-3 px-4">Ngày Sinh</th>
                   <th className="py-3 px-4">Khối Lớp Hiện Tại</th>
                   <th className="py-3 px-4">Lớp Học Hiện Tại</th>
-                  <th className="py-3 px-4 text-center">Đề Xuất Kết Chuyển (BR-009)</th>
+                  <th className="py-3 px-4 text-center">Đề Xuất Kết Chuyển</th>
                   <th className="py-3 px-4 text-center">Quyết Định</th>
                   <th className="py-3 px-4 text-right">Thao Tác</th>
                 </tr>
@@ -463,7 +463,7 @@ export const StudentPromotionTab: React.FC = () => {
         )}
       </div>
 
-      {/* 3. MODAL NHẬP LÝ DO GIỮ LẠI KHỐI CŨ (BR-009, MSG-010) */}
+      {/* 3. MODAL NHẬP LÝ DO GIỮ LẠI KHỐI CŨ */}
       {retainModalStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
@@ -512,7 +512,7 @@ export const StudentPromotionTab: React.FC = () => {
                 />
                 {retainError && <p className="text-xs text-rose-600 font-bold mt-1.5">{retainError}</p>}
                 <p className="text-[11px] text-slate-500 mt-1 italic">
-                  * Theo quy tắc BR-009 & MSG-010: Bắt buộc nhập lý do giữ học sinh học lại khối cũ.
+                  * Theo quy tắc BR-009 & Bắt buộc nhập lý do giữ học sinh học lại khối cũ.
                 </p>
               </div>
 

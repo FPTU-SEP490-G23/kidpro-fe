@@ -83,11 +83,11 @@ export const TuitionCalculationTab: React.FC = () => {
     e.preventDefault();
     if (!editingItem || !editingItem.item.itemId) return;
     if (!editFeeDescription.trim()) {
-      showToast('error', 'MSG-165: Bỏ trống mô tả khoản phụ phí.');
+      showToast('error', 'Bỏ trống mô tả khoản phụ phí.');
       return;
     }
     if (editFeeAmount <= 0) {
-      showToast('error', 'MSG-164: Số tiền phát sinh phải lớn hơn 0 VNĐ.');
+      showToast('error', 'Số tiền phát sinh phải lớn hơn 0 VNĐ.');
       return;
     }
 
@@ -199,11 +199,11 @@ export const TuitionCalculationTab: React.FC = () => {
       const data = (res as any)?.data || res;
       showToast(
         'success',
-        data.message || `Lập bảng tính học phí tháng ${selectedMonth}/${selectedYear} thành công (MSG-158).`
+        data.message || `Lập bảng tính học phí tháng ${selectedMonth}/${selectedYear} thành công.`
       );
       fetchInvoices();
     } catch (err: any) {
-      showToast('error', err?.response?.data?.message || 'MSG-155: Lỗi khi lập bảng tính học phí.');
+      showToast('error', err?.response?.data?.message || 'Lỗi khi lập bảng tính học phí.');
     } finally {
       setGenerating(false);
     }
@@ -238,11 +238,11 @@ export const TuitionCalculationTab: React.FC = () => {
     if (!targetInvoiceForFee) return;
 
     if (!feeDescription.trim()) {
-      showToast('error', 'MSG-165: Bỏ trống mô tả hoặc không có căn cứ phát sinh.');
+      showToast('error', 'Bỏ trống mô tả hoặc không có căn cứ phát sinh.');
       return;
     }
     if (feeAmount <= 0) {
-      showToast('error', 'MSG-164: Số tiền phát sinh không hợp lệ.');
+      showToast('error', 'Số tiền phát sinh không hợp lệ.');
       return;
     }
 
@@ -255,7 +255,7 @@ export const TuitionCalculationTab: React.FC = () => {
     try {
       setSubmittingFee(true);
       await financeApi.addIncidentalFee(targetInvoiceForFee.invoiceId, payload);
-      showToast('success', 'MSG-145: Thêm khoản phụ phí/phạt phát sinh thành công.');
+      showToast('success', 'Thêm khoản phụ phí/phạt phát sinh thành công.');
       setIsIncidentalModalOpen(false);
       fetchInvoices();
     } catch (err: any) {
@@ -298,13 +298,13 @@ export const TuitionCalculationTab: React.FC = () => {
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng miễn giảm & ưu đãi</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">-{formatCurrency(totalDiscounts)}</p>
-          <p className="text-xs text-slate-400 mt-1">Theo chính sách BR-034</p>
+          <p className="text-xs text-slate-400 mt-1">Theo chính sách quy định</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng thực thu dự kiến</p>
           <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(totalNet)}</p>
-          <p className="text-xs text-slate-400 mt-1">Trình BGH phê duyệt (G8-UC-06)</p>
+          <p className="text-xs text-slate-400 mt-1">Trình BGH phê duyệt</p>
         </div>
       </div>
 
@@ -384,7 +384,7 @@ export const TuitionCalculationTab: React.FC = () => {
             ) : (
               <Cpu className="w-4 h-4" />
             )}
-            [G8-UC-04] Khởi tạo Bảng tính Học phí Tháng
+            Khởi tạo Bảng tính Học phí Tháng
           </button>
         </div>
       </div>
@@ -554,7 +554,7 @@ export const TuitionCalculationTab: React.FC = () => {
                         <button
                           onClick={() => openIncidentalModal(inv)}
                           className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200/50"
-                          title="Thêm phụ phí hoặc phạt phát sinh (G8-UC-05)"
+                          title="Thêm phụ phí hoặc phạt phát sinh"
                         >
                           <FilePlus2 className="w-3.5 h-3.5" />
                           + Phụ phí
@@ -683,7 +683,7 @@ export const TuitionCalculationTab: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-800">[G8-UC-05] Thêm Khoản Thu / Phạt Phát Sinh</h3>
+                <h3 className="text-base font-bold text-slate-800">Thêm Khoản Thu / Phạt Phát Sinh</h3>
                 <p className="text-xs text-slate-500">Học sinh: {targetInvoiceForFee.studentName} ({targetInvoiceForFee.invoiceCode})</p>
               </div>
               <button
@@ -815,7 +815,7 @@ export const TuitionCalculationTab: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-                      Lý do chi tiết & Căn cứ chứng từ (BR-037) <span className="text-rose-500">*</span>
+                      Lý do chi tiết & Căn cứ chứng từ <span className="text-rose-500">*</span>
                     </label>
                     <textarea
                       rows={2}
@@ -830,7 +830,7 @@ export const TuitionCalculationTab: React.FC = () => {
               )}
 
               <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-800">
-                <strong>Quy tắc BR-037:</strong> Khoản phát sinh sẽ được cộng dồn trực tiếp vào tổng công nợ tháng của học sinh và cập nhật lại mã VietQR.
+                <strong>Quy tắc:</strong> Khoản phát sinh sẽ được cộng dồn trực tiếp vào tổng công nợ tháng của học sinh và cập nhật lại mã VietQR.
               </div>
 
               <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
@@ -853,13 +853,13 @@ export const TuitionCalculationTab: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Modal Chỉnh Sửa Phụ Phí (G8-UC-05) */}
+      {/* Modal Chỉnh Sửa Phụ Phí */}
       {isEditModalOpen && editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-800">[G8-UC-05] Chỉnh Sửa Phụ Phí / Phạt Phát Sinh</h3>
+                <h3 className="text-base font-bold text-slate-800">Chỉnh Sửa Phụ Phí / Phạt Phát Sinh</h3>
                 <p className="text-xs text-slate-500">Học sinh: {editingItem.invoice.studentName} ({editingItem.invoice.invoiceCode})</p>
               </div>
               <button
@@ -903,7 +903,7 @@ export const TuitionCalculationTab: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-                  Lý do chi tiết & Căn cứ chứng từ (BR-037)
+                  Lý do chi tiết & Căn cứ chứng từ
                 </label>
                 <textarea
                   rows={2}

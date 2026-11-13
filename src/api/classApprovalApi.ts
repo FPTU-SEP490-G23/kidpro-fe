@@ -23,13 +23,13 @@ export const classApprovalApi = {
     return Array.isArray(res) ? res : (res?.data || []);
   },
 
-  // Phê duyệt mở lớp (BR-011)
+  // Phê duyệt mở lớp
   approveClass: async (classId: string): Promise<{ message: string; data: ClassApprovalItem }> => {
     const res: any = await axiosClient.post(`/bgh/classes/${classId}/approve`);
     return res?.data || res;
   },
 
-  // Từ chối mở lớp kèm lý do bắt buộc (MSG-033)
+  // Từ chối mở lớp kèm lý do bắt buộc
   rejectClass: async (classId: string, reason: string): Promise<{ message: string; data: ClassApprovalItem }> => {
     const res: any = await axiosClient.post(`/bgh/classes/${classId}/reject`, { reason });
     return res?.data || res;

@@ -89,7 +89,7 @@ export interface MealRecord {
 }
 
 // ==========================================
-// UC-051: GHI NHẬN CHỈ SỐ CHIỀU CAO & CÂN NẶNG CHUẨN WHO
+// GHI NHẬN CHỈ SỐ CHIỀU CAO & CÂN NẶNG CHUẨN WHO
 // ==========================================
 
 export type MeasurementPeriodType = 'BEGINNING_YEAR' | 'MID_YEAR' | 'END_YEAR';
@@ -112,7 +112,7 @@ export interface BatchStudentHealthEntry {
   bmi: number;
   bmiStatus: BmiStatus;
   notes?: string;
-  isHeightDecreased?: boolean; // Cảnh báo MSG-206: h_new < h_old
+  isHeightDecreased?: boolean; // Cảnh báo h_new < h_old
 }
 
 export interface BatchHealthMetricsPayload {
@@ -138,7 +138,7 @@ export interface WhoGrowthStandardPoint {
 }
 
 // ==========================================
-// UC-052: GHI CHÉP NHẬT KÝ SỰ VỤ Y TẾ HỌC ĐƯỜNG (MEDICAL INCIDENTS)
+// GHI CHÉP NHẬT KÝ SỰ VỤ Y TẾ HỌC ĐƯỜNG (MEDICAL INCIDENTS)
 // ==========================================
 
 export type MedicalIncidentCategory =
@@ -172,7 +172,7 @@ export interface MedicalIncidentRecord {
   symptomsDescription: string;
   firstAidMeasures: string[];
   medicationGiven: boolean;
-  medicalConsentAgreed: boolean; // Đồng thuận dùng thuốc của phụ huynh (BR-054)
+  medicalConsentAgreed: boolean; // Đồng thuận dùng thuốc của phụ huynh
   actionPlan: IncidentActionPlan;
   actionPlanLabel: string;
   parentNotified: boolean;

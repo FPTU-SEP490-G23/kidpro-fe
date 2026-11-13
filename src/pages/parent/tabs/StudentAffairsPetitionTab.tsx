@@ -127,7 +127,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
       queryClient.invalidateQueries({ queryKey: ['student-petitions', studentId] });
       setToastMessage({
         type: 'success',
-        text: `MSG-200: Gửi yêu cầu học vụ thành công. Mã theo dõi: ${newPetition.trackingCode}. Dự kiến hoàn tất trong 48 giờ làm việc`,
+        text: `Gửi yêu cầu học vụ thành công. Mã theo dõi: ${newPetition.trackingCode}. Dự kiến hoàn tất trong 48 giờ làm việc`,
       });
       setDescription('');
       setAttachments([]);
@@ -137,7 +137,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -161,16 +161,16 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
 
     const cleanDesc = description.trim();
 
-    // BR-050 & MSG-201: Kiểm tra độ dài nội dung tối thiểu 10 ký tự
+    // BR-050 & Kiểm tra độ dài nội dung tối thiểu 10 ký tự
     if (cleanDesc.length < 10) {
       setToastMessage({
         type: 'error',
-        text: 'MSG-201: Vui lòng mô tả chi tiết nội dung yêu cầu cần nhà trường hỗ trợ (tối thiểu 10 ký tự).',
+        text: 'Vui lòng mô tả chi tiết nội dung yêu cầu cần nhà trường hỗ trợ (tối thiểu 10 ký tự).',
       });
       return;
     }
 
-    // MSG-202: Chống gửi trùng lặp nếu đang có phiếu cùng danh mục ở trạng thái SUBMITTED hoặc IN_PROGRESS
+    // Chống gửi trùng lặp nếu đang có phiếu cùng danh mục ở trạng thái SUBMITTED hoặc IN_PROGRESS
     const duplicate = petitions.find(
       (p) =>
         p.category === selectedCategory &&
@@ -179,12 +179,12 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
     if (duplicate) {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-202: Bạn đã có một yêu cầu cho dịch vụ này đang được xử lý. Vui lòng không gửi trùng lặp.',
+        text: 'Bạn đã có một yêu cầu cho dịch vụ này đang được xử lý. Vui lòng không gửi trùng lặp.',
       });
       return;
     }
 
-    // MSG-203: Quy định thời gian xử lý: Khung hẹn ngày trả không được sớm hơn 24 giờ
+    // Quy định thời gian xử lý: Khung hẹn ngày trả không được sớm hơn 24 giờ
     const now = new Date();
     const chosenDate = new Date(`${targetDate}T23:59:59`);
     const diffHours = (chosenDate.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -192,7 +192,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
     if (diffHours < 24) {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-203: Thời gian xử lý văn bản hành chính cần tối thiểu 24-48 giờ làm việc theo quy định.',
+        text: 'Thời gian xử lý văn bản hành chính cần tối thiểu 24-48 giờ làm việc theo quy định.',
       });
       return;
     }
@@ -226,7 +226,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-[#275A4E]/10 px-3 py-1 text-xs font-bold text-[#275A4E] mb-2">
             <FileCheck2 className="h-4 w-4" />
-            <span>Phân Hệ Hành Chính Học Vụ • UC-050</span>
+            <span>Phân Hệ Hành Chính Học Vụ </span>
           </div>
           <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
             Nộp Đơn Yêu Cầu Sự Vụ Học Sinh & Theo Dõi Tiến Độ (SLA 24-48h)
@@ -415,7 +415,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
                   className="w-full rounded-2xl border border-slate-200 p-4 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#275A4E] focus:outline-hidden focus:ring-1 focus:ring-[#275A4E]"
                 />
                 <p className="mt-1 text-[11px] text-slate-400 italic">
-                  Quy chuẩn BR-050: Nội dung cần tối thiểu 10 ký tự mô tả rõ mục đích để nhà trường phê duyệt nhanh chóng.
+                  Quy chuẩn quy định: Nội dung cần tối thiểu 10 ký tự mô tả rõ mục đích để nhà trường phê duyệt nhanh chóng.
                 </p>
               </div>
 

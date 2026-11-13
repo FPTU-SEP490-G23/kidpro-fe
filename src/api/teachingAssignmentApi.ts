@@ -22,13 +22,13 @@ export const teachingAssignmentApi = {
     return Array.isArray(res) ? res : (res?.data || []);
   },
 
-  // Phê duyệt phân công giảng dạy (BR-011, BR-012)
+  // Phê duyệt phân công giảng dạy
   approveAssignment: async (id: number): Promise<{ message: string; data: TeachingAssignmentItem }> => {
     const res: any = await axiosClient.post(`/bgh/teaching-assignments/${id}/approve`);
     return res?.data || res;
   },
 
-  // Từ chối phân công kèm lý do bắt buộc (MSG-033)
+  // Từ chối phân công kèm lý do bắt buộc
   rejectAssignment: async (id: number, reason: string): Promise<{ message: string; data: TeachingAssignmentItem }> => {
     const res: any = await axiosClient.post(`/bgh/teaching-assignments/${id}/reject`, { reason });
     return res?.data || res;

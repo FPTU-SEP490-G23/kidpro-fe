@@ -49,12 +49,12 @@ export const AcademicYearsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
-      success('MSG-033: Thiết lập năm học thành công');
+      success('Thiết lập năm học thành công');
       setIsModalOpen(false);
       setEditingYear(null);
     },
     onError: (err: any) => {
-      const msg = err?.message || 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
+      const msg = err?.message || 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.';
       error(msg);
     },
   });
@@ -70,7 +70,7 @@ export const AcademicYearsPage: React.FC = () => {
       setArchivingYear(null);
     },
     onError: (err: any) => {
-      error(err?.message || 'MSG-004: Không thể kết nối đến máy chủ.');
+      error(err?.message || 'Không thể kết nối đến máy chủ.');
     },
   });
 
@@ -84,7 +84,7 @@ export const AcademicYearsPage: React.FC = () => {
       success('Đã kích hoạt áp dụng niên khóa mới');
     },
     onError: (err: any) => {
-      error(err?.message || 'MSG-004: Không thể kết nối đến máy chủ.');
+      error(err?.message || 'Không thể kết nối đến máy chủ.');
     },
   });
 
@@ -137,11 +137,11 @@ export const AcademicYearsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-005 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Năm Học</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Thiết lập niên khóa học đường, kiểm soát khung thời gian chuẩn 35 tuần của Bộ GD&ĐT (BR-005).
+            Thiết lập niên khóa học đường, kiểm soát khung thời gian chuẩn 35 tuần của Bộ GD&ĐT.
           </p>
         </div>
         <div className="flex items-center gap-3">

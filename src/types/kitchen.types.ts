@@ -73,7 +73,7 @@ export interface WeeklyMenuPayload {
 }
 
 // ==========================================
-// UC-030: KHÓA SỐ SUẤT ĂN 08:30 (MEAL HEADCOUNT LOCK)
+// KHÓA SỐ SUẤT ĂN 08:30 (MEAL HEADCOUNT LOCK)
 // ==========================================
 export type AgeGroupType = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN';
 
@@ -117,7 +117,7 @@ export interface LockHeadcountRequest {
 }
 
 // ==========================================
-// UC-031: QUẢN LÝ DỊ ỨNG & CHẾ ĐỘ ĂN RIÊNG (ALLERGY DIETS)
+// QUẢN LÝ DỊ ỨNG & CHẾ ĐỘ ĂN RIÊNG (ALLERGY DIETS)
 // ==========================================
 export type AllergySeverity = 'ANAPHYLAXIS' | 'HIGH' | 'MEDIUM';
 
@@ -152,7 +152,7 @@ export interface DietaryPreparationUpdatePayload {
 }
 
 // ==========================================
-// UC-032: TIÊU HAO THỰC PHẨM & LƯU MẪU 24H (FOOD RETENTION & CONSUMPTION)
+// TIÊU HAO THỰC PHẨM & LƯU MẪU 24H (FOOD RETENTION & CONSUMPTION)
 // ==========================================
 export type MealSessionType = 'LUNCH' | 'SNACK' | 'BREAKFAST';
 export type FoodSampleStatus = 'STORING' | 'READY_FOR_DISPOSAL' | 'EXPIRED' | 'DISPOSED';
@@ -215,7 +215,7 @@ export interface FoodConsumptionReport {
 }
 
 // ==========================================
-// UC-055: SỔ KIỂM THỰC 3 BƯỚC & LƯU MẪU THỨC ĂN (QĐ 1246/QĐ-BYT)
+// SỔ KIỂM THỰC 3 BƯỚC & LƯU MẪU THỨC ĂN (QĐ 1246/QĐ-BYT)
 // ==========================================
 
 export type InspectionStep = 'STEP_1_RAW_MATERIALS' | 'STEP_2_PROCESSING' | 'STEP_3_TASTING_RETENTION';
@@ -247,9 +247,9 @@ export interface CookingTemperatureInspectionItem {
 export interface FoodRetentionSampleDetailItem {
   id: string;
   dishName: string;
-  sampleWeightGrams: number; // Khối lượng lưu (Bắt buộc >= 100g hoặc >= 150ml canh - MSG-233)
+  sampleWeightGrams: number; // Khối lượng lưu (Bắt buộc >= 100g hoặc >= 150ml canh)
   sealCode: string; // Mã số tem niêm phong dùng 1 lần (vd: NP-20261010-01)
-  storageTemperatureCelsius: number; // Nhiệt độ tủ bảo quản (2°C <= T <= 8°C - MSG-234)
+  storageTemperatureCelsius: number; // Nhiệt độ tủ bảo quản (2°C <= T <= 8°C)
   photoUrl?: string; // Ảnh hũ thủy tinh dán tem trong tủ lạnh
   sensoryEvaluation: SensoryEvaluationResult; // Đánh giá cảm quan trước khi ăn
   tastedBy: string; // Cán bộ nếm cảm quan
@@ -276,7 +276,7 @@ export interface ThreeStepFoodSafetyInspectionLog {
   step3Completed: boolean;
   step3Time: string; // "11:15 AM"
   step3ChefSignature?: string;
-  step3PrincipalSignature?: string; // Ban Giám Hiệu ký kép (Bắt buộc - MSG-235)
+  step3PrincipalSignature?: string; // Ban Giám Hiệu ký kép (Bắt buộc)
   retentionSamples: FoodRetentionSampleDetailItem[];
 
   overallStatus: 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED_INCIDENT';

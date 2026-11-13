@@ -8,7 +8,7 @@ import {
 
 export const assignmentService = {
   // =========================================================================
-  // G3-UC-04: Lập Kế hoạch Phân công Giáo viên Chủ nhiệm & Phụ tá
+  // Lập Kế hoạch Phân công Giáo viên Chủ nhiệm & Phụ tá
   // =========================================================================
 
   /**

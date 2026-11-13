@@ -132,11 +132,11 @@ export const ClassroomJournalTab: React.FC = () => {
     }
   });
 
-  // 4. Create Post Mutation (UC-028: POST /api/health/journal-posts)
+  // 4. Create Post Mutation (POST /api/health/journal-posts)
   const createPostMutation = useMutation({
     mutationFn: async (payload: any) => {
       if (!isOnline) {
-        // Push into Local Offline Queue (MSG-118)
+        // Push into Local Offline Queue
         const offlineQueue = JSON.parse(localStorage.getItem('kidpro_offline_journal_posts') || '[]');
         offlineQueue.push(payload);
         localStorage.setItem('kidpro_offline_journal_posts', JSON.stringify(offlineQueue));
@@ -165,15 +165,15 @@ export const ClassroomJournalTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['journal-posts'] });
       resetComposerForm();
       setShowComposerModal(false);
-      showToast('success', 'MSG-115: Đăng nhật ký hoạt động lớp thành công');
+      showToast('success', 'Đăng nhật ký hoạt động lớp thành công');
     },
     onError: (err: any) => {
       if (err.message === 'OFFLINE_SAVED') {
-        showToast('warning', 'MSG-118: Tệp được xếp vào hàng đợi ngoại tuyến. Sẽ tự động tải lên khi có kết nối mạng.');
+        showToast('warning', 'Tệp được xếp vào hàng đợi ngoại tuyến. Sẽ tự động tải lên khi có kết nối mạng.');
         resetComposerForm();
         setShowComposerModal(false);
       } else {
-        showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+        showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
       }
     }
   });
@@ -195,7 +195,7 @@ export const ClassroomJournalTab: React.FC = () => {
       showToast('success', 'Đã chuyển bài đăng nhật ký vào mục lưu trữ (Xóa mềm - Soft Delete).');
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   });
 
@@ -222,7 +222,7 @@ export const ClassroomJournalTab: React.FC = () => {
 
     const fileArray = Array.from(files);
     if (selectedMediaFiles.length + fileArray.length > 10) {
-      showToast('error', 'MSG-116: Chỉ được đính kèm tối đa 10 tệp hình ảnh/video cho một bài nhật ký (tổng dung lượng dưới 50MB).');
+      showToast('error', 'Chỉ được đính kèm tối đa 10 tệp hình ảnh/video cho một bài nhật ký (tổng dung lượng dưới 50MB).');
       return;
     }
 
@@ -231,7 +231,7 @@ export const ClassroomJournalTab: React.FC = () => {
 
     for (const file of fileArray) {
       if (currentTotalSize + file.size > 50 * 1024 * 1024) {
-        showToast('error', 'MSG-116: Chỉ được đính kèm tối đa 10 tệp hình ảnh/video cho một bài nhật ký (tổng dung lượng dưới 50MB).');
+        showToast('error', 'Chỉ được đính kèm tối đa 10 tệp hình ảnh/video cho một bài nhật ký (tổng dung lượng dưới 50MB).');
         return;
       }
       currentTotalSize += file.size;
@@ -375,7 +375,7 @@ export const ClassroomJournalTab: React.FC = () => {
           <WifiOff className="h-5 w-5 shrink-0 text-[#E5A93C]" />
           <div>
             <span className="font-bold">Đang ở chế độ Ngoại tuyến (Offline): </span>
-            <span>Các bài đăng mới sẽ được lưu vào hàng đợi trên thiết bị và tự động đẩy lên khi kết nối lại Wi-Fi (MSG-118).</span>
+            <span>Các bài đăng mới sẽ được lưu vào hàng đợi trên thiết bị và tự động đẩy lên khi kết nối lại Wi-Fi.</span>
           </div>
         </div>
       )}
@@ -610,7 +610,7 @@ export const ClassroomJournalTab: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL 1: SOẠN THẢO BÀI ĐĂNG HOẠT ĐỘNG (UC-028) ================= */}
+      {/* ================= MODAL 1: SOẠN THẢO BÀI ĐĂNG HOẠT ĐỘNG ================= */}
       {showComposerModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
           <div className="bg-white rounded-3xl max-w-xl w-full border border-slate-200 overflow-hidden shadow-2xl relative">
@@ -753,7 +753,6 @@ export const ClassroomJournalTab: React.FC = () => {
                             <span className="truncate">{stu.fullName}</span>
                             {isOptOut && (
                               <span className="text-[10px] text-[#DC2626] font-bold shrink-0">
-                                (BR-022)
                               </span>
                             )}
                           </label>
@@ -774,7 +773,7 @@ export const ClassroomJournalTab: React.FC = () => {
                         Cảnh báo Bảo mật Dữ liệu Trẻ em (Nghị định 13/2023/NĐ-CP & BR-022)
                       </h4>
                       <p className="text-[11px] text-slate-600 mt-0.5">
-                        MSG-117: Học sinh được gắn thẻ có phụ huynh đăng ký từ chối công khai hình ảnh cá nhân. Vui lòng chọn ảnh khác hoặc bật chế độ tự động làm mờ mặt bé.
+                        Học sinh được gắn thẻ có phụ huynh đăng ký từ chối công khai hình ảnh cá nhân. Vui lòng chọn ảnh khác hoặc bật chế độ tự động làm mờ mặt bé.
                       </p>
                     </div>
                   </div>

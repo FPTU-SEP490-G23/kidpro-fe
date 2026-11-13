@@ -137,13 +137,13 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
       queryClient.invalidateQueries({ queryKey: ['class-students-health-entry', selectedClassId] });
       setToastMessage({
         type: 'success',
-        text: 'MSG-204: Đã lưu số đo thể chất và phân tích theo chuẩn tăng trưởng WHO',
+        text: 'Đã lưu số đo thể chất và phân tích theo chuẩn tăng trưởng WHO',
       });
     },
     onError: () => {
       setToastMessage({
         type: 'error',
-        text: 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+        text: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
       });
     },
   });
@@ -158,20 +158,20 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
       const h = Number(r.heightCm);
       const w = Number(r.weightKg);
 
-      // BR-050 & MSG-205: Giới hạn sinh lý
+      // BR-050 & Giới hạn sinh lý
       if (h < 60.0 || h > 140.0 || w < 7.0 || w > 45.0) {
         setToastMessage({
           type: 'warning',
-          text: `MSG-205: Giá trị đo đạc của bé ${r.studentName} (${h}cm, ${w}kg) nằm ngoài khoảng sinh lý bình thường của trẻ mầm non (7 - 45 kg, 60 - 140 cm). Vui lòng kiểm tra lại.`,
+          text: `Giá trị đo đạc của bé ${r.studentName} (${h}cm, ${w}kg) nằm ngoài khoảng sinh lý bình thường của trẻ mầm non (7 - 45 kg, 60 - 140 cm). Vui lòng kiểm tra lại.`,
         });
         return;
       }
 
-      // MSG-206: Kiểm tra bất thường giảm chiều cao
+      // Kiểm tra bất thường giảm chiều cao
       if (r.previousHeightCm && h < r.previousHeightCm) {
         setToastMessage({
           type: 'warning',
-          text: `MSG-206: Chiều cao hiện tại (${h} cm) của bé ${r.studentName} thấp hơn số đo lần trước (${r.previousHeightCm} cm). Vui lòng đo lại cho bé để đảm bảo chính xác.`,
+          text: `Chiều cao hiện tại (${h} cm) của bé ${r.studentName} thấp hơn số đo lần trước (${r.previousHeightCm} cm). Vui lòng đo lại cho bé để đảm bảo chính xác.`,
         });
         // Không chặn hẳn nhưng cảnh báo rõ cho giáo viên
       }
@@ -257,7 +257,7 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-[#275A4E]/10 px-3 py-1 text-xs font-bold text-[#275A4E] mb-1.5">
               <Scale className="h-4 w-4" />
-              <span>Phân Hệ Sức Khỏe Học Đường • UC-051</span>
+              <span>Phân Hệ Sức Khỏe Học Đường </span>
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
               <span>Sổ Theo Dõi Thể Trạng & Chỉ Số BMI Chuẩn WHO</span>
@@ -452,7 +452,7 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
                   const currentBmiStatus = getBmiStatus(calculatedBmi);
                   const badgeInfo = getBmiBadge(currentBmiStatus);
 
-                  // 2. Kiểm tra bất thường giảm chiều cao so với lần trước (MSG-206)
+                  // 2. Kiểm tra bất thường giảm chiều cao so với lần trước
                   const prevH = field.previousHeightCm;
                   const isHeightDecreased = Boolean(prevH && currentH > 0 && currentH < prevH);
 
@@ -537,11 +537,11 @@ export const ClassHealthMetricsTab: React.FC<ClassHealthMetricsTabProps> = ({
                           />
                         </div>
 
-                        {/* Cảnh báo giảm chiều cao (MSG-206) */}
+                        {/* Cảnh báo giảm chiều cao */}
                         {isHeightDecreased && (
                           <div
                             className="mt-1 flex items-center justify-center gap-1 text-[10px] text-rose-600 font-bold"
-                            title="MSG-206: Chiều cao hiện tại thấp hơn số đo lần trước. Vui lòng đo lại cho bé để đảm bảo chính xác."
+                            title="Chiều cao hiện tại thấp hơn số đo lần trước. Vui lòng đo lại cho bé để đảm bảo chính xác."
                           >
                             <AlertCircle className="h-3 w-3 shrink-0" />
                             <span>Giảm {Math.abs(Number(diffH))} cm!</span>

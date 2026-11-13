@@ -49,7 +49,7 @@ export const staffApi = {
     return res?.data || res;
   },
 
-  // Thêm mới hồ sơ (UC-008)
+  // Thêm mới hồ sơ
   createStaff: async (data: CreateStaffInput): Promise<{ message: string; data: StaffMember }> => {
     const res: any = await axiosClient.post('/staff', data);
     return res?.data || res;
@@ -73,7 +73,7 @@ export const staffApi = {
     return res?.data || res;
   },
 
-  // Phân quyền vai trò nhân sự (UC-009)
+  // Phân quyền vai trò nhân sự
   updateStaffRole: async (id: string, role: string): Promise<{ message: string; data: StaffMember }> => {
     const res: any = await axiosClient.patch(`/staff/${id}/role`, { role });
     return res?.data || res;

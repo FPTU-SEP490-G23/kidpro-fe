@@ -121,7 +121,7 @@ export const AttendancePage: React.FC = () => {
               } shadow-xs`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Điểm Danh & Đón Trả • {currentMeta.uc}</span>
+              <span>Điểm Danh & Đón Trả</span>
             </span>
             {currentMeta.badge && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">

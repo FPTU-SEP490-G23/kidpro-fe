@@ -61,7 +61,7 @@ export const studentService = {
   },
 
   /**
-   * Tiếp nhận tạo mới và cấp mã hồ sơ học sinh (BR-011, MSG-018, MSG-045)
+   * Tiếp nhận tạo mới và cấp mã hồ sơ học sinh
    */
   createStudent: async (payload: CreateStudentPayload): Promise<ApiResponse<StudentDetail>> => {
     const res: any = await axiosClient.post('/students', payload);
@@ -69,7 +69,7 @@ export const studentService = {
   },
 
   /**
-   * Cập nhật thông tin lý lịch và giấy tờ học sinh (MSG-046)
+   * Cập nhật thông tin lý lịch và giấy tờ học sinh
    */
   updateStudent: async (id: string, payload: UpdateStudentPayload): Promise<ApiResponse<StudentDetail>> => {
     const res: any = await axiosClient.put(`/students/${id}`, payload);

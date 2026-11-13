@@ -20,7 +20,7 @@ import {
 
 export const financeApi = {
   // ==========================================
-  // G8-UC-01: THIẾT LẬP DANH MỤC KHOẢN THU (SERVICES)
+  // THIẾT LẬP DANH MỤC KHOẢN THU (SERVICES)
   // ==========================================
   getServices: () => {
     return axiosClient.get<ServiceDto[]>('/finance/services');
@@ -49,7 +49,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-03: CẤU HÌNH CHÍNH SÁCH MIỄN GIẢM (DISCOUNT POLICIES)
+  // CẤU HÌNH CHÍNH SÁCH MIỄN GIẢM (DISCOUNT POLICIES)
   // ==========================================
   getDiscountPolicies: () => {
     return axiosClient.get<DiscountPolicyDto[]>('/finance/discount-policies');
@@ -84,7 +84,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-04 & G8-UC-05: LẬP BẢNG TÍNH HỌC PHÍ DỰ THU & PHỤ PHÍ PHÁT SINH
+  // G8-UC-04 & LẬP BẢNG TÍNH HỌC PHÍ DỰ THU & PHỤ PHÍ PHÁT SINH
   // ==========================================
   getInvoices: (params?: {
     month?: number;
@@ -123,7 +123,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-06: PHÊ DUYỆT BẢNG TỔNG HỢP HỌC PHÍ TOÀN TRƯỜNG
+  // PHÊ DUYỆT BẢNG TỔNG HỢP HỌC PHÍ TOÀN TRƯỜNG
   // ==========================================
   getTuitionSummary: (params?: { month?: number; year?: number }) => {
     return axiosClient.get<TuitionSummaryDto>('/finance/tuition-summary', { params })
@@ -147,14 +147,14 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-07: PHÁT HÀNH THÔNG BÁO HỌC PHÍ & VIETQR
+  // PHÁT HÀNH THÔNG BÁO HỌC PHÍ & VIETQR
   // ==========================================
   publishInvoices: (data: PublishInvoicesRequestDto) => {
     return axiosClient.post<PublishInvoicesResponseDto>('/finance/invoices/publish', data);
   },
 
   // ==========================================
-  // G8-UC-10 & G8-UC-11: THU TIỀN MẶT, XUẤT HÓA ĐƠN & BIÊN LAI THU TIỀN
+  // G8-UC-10 & THU TIỀN MẶT, XUẤT HÓA ĐƠN & BIÊN LAI THU TIỀN
   // ==========================================
   recordCashPayment: (invoiceId: string, data: RecordCashPaymentRequestDto) => {
     return axiosClient.post<ReceiptDto>(`/finance/invoices/${invoiceId}/pay-cash`, data);
@@ -169,7 +169,7 @@ export const financeApi = {
   },
 
   // ==========================================
-  // G8-UC-12: BÁO CÁO DOANH THU & CÔNG NỢ QUÁ HẠN (MÀN CHUNG BGH & KẾ TOÁN)
+  // BÁO CÁO DOANH THU & CÔNG NỢ QUÁ HẠN (MÀN CHUNG BGH & KẾ TOÁN)
   // ==========================================
   getRevenueReport: (params?: { month?: number; year?: number }) => {
     return axiosClient.get<any>('/finance/revenue-report', { params })

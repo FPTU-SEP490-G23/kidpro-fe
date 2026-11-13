@@ -1,5 +1,5 @@
 // ==========================================
-// UC-041: ĐĂNG KÝ DỮ LIỆU KHUÔN MẶT CỦA BÉ (STUDENT AI FACE ENROLLMENT)
+// ĐĂNG KÝ DỮ LIỆU KHUÔN MẶT CỦA BÉ (STUDENT AI FACE ENROLLMENT)
 // ==========================================
 
 export type FaceAngleType = 'FRONTAL' | 'LEFT_TILT' | 'RIGHT_TILT';
@@ -43,7 +43,7 @@ export interface Decree13ConsentAgreement {
 }
 
 // ==========================================
-// UC-042: ĐĂNG KÝ DANH SÁCH NGƯỜI THÂN ĐÓN BÉ (AUTHORIZED GUARDIANS)
+// ĐĂNG KÝ DANH SÁCH NGƯỜI THÂN ĐÓN BÉ (AUTHORIZED GUARDIANS)
 // ==========================================
 
 export type GuardianVerificationStatus =
@@ -56,7 +56,7 @@ export interface AuthorizedGuardian {
   studentId: string;
   fullName: string;
   relationship: string; // Bố, Mẹ, Ông nội, Bà nội, Ông ngoại, Bà ngoại, Chú/Bác/Cô/Dì, Người giúp việc/Tài xế
-  phone: string; // 10 chữ số chuẩn VN (BR-008)
+  phone: string; // 10 chữ số chuẩn VN
   citizenId: string; // 12 chữ số
   maskedCitizenId: string; // Che mờ 4 số giữa vd: 001094****12 (Privacy-by-Design)
   photoUrl: string; // Ảnh chân dung sắc nét
@@ -81,7 +81,7 @@ export interface RegisterGuardianPayload {
 }
 
 // ==========================================
-// UC-043: ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY
+// ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY
 // ==========================================
 
 export type EmergencyPickupStatus = 'PENDING' | 'USED' | 'REVOKED' | 'EXPIRED';
@@ -120,7 +120,7 @@ export interface EmergencyPickupRecord {
 }
 
 // ==========================================
-// UC-044: NỘP ĐƠN XIN NGHỈ HỌC TRỰC TUYẾN
+// NỘP ĐƠN XIN NGHỈ HỌC TRỰC TUYẾN
 // ==========================================
 
 export type LeaveReasonCategory =
@@ -137,7 +137,7 @@ export interface SubmitLeaveRequestPayload {
   endDate: string;
   reason: string;
   notes?: string;
-  attachmentUrl?: string; // Bắt buộc nếu nghỉ ốm >= 3 ngày (BR-035)
+  attachmentUrl?: string; // Bắt buộc nếu nghỉ ốm >= 3 ngày
 }
 
 export interface ParentLeaveItem {
@@ -162,7 +162,7 @@ export interface ParentLeaveItem {
 }
 
 // ==========================================
-// UC-045: GỬI ĐƠN DẶN THUỐC ĐIỆN TỬ
+// GỬI ĐƠN DẶN THUỐC ĐIỆN TỬ
 // ==========================================
 
 export type MedicationCategory = 'REGULAR' | 'PRESCRIPTION_ANTIBIOTIC';
@@ -176,7 +176,7 @@ export interface SubmitMedicationPayload {
   administrationTime: string; // "11:30" | "14:00" | "15:30" hoặc "HH:mm" trong khoảng 07:30 - 17:00
   storageInstructions?: string;
   notes?: string;
-  prescriptionPhotoUrl?: string; // Bắt buộc nếu là PRESCRIPTION_ANTIBIOTIC (BR-049)
+  prescriptionPhotoUrl?: string; // Bắt buộc nếu là PRESCRIPTION_ANTIBIOTIC
   courseDays?: number; // 1-7 ngày
   agreedElectronicConsent: boolean; // BR-047
 }
@@ -202,7 +202,7 @@ export interface ParentMedicationItem {
 }
 
 // ==========================================
-// UC-046: NHẬN THÔNG BÁO ĐIỂM DANH & ĐÓN TRẢ KÈM ẢNH
+// NHẬN THÔNG BÁO ĐIỂM DANH & ĐÓN TRẢ KÈM ẢNH
 // ==========================================
 
 export type GateEventType = 'GATE_CHECKIN' | 'GATE_CHECKOUT';
@@ -217,7 +217,7 @@ export interface GateNotificationItem {
   timestamp: string; // '2026-10-10T07:45:12+07:00'
   gateLocation: string; // 'Cổng chính 1', 'Cổng phụ 2'
   photoUrl: string; // Ảnh MinIO/S3
-  fallbackPhotoUrl?: string; // Ảnh CDN dự phòng (MSG-187)
+  fallbackPhotoUrl?: string; // Ảnh CDN dự phòng
   isAiRecognized: boolean; // true = Camera AI, false = Thủ công
   confidenceScore?: number; // 0.98
   guardianName?: string; // Tên người đón khi check-out
@@ -234,7 +234,7 @@ export interface RegisterFcmTokenPayload {
 }
 
 // ==========================================
-// UC-047: XEM BẢNG KÊ HỌC PHÍ & CHI TIẾT KHẤU TRỪ
+// XEM BẢNG KÊ HỌC PHÍ & CHI TIẾT KHẤU TRỪ
 // ==========================================
 
 export type ParentInvoiceStatus = 'ISSUED' | 'PAID' | 'PARTIALLY_PAID' | 'DISPUTED' | 'RECALLED';
@@ -274,7 +274,7 @@ export interface TuitionInvoiceItem {
   remainingAmount: number;
   bankReferenceCode?: string;
   paymentQrCode?: string;
-  isRecalled?: boolean; // Bị thu hồi điều chỉnh (MSG-191)
+  isRecalled?: boolean; // Bị thu hồi điều chỉnh
   issuedAt: string;
   paidAt?: string;
   recalledReason?: string;
@@ -298,7 +298,7 @@ export interface InvoiceDisputePayload {
 }
 
 // ==========================================
-// UC-048: THANH TOÁN HỌC PHÍ QUA VIETQR 1-CHẠM
+// THANH TOÁN HỌC PHÍ QUA VIETQR 1-CHẠM
 // ==========================================
 
 export interface VietQrPaymentInfo {
@@ -319,7 +319,7 @@ export interface VietQrPaymentInfo {
 }
 
 // ==========================================
-// UC-049: TẢI BIÊN LAI THU TIỀN ĐIỆN TỬ & HÓA ĐƠN THUẾ (ELECTRONIC RECEIPT & VAS)
+// TẢI BIÊN LAI THU TIỀN ĐIỆN TỬ & HÓA ĐƠN THUẾ (ELECTRONIC RECEIPT & VAS)
 // ==========================================
 
 export type PaymentMethodType = 'VIETQR_PAYOS' | 'CASH_COUNTER' | 'POS_CARD';
@@ -397,7 +397,7 @@ export interface ElectronicReceiptData {
 }
 
 // ==========================================
-// UC-050: NỘP ĐƠN YÊU CẦU SỰ VỤ HỌC SINH (STUDENT AFFAIRS & ACADEMIC PETITIONS)
+// NỘP ĐƠN YÊU CẦU SỰ VỤ HỌC SINH (STUDENT AFFAIRS & ACADEMIC PETITIONS)
 // ==========================================
 
 export type PetitionCategory =
@@ -457,7 +457,7 @@ export interface CreatePetitionPayload {
 }
 
 // ==========================================
-// UC-068: KHẢO SÁT Ý KIẾN & ĐÁNH GIÁ DỊCH VỤ (SERVICE QUALITY SURVEY)
+// KHẢO SÁT Ý KIẾN & ĐÁNH GIÁ DỊCH VỤ (SERVICE QUALITY SURVEY)
 // ==========================================
 
 export interface ServiceRatings {
@@ -504,7 +504,7 @@ export interface SurveyCampaign {
 }
 
 // ==========================================
-// UC-069: QUYỀN XÓA DỮ LIỆU SINH TRẮC HỌC THEO ĐIỀU 16 NGHỊ ĐỊNH 13/2023/NĐ-CP
+// QUYỀN XÓA DỮ LIỆU SINH TRẮC HỌC THEO ĐIỀU 16 NGHỊ ĐỊNH 13/2023/NĐ-CP
 // ==========================================
 
 export type PurgeReason =

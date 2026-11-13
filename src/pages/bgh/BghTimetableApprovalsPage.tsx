@@ -49,7 +49,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['timetable-approvals-bgh'] });
       queryClient.invalidateQueries({ queryKey: ['timetable-class-detail'] });
-      success(res?.message || 'MSG-046: Thời khóa biểu tuần đã được phê duyệt và ban hành chính thức thành công tới giáo viên và phụ huynh.');
+      success(res?.message || 'Thời khóa biểu tuần đã được phê duyệt và ban hành chính thức thành công tới giáo viên và phụ huynh.');
       setViewingDetail(null);
     },
     onError: (err: any) => {
@@ -64,7 +64,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['timetable-approvals-bgh'] });
       queryClient.invalidateQueries({ queryKey: ['timetable-class-detail'] });
-      success(res?.message || 'MSG-047: Đã gửi yêu cầu chỉnh sửa thời khóa biểu về Cán bộ Giáo vụ thành công.');
+      success(res?.message || 'Đã gửi yêu cầu chỉnh sửa thời khóa biểu về Cán bộ Giáo vụ thành công.');
       closeRevisionModal();
       setViewingDetail(null);
     },
@@ -103,7 +103,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
   const handleConfirmRevision = (e: React.FormEvent) => {
     e.preventDefault();
     if (!revisionNotes.trim()) {
-      setValidationError('MSG-033: Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
+      setValidationError('Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
       return;
     }
     if (!revisingClass) return;
@@ -127,11 +127,11 @@ export const BghTimetableApprovalsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-020 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt & Ban Hành Thời Khóa Biểu</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Thẩm định khung hoạt động học tập, đảm bảo không xung đột phòng chức năng (BR-013), ký duyệt ban hành hoặc yêu cầu Cán bộ Giáo vụ chỉnh sửa (BR-011). Dữ liệu được lưu vào bảng academic.weekly_timetable.
+            Thẩm định khung hoạt động học tập, đảm bảo không xung đột phòng chức năng, ký duyệt ban hành hoặc yêu cầu Cán bộ Giáo vụ chỉnh sửa. Dữ liệu được lưu vào bảng academic.weekly_timetable.
           </p>
         </div>
         <button
@@ -312,7 +312,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Thời Khóa Biểu: {viewingDetail.className}</h3>
-                  <p className="text-xs text-[#78C2AD]">Phòng: {viewingDetail.roomName} • UC-020 Ban Giám Hiệu</p>
+                  <p className="text-xs text-[#78C2AD]">Phòng: {viewingDetail.roomName}  Ban Giám Hiệu</p>
                 </div>
               </div>
               <button onClick={() => setViewingDetail(null)} className="p-1 rounded-full text-white/80 hover:bg-white/10">
@@ -383,7 +383,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
                   disabled={approveMutation.isPending}
                   className="px-5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-sm"
                 >
-                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt & Ban hành (MSG-046)'}
+                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt & Ban hành'}
                 </button>
               </div>
             </div>
@@ -451,7 +451,7 @@ export const BghTimetableApprovalsPage: React.FC = () => {
                   disabled={revisionMutation.isPending}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {revisionMutation.isPending ? 'Đang gửi...' : 'Gửi yêu cầu điều chỉnh (MSG-047)'}
+                  {revisionMutation.isPending ? 'Đang gửi...' : 'Gửi yêu cầu điều chỉnh'}
                 </button>
               </div>
             </form>

@@ -72,7 +72,7 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
         const res = await parentApi.getStudentFaceProfile(studentId);
         return res.data;
       } catch {
-        showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+        showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
         throw new Error('Network error');
       }
     },
@@ -207,22 +207,22 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
       queryClient.invalidateQueries({ queryKey: ['student-face-profile', studentId] });
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     },
   });
 
-  // Xử lý phụ huynh từ chối đăng ký (BR-022)
+  // Xử lý phụ huynh từ chối đăng ký
   const handleRefuseConsent = async () => {
     try {
       await parentApi.refuseFaceBiometrics(studentId, 'Phụ huynh từ chối cấp quyền sinh trắc học');
       setShowDecree13Modal(false);
       showToast(
         'warning',
-        'MSG-170: Đã từ chối đăng ký khuôn mặt. Trẻ sẽ sử dụng hình thức điểm danh thủ công.'
+        'Đã từ chối đăng ký khuôn mặt. Trẻ sẽ sử dụng hình thức điểm danh thủ công.'
       );
       queryClient.invalidateQueries({ queryKey: ['student-face-profile', studentId] });
     } catch {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   };
 
@@ -232,7 +232,7 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
     if (capturedPhotos.length < 3) {
       showToast(
         'error',
-        'MSG-168: Ảnh bị mờ hoặc thiếu sáng. Vui lòng chụp lại ở nơi có đủ ánh sáng tự nhiên.'
+        'Ảnh bị mờ hoặc thiếu sáng. Vui lòng chụp lại ở nơi có đủ ánh sáng tự nhiên.'
       );
       return;
     }
@@ -256,11 +256,11 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
       );
 
       setIsExtracting(false);
-      showToast('success', 'MSG-167: Đã đăng ký hồ sơ khuôn mặt của bé thành công phục vụ điểm danh AI tại cổng');
+      showToast('success', 'Đã đăng ký hồ sơ khuôn mặt của bé thành công phục vụ điểm danh AI tại cổng');
       queryClient.invalidateQueries({ queryKey: ['student-face-profile', studentId] });
     } catch {
       setIsExtracting(false);
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     }
   };
 
@@ -298,7 +298,7 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#78C2AD]/15 text-[#1E4D40]">
             <Camera className="h-3.5 w-3.5 text-[#275A4E]" />
-            <span>UC-041 • Đăng Ký Sinh Trắc Học Khuôn Mặt Bé (AI Face Enrollment)</span>
+            <span>Đăng Ký Sinh Trắc Học Khuôn Mặt Bé (AI Face Enrollment)</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#1E4D40] tracking-tight">
             Hồ Sơ Nhận Diện Khuôn Mặt Điểm Danh Cổng Trường
@@ -457,7 +457,7 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
 
             {/* Hướng dẫn chụp ảnh đạt chuẩn */}
             <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-blue-900 space-y-1">
-              <strong className="block font-black text-blue-950">Quy tắc chuẩn nhận diện mầm non (BR-021):</strong>
+              <strong className="block font-black text-blue-950">Quy tắc chuẩn nhận diện mầm non:</strong>
               <p>• Bé nhìn thẳng vào camera, đủ sáng tự nhiên, không đeo kính râm hoặc khẩu trang.</p>
               <p>• Chỉ có duy nhất khuôn mặt của bé trong khung hình; không chụp cùng phụ huynh hoặc bạn khác.</p>
             </div>

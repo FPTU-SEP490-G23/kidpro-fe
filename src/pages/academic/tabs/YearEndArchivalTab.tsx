@@ -98,7 +98,7 @@ export const YearEndArchivalTab: React.FC = () => {
       return;
     }
 
-    // 2. Kiểm tra dung lượng lưu trữ kho học bạ (< 20GB - MSG-281)
+    // 2. Kiểm tra dung lượng lưu trữ kho học bạ (< 20GB)
     if (preflightCheck && preflightCheck.diskSpaceAvailableGb < 20) {
       setFeedback({
         type: 'warning',
@@ -114,7 +114,7 @@ export const YearEndArchivalTab: React.FC = () => {
 
   // Xác nhận đóng khóa sổ niên khóa
   const handleConfirmArchival = async () => {
-    // BR: Bắt buộc đúng mã phê duyệt của Hiệu trưởng (MSG-280)
+    // BR: Bắt buộc đúng mã phê duyệt của Hiệu trưởng
     if (principalAuthCode.trim() !== 'BGH-KIDPRO-2026' && principalAuthCode.trim().length < 6) {
       setFeedback({
         type: 'error',
@@ -183,7 +183,7 @@ export const YearEndArchivalTab: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-065: LUẬT LƯU TRỮ & CHUẨN MỰC BỘ GD&ĐT
+                LUẬT LƯU TRỮ & CHUẨN MỰC BỘ GD&ĐT
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Tính Bất Biến READ-ONLY 10 Năm
@@ -614,7 +614,7 @@ export const YearEndArchivalTab: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Mã Phê Duyệt / Chữ Ký Số Của Hiệu Trưởng (Bắt buộc - MSG-280)
+                  Mã Phê Duyệt / Chữ Ký Số Của Hiệu Trưởng (Bắt buộc)
                 </label>
                 <input
                   type="password"

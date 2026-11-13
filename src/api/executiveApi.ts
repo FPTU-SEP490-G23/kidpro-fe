@@ -13,7 +13,7 @@ function unwrapSettledResponse(p: PromiseSettledResult<any>): any {
 }
 
 export const executiveApi = {
-  // Lấy dữ liệu điều hành tổng thể toàn trường theo ngày từ API backend thực tế (UC-012)
+  // Lấy dữ liệu điều hành tổng thể toàn trường theo ngày từ API backend thực tế
   async getExecutiveOverview(selectedDate?: string): Promise<ExecutiveDashboardData> {
     const today = selectedDate || new Date().toISOString().split('T')[0];
     const monthYear = `${today.slice(5, 7)}-${today.slice(0, 4)}`; // ví dụ "10-2026"
@@ -233,7 +233,7 @@ export const executiveApi = {
         isCacheData: false,
       };
     } catch (err) {
-      console.warn('Lỗi khi tải dữ liệu tổng thể điều hành UC-012:', err);
+      console.warn('Lỗi khi tải dữ liệu tổng thể điều hành ', err);
       return {
         date: today,
         attendance: {

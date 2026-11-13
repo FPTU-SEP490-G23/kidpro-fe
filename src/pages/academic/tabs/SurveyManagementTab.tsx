@@ -200,7 +200,7 @@ export const SurveyManagementTab: React.FC = () => {
   };
 
   const handleSubmitSurvey = async (isDraft: boolean = false) => {
-    // BR-057 Validation 1: Tiêu đề không rỗng (MSG-010)
+    // BR-057 Validation 1: Tiêu đề không rỗng
     if (!builderTitle.trim()) {
       setFeedback({
         type: 'error',
@@ -210,7 +210,7 @@ export const SurveyManagementTab: React.FC = () => {
       return;
     }
 
-    // BR-057 Validation 2: Ít nhất 1 câu hỏi (MSG-233)
+    // BR-057 Validation 2: Ít nhất 1 câu hỏi
     if (builderQuestions.length === 0) {
       setFeedback({
         type: 'error',
@@ -220,7 +220,7 @@ export const SurveyManagementTab: React.FC = () => {
       return;
     }
 
-    // BR-057 Validation 3: Thời gian kết thúc phải sau bắt đầu (MSG-145)
+    // BR-057 Validation 3: Thời gian kết thúc phải sau bắt đầu
     if (!builderStartDate || !builderEndDate || builderEndDate <= builderStartDate) {
       setFeedback({
         type: 'error',
@@ -522,7 +522,7 @@ export const SurveyManagementTab: React.FC = () => {
                       className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1"
                     >
                       <Lock className="w-3 h-3" />
-                      <span>Đóng phiếu (MSG-235)</span>
+                      <span>Đóng phiếu</span>
                     </button>
                   )}
                 </div>
@@ -562,7 +562,7 @@ export const SurveyManagementTab: React.FC = () => {
               <div className="space-y-1">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950">
                   <Sparkles className="w-3.5 h-3.5" />
-                  G11-UC-06 • Cán bộ Giáo vụ
+                  Cán bộ Giáo vụ
                 </span>
                 <h2 className="text-xl font-bold">Khởi Tạo & Ban Hành Phiếu Khảo Sát Mới</h2>
                 <p className="text-xs text-emerald-100/80">
@@ -579,7 +579,7 @@ export const SurveyManagementTab: React.FC = () => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-              {/* Tiêu đề & Mô tả (BR-057) */}
+              {/* Tiêu đề & Mô tả */}
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -640,7 +640,7 @@ export const SurveyManagementTab: React.FC = () => {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Ngày kết thúc (BR-057) <span className="text-rose-500">*</span>
+                      Ngày kết thúc <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -652,7 +652,7 @@ export const SurveyManagementTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Dynamic Questions Builder (BR-057) */}
+              {/* Dynamic Questions Builder */}
               <div className="space-y-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -663,7 +663,7 @@ export const SurveyManagementTab: React.FC = () => {
                       </span>
                     </h4>
                     <span className="text-xs text-slate-400">
-                      Bắt buộc có ít nhất 01 câu hỏi hợp lệ (MSG-233). Hỗ trợ Trắc nghiệm, Thang điểm sao, Ý kiến tự do.
+                      Bắt buộc có ít nhất 01 câu hỏi hợp lệ. Hỗ trợ Trắc nghiệm, Thang điểm sao, Ý kiến tự do.
                     </span>
                   </div>
 
@@ -862,7 +862,7 @@ export const SurveyManagementTab: React.FC = () => {
                   ) : (
                     <CheckCircle2 className="w-4 h-4" />
                   )}
-                  <span>Phát Hành Phiếu Khảo Sát (MSG-232)</span>
+                  <span>Phát Hành Phiếu Khảo Sát</span>
                 </button>
               </div>
             </div>

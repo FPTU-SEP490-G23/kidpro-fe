@@ -82,18 +82,18 @@ export const LeaveRequestReviewTab: React.FC = () => {
         if (data.mealRefundApplied) {
           setToastMessage({
             type: 'success',
-            text: 'MSG-106: Đã phê duyệt đơn xin nghỉ học thành công. Đã áp dụng hoàn trả tiền ăn bán trú và đồng bộ sang Bếp!'
+            text: 'Đã phê duyệt đơn xin nghỉ học thành công. Đã áp dụng hoàn trả tiền ăn bán trú và đồng bộ sang Bếp!'
           });
         } else {
           setToastMessage({
             type: 'warning',
-            text: 'MSG-108: Đơn được duyệt Nghỉ có phép. Tuy nhiên, tiền ăn hôm nay không được hoàn trả do nộp sau 08:30.'
+            text: 'Đơn được duyệt Nghỉ có phép. Tuy nhiên, tiền ăn hôm nay không được hoàn trả do nộp sau 08:30.'
           });
         }
       } else {
         setToastMessage({
           type: 'info',
-          text: 'MSG-107: Đã từ chối đơn xin nghỉ học và gửi thông báo lý do tới phụ huynh.'
+          text: 'Đã từ chối đơn xin nghỉ học và gửi thông báo lý do tới phụ huynh.'
         });
       }
 
@@ -114,7 +114,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
     if (isContagious) {
       setToastMessage({
         type: 'warning',
-        text: 'MSG-110: Ghi nhận bệnh truyền nhiễm. Đã kích hoạt quy trình giám sát dịch tễ học đường.'
+        text: 'Ghi nhận bệnh truyền nhiễm. Đã kích hoạt quy trình giám sát dịch tễ học đường.'
       });
     }
 
@@ -122,7 +122,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
     if (request.totalDays > 30 || request.isOver30Days) {
       setToastMessage({
         type: 'error',
-        text: 'MSG-109: Nghỉ học trên 30 ngày bắt buộc phải làm thủ tục Bảo lưu học tập chính thức (UC-019).'
+        text: 'Nghỉ học trên 30 ngày bắt buộc phải làm thủ tục Bảo lưu học tập chính thức.'
       });
     }
   };
@@ -202,7 +202,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
               <FileText className="w-6 h-6 text-[#275A4E]" />
-              <span>Tiếp Nhận &amp; Duyệt Đơn Xin Nghỉ Học (UC-026)</span>
+              <span>Tiếp Nhận &amp; Duyệt Đơn Xin Nghỉ Học</span>
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Thẩm định đơn nghỉ học nộp qua app, đối chiếu mốc khóa sổ 08:30 sáng hoàn tiền ăn bán trú và tự động đồng bộ sang Bếp ăn.
@@ -390,7 +390,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Meal Refund Badge (BR-029 & BR-034) */}
+                    {/* Meal Refund Badge */}
                     <div className="pt-1">
                       {item.isEligibleForMealRefund ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
@@ -400,7 +400,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Nộp sau 08:30 AM: Không hoàn tiền ăn ngày đầu (BR-029)</span>
+                          <span>Nộp sau 08:30 AM: Không hoàn tiền ăn ngày đầu</span>
                         </span>
                       )}
                     </div>
@@ -409,14 +409,14 @@ export const LeaveRequestReviewTab: React.FC = () => {
                     {item.isContagiousDisease && (
                       <div className="p-2.5 bg-rose-50 border border-rose-300 rounded-xl text-xs font-bold text-rose-900 flex items-center gap-2">
                         <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
-                        <span>CẢNH BÁO DỊCH TỄ: {item.contagiousDiseaseName || 'Bệnh truyền nhiễm'} (MSG-110)</span>
+                        <span>CẢNH BÁO DỊCH TỄ: {item.contagiousDiseaseName || 'Bệnh truyền nhiễm'}</span>
                       </div>
                     )}
 
                     {item.totalDays > 30 && (
                       <div className="p-2.5 bg-amber-100/70 border border-amber-400 rounded-xl text-xs font-bold text-amber-950 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                        <span>Nghỉ trên 30 ngày: Hướng dẫn phụ huynh làm thủ tục Bảo lưu học tập UC-019 (MSG-109)</span>
+                        <span>Nghỉ trên 30 ngày: Hướng dẫn phụ huynh làm thủ tục Bảo lưu học tập UC-019</span>
                       </div>
                     )}
 
@@ -477,7 +477,7 @@ export const LeaveRequestReviewTab: React.FC = () => {
             {/* Header */}
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#275A4E]">
-                Thẩm Định Đơn Nghỉ Học (UC-026)
+                Thẩm Định Đơn Nghỉ Học
               </span>
               <h3 className="text-xl font-bold text-slate-900">
                 {reviewAction === 'APPROVE' ? 'Phê Duyệt Đơn Xin Nghỉ Học' : 'Từ Chối Đơn Xin Nghỉ Học'}

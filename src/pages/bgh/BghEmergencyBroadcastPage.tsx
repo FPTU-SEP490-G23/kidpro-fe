@@ -64,20 +64,20 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // BR-122: Kiểm tra mã xác thực bảo mật khẩn cấp (MSG-284)
+    // BR-122: Kiểm tra mã xác thực bảo mật khẩn cấp
     if (!formData.authCode || (formData.authCode.trim() !== 'KIDPRO-EMERGENCY-2026' && formData.authCode.trim() !== '123456')) {
       setToastMsg({
         type: 'error',
-        text: 'MSG-284: Mã xác thực phát tin khẩn cấp không chính xác. Vui lòng nhập đúng mã bảo mật cấp cao của Ban Giám Hiệu.'
+        text: 'Mã xác thực phát tin khẩn cấp không chính xác. Vui lòng nhập đúng mã bảo mật cấp cao của Ban Giám Hiệu.'
       });
       return;
     }
 
-    // MSG-285: Bắt buộc nêu rõ nội dung chỉ đạo hành động
+    // Bắt buộc nêu rõ nội dung chỉ đạo hành động
     if (!formData.actionPlan || formData.actionPlan.trim().length < 10) {
       setToastMsg({
         type: 'warning',
-        text: 'MSG-285: Bỏ trống hoặc nội dung chỉ đạo hành động quá ngắn. Vui lòng nêu rõ phương án xử lý sự cố an toàn.'
+        text: 'Bỏ trống hoặc nội dung chỉ đạo hành động quá ngắn. Vui lòng nêu rõ phương án xử lý sự cố an toàn.'
       });
       return;
     }
@@ -94,7 +94,7 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
       setLatest(data);
       setToastMsg({
         type: 'success',
-        text: 'MSG-283: Lệnh phát thông báo khẩn cấp toàn trường đã được kích hoạt và truyền tải thành công.'
+        text: 'Lệnh phát thông báo khẩn cấp toàn trường đã được kích hoạt và truyền tải thành công.'
       });
 
       setFormData(prev => ({ ...prev, authCode: '' }));
@@ -151,21 +151,21 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
             <div>
               <div className="flex items-center space-x-2">
                 <span className="bg-white/30 backdrop-blur-sm text-white text-xs font-black px-2.5 py-0.5 rounded uppercase">
-                  UC-081 • CẤP ĐỘ KHẨN CẤP CAO NHẤT
+                  CẤP ĐỘ KHẨN CẤP CAO NHẤT
                 </span>
               </div>
               <h1 className="text-2xl font-black mt-1">
                 Kích Hoạt Lệnh Phát Tin Nhắn Thông Báo Khẩn Cấp
               </h1>
               <p className="text-white/80 text-sm mt-1">
-                Truyền tin thời gian thực tới 100% Phụ huynh & Cán bộ • Bảo vệ an toàn trẻ em (BR-122, BR-123)
+                Truyền tin thời gian thực tới 100% Phụ huynh & Cán bộ • Bảo vệ an toàn trẻ em
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-xl text-xs font-semibold">
             <Clock className="w-4 h-4 text-amber-300" />
-            <span>Giãn cách tối thiểu: 10 phút (BR-123)</span>
+            <span>Giãn cách tối thiểu: 10 phút</span>
           </div>
         </div>
       </div>
@@ -226,7 +226,7 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                3. Nội dung chỉ đạo hành động bắt buộc <span className="text-rose-500">* (MSG-285)</span>
+                3. Nội dung chỉ đạo hành động bắt buộc <span className="text-rose-500">*</span>
               </label>
               <textarea
                 rows={5}
@@ -242,7 +242,7 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
             <div className="p-4 bg-rose-50 rounded-xl border border-rose-200 space-y-2">
               <label className="block text-xs font-bold text-rose-900 uppercase flex items-center space-x-1.5">
                 <KeyRound className="w-4 h-4 text-rose-600" />
-                <span>4. Mã xác thực bảo mật khẩn cấp Ban Giám Hiệu (BR-122)</span>
+                <span>4. Mã xác thực bảo mật khẩn cấp Ban Giám Hiệu</span>
               </label>
               <input
                 type="password"

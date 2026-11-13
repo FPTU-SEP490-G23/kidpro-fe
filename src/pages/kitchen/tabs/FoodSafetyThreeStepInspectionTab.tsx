@@ -276,7 +276,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
         item.sensoryEvaluation !== 'PASSED'
     );
     if (invalidRawMaterials) {
-      setToastMessage({ type: 'error', text: `MSG-113: ${MSG_113}` });
+      setToastMessage({ type: 'error', text: `${MSG_113}` });
       setTimeout(() => setToastMessage(null), 5000);
       return;
     }
@@ -371,7 +371,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
     if (invalidSamples) {
       setToastMessage({
         type: 'error',
-        text: `MSG-115: ${MSG_115}`,
+        text: `${MSG_115}`,
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
@@ -383,7 +383,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
     if (invalidTemp) {
       setToastMessage({
         type: 'error',
-        text: `MSG-114: ${MSG_114}`,
+        text: `${MSG_114}`,
       });
       setTimeout(() => setToastMessage(null), 6000);
       return;
@@ -408,7 +408,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
         setLocalLog(updated);
         setToastMessage({
           type: 'success',
-          text: `MSG-112: ${MSG_112}`,
+          text: `${MSG_112}`,
         });
         setTimeout(() => setToastMessage(null), 6000);
       },
@@ -1042,7 +1042,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                             <span className="text-slate-500">g</span>
                           </div>
                           {!isWeightValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Bắt buộc ≥ 100g (MSG-115)</span>
+                            <span className="text-[10px] text-rose-600 block mt-0.5">Bắt buộc ≥ 100g</span>
                           )}
                         </td>
                         <td className="py-3 px-3">
@@ -1079,7 +1079,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                             <span className="text-slate-500">°C</span>
                           </div>
                           {!isTempValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Tủ phải 2-8°C (MSG-114)</span>
+                            <span className="text-[10px] text-rose-600 block mt-0.5">Tủ phải 2-8°C</span>
                           )}
                         </td>
                         <td className="py-3 px-3">

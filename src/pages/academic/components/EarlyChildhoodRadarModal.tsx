@@ -80,7 +80,7 @@ export const EarlyChildhoodRadarModal: React.FC<EarlyChildhoodRadarModalProps> =
     },
   ];
 
-  // Kiểm tra điều kiện MSG-265: nếu có trên 70% chỉ số "Chưa đạt" / "Cần rèn luyện"
+  // Kiểm tra điều kiện nếu có trên 70% chỉ số "Chưa đạt" / "Cần rèn luyện"
   // (tức >= 4/5 chỉ số, hoặc >= 70% của 5 chỉ số là 3.5 -> 4 chỉ số trở lên)
   const developingCount = [
     scores.physicalStatus,
@@ -149,7 +149,7 @@ export const EarlyChildhoodRadarModal: React.FC<EarlyChildhoodRadarModalProps> =
                   Lưu ý Sư phạm & Tư vấn Tâm lý (Thông tư 28/2016/TT-BGDĐT)
                 </h4>
                 <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                  <strong>MSG-265:</strong> Trẻ có dấu hiệu chậm phát triển ở nhiều chỉ số ({developingCount}/5 lĩnh vực cần rèn luyện). Đề xuất trao đổi nhẹ nhàng với phụ huynh và chuyên gia tâm lý để xây dựng kế hoạch can thiệp sớm phù hợp.
+                  <strong>Lưu ý:</strong> Trẻ có dấu hiệu chậm phát triển ở nhiều chỉ số ({developingCount}/5 lĩnh vực cần rèn luyện). Đề xuất trao đổi nhẹ nhàng với phụ huynh và chuyên gia tâm lý để xây dựng kế hoạch can thiệp sớm phù hợp.
                 </p>
               </div>
             </div>

@@ -149,7 +149,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   const [retentionDate, setRetentionDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0); // Bắt buộc 2°C - 8°C (BR-043)
+  const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0); // Bắt buộc 2°C - 8°C
   const [samplesToSave, setSamplesToSave] = useState<{ dishName: string; weightGrams: number; sealCode: string }[]>([]);
 
   // ==========================================
@@ -168,17 +168,17 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
         throw new Error('Vui lòng thêm ít nhất một món ăn trước khi lưu mẫu.');
       }
 
-      // Validate BR-043: Nhiệt độ bắt buộc 2°C - 8°C (MSG-132)
+      // Validate BR-043: Nhiệt độ bắt buộc 2°C - 8°C
       if (fridgeTemperature < 2 || fridgeTemperature > 8) {
         throw new Error(
-          'MSG-132: Nhiệt độ lưu mẫu thức ăn bắt buộc phải duy trì trong khoảng 2°C đến 8°C theo quy chuẩn an toàn thực phẩm.'
+          'Nhiệt độ lưu mẫu thức ăn bắt buộc phải duy trì trong khoảng 2°C đến 8°C theo quy chuẩn an toàn thực phẩm.'
         );
       }
 
       // Validate BR-043: Khối lượng mẫu >= 100g hoặc >= 150ml canh
       for (const item of samplesToSave) {
         if (!item.dishName.trim()) {
-          throw new Error('MSG-133: Toàn bộ các món ăn phục vụ học sinh bắt buộc phải có mẫu thức ăn lưu 24h không được bỏ sót.');
+          throw new Error('Toàn bộ các món ăn phục vụ học sinh bắt buộc phải có mẫu thức ăn lưu 24h không được bỏ sót.');
         }
         if (item.weightGrams < 100) {
           throw new Error(`Món "${item.dishName}" chưa đạt khối lượng tối thiểu 100g theo Thông tư 47/2010/TT-BYT!`);
@@ -298,7 +298,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
     );
   };
 
-  // Kiểm tra cảnh báo chênh lệch > 20% (MSG-134)
+  // Kiểm tra cảnh báo chênh lệch > 20%
   const itemsWithHighVariance = consumptionItems.filter(
     (item) => Math.abs(item.variancePercentage) > 20
   );
@@ -441,7 +441,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                     Nhiệt Độ Tủ Lạnh Chuyên Dụng Lưu Nghiệm (2°C - 8°C)
                   </span>
                   <p className="text-[11px] text-teal-800 mt-0.5">
-                    Yêu cầu đo nhiệt độ thực tế bằng nhiệt kế điện tử trước khi niêm phong mẫu (BR-043).
+                    Yêu cầu đo nhiệt độ thực tế bằng nhiệt kế điện tử trước khi niêm phong mẫu.
                   </p>
                 </div>
               </div>
@@ -468,7 +468,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                 </div>
                 {fridgeTemperature < 2 || fridgeTemperature > 8 ? (
                   <span className="text-[11px] font-bold text-red-600 flex items-center gap-1">
-                    <AlertTriangle className="h-4 w-4" /> MSG-132: Ngoài dải 2-8°C!
+                    <AlertTriangle className="h-4 w-4" /> Ngoài dải 2-8°C!
                   </span>
                 ) : (
                   <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
@@ -752,13 +752,13 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
       {/* SUB-TAB 2: BÁO CÁO TIÊU HAO THỰC PHẨM & QUYẾT TOÁN KHO BẾP */}
       {activeSubTab === 'CONSUMPTION_REPORT' && (
         <div className="space-y-6">
-          {/* CẢNH BÁO CHÊNH LỆCH TIÊU HAO > 20% (MSG-134) */}
+          {/* CẢNH BÁO CHÊNH LỆCH TIÊU HAO > 20% */}
           {hasUnexplainedHighVariance && (
             <div className="rounded-3xl border-2 border-red-500 bg-red-50 p-5 shadow-sm flex items-start gap-4">
               <AlertTriangle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" />
               <div className="space-y-1 flex-1">
                 <h4 className="font-extrabold text-red-900 text-base">
-                  MSG-134: CẢNH BÁO CHÊNH LỆCH TIÊU HAO VƯỢT QUÁ 20%
+                  CẢNH BÁO CHÊNH LỆCH TIÊU HAO VƯỢT QUÁ 20%
                 </h4>
                 <p className="text-xs text-red-800 leading-relaxed">
                   Phát hiện nguyên liệu có chênh lệch xuất dùng thực tế so với định mức suất ăn đã chốt lúc 08:30 vượt quá 20%. Bắt buộc nhập văn bản giải trình lý do xuất dùng trước khi hoàn tất quyết toán bếp trong ngày.
@@ -892,7 +892,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                   if (hasUnexplainedHighVariance) {
                     setToastMessage({
                       type: 'error',
-                      text: 'MSG-134: Chênh lệch tiêu hao vượt quá 20%. Vui lòng nhập giải trình lý do xuất dùng.'
+                      text: 'Chênh lệch tiêu hao vượt quá 20%. Vui lòng nhập giải trình lý do xuất dùng.'
                     });
                     return;
                   }

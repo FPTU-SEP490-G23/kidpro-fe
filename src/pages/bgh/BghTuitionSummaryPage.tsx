@@ -124,7 +124,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
     if (!rejectReason.trim()) {
       setAlertInfo({
         type: 'error',
-        message: 'MSG-191: Ban Giám hiệu từ chối phê duyệt nhưng bỏ trống lý do yêu cầu chỉnh sửa.',
+        message: 'Ban Giám hiệu từ chối phê duyệt nhưng bỏ trống lý do yêu cầu chỉnh sửa.',
       });
       return;
     }
@@ -204,10 +204,10 @@ export const BghTuitionSummaryPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
-                [UC-060] Phê Duyệt Bảng Tổng Hợp Học Phí Toàn Trường
+                Phê Duyệt Bảng Tổng Hợp Học Phí Toàn Trường
               </h1>
               <p className="text-sm text-slate-500">
-                Thẩm tra số liệu dự thu, đối soát miễn giảm & hoàn trả tiền ăn, khóa sổ phát hành phiếu thu (BR-071, BR-072)
+                Thẩm tra số liệu dự thu, đối soát miễn giảm & hoàn trả tiền ăn, khóa sổ phát hành phiếu thu
               </p>
             </div>
           </div>
@@ -399,7 +399,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
           <div>
             <p className="font-bold">Kỳ học phí Tháng {selectedMonth}/{selectedYear} chưa được Kế toán khởi tạo</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Hệ thống không tự ý tính toán hay phê duyệt khi chưa có hóa đơn được Kế toán tạo ở màn hình <strong>[G8-UC-04] Lập Bảng tính Học phí</strong>. Ban Giám hiệu chưa thể thao tác Ký duyệt hoặc Từ chối kỳ này.
+              Hệ thống không tự ý tính toán hay phê duyệt khi chưa có hóa đơn được Kế toán tạo ở màn hình <strong>Lập Bảng tính Học phí</strong>. Ban Giám hiệu chưa thể thao tác Ký duyệt hoặc Từ chối kỳ này.
             </p>
           </div>
         </div>
@@ -411,7 +411,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
           <div>
             <p className="font-bold">Bảng học phí đang ở trạng thái Dự thảo (Kế toán chưa gửi trình)</p>
             <p className="text-xs text-blue-700 mt-0.5">
-              Số liệu dự thu đã được tạo nhưng bộ phận Kế toán chưa nhấn <strong>"Trình BGH Phê duyệt"</strong> tại [G8-UC-06]. Để đảm bảo quy trình kiểm soát nội bộ (BR-071), Ban Giám hiệu chỉ phê duyệt sau khi Kế toán đã rà soát và chính thức gửi trình.
+              Số liệu dự thu đã được tạo nhưng bộ phận Kế toán chưa nhấn <strong>"Trình BGH Phê duyệt"</strong> tại Bảng Tổng Hợp Học Phí. Để đảm bảo quy trình kiểm soát nội bộ, Ban Giám hiệu chỉ phê duyệt sau khi Kế toán đã rà soát và chính thức gửi trình.
             </p>
           </div>
         </div>
@@ -423,7 +423,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
           <div>
             <p className="font-bold">Bảng học phí đã được Kế toán gửi trình và sẵn sàng phê duyệt</p>
             <p className="text-xs text-emerald-700 mt-0.5">
-              Kính mời Ban Giám hiệu kiểm tra tổng dự thu, các khoản miễn giảm và bấm <strong>"Ký Duyệt & Khóa Sổ Bảng Học Phí"</strong> để mở phát hành thông báo thu tiền học phí tới phụ huynh (G8-UC-07).
+              Kính mời Ban Giám hiệu kiểm tra tổng dự thu, các khoản miễn giảm và bấm <strong>"Ký Duyệt & Khóa Sổ Bảng Học Phí"</strong> để mở phát hành thông báo thu tiền học phí tới phụ huynh.
             </p>
           </div>
         </div>
@@ -498,7 +498,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
             </h2>
           </div>
           <span className="text-xs text-slate-400">
-            Dữ liệu tổng hợp từ các khoản thu & miễn giảm chuẩn (BR-038)
+            Dữ liệu tổng hợp từ các khoản thu & miễn giảm chuẩn
           </span>
         </div>
 
@@ -525,7 +525,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
               ) : !summary?.classSummaries || summary.classSummaries.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-slate-400">
-                    Kỳ học phí Tháng {selectedMonth}/{selectedYear} chưa có số liệu tổng hợp. Bộ phận Kế toán cần tạo bảng tính tại [G8-UC-04] trước.
+                    Kỳ học phí Tháng {selectedMonth}/{selectedYear} chưa có số liệu tổng hợp. Bộ phận Kế toán cần tạo bảng tính tại màn hình Lập Bảng Tính Học Phí trước.
                   </td>
                 </tr>
               ) : (
@@ -553,7 +553,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
               Xác Nhận Ký Duyệt Bảng Học Phí Tháng {selectedMonth}/{selectedYear}
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-071</strong>, sau khi Ban Giám hiệu ký duyệt, toàn bộ số liệu cơ sở sẽ được khóa sổ ở chế độ chỉ đọc và cho phép Kế toán phát hành thông báo thu tiền tới Phụ huynh.
+              Theo quy định, sau khi Ban Giám hiệu ký duyệt, toàn bộ số liệu cơ sở sẽ được khóa sổ ở chế độ chỉ đọc và cho phép Kế toán phát hành thông báo thu tiền tới Phụ huynh.
             </p>
             <div>
               <label className="text-xs font-semibold text-slate-600 mb-1 block">
@@ -594,7 +594,7 @@ export const BghTuitionSummaryPage: React.FC = () => {
               Từ Chối Bảng Học Phí Tháng {selectedMonth}/{selectedYear}
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Theo quy định <strong>BR-071 & BR-072</strong>, trường hợp từ chối bắt buộc phải nhập lý do giải trình để Kế toán đối soát và cân đối lại.
+              Theo quy định, trường hợp từ chối bắt buộc phải nhập lý do giải trình để Kế toán đối soát và cân đối lại.
             </p>
             <div>
               <label className="text-xs font-semibold text-slate-700 mb-1 block">

@@ -36,7 +36,7 @@ export const SecurityGateAlertsWatcher: React.FC<SecurityGateAlertsWatcherProps>
       success('Đã xác nhận giải quyết cảnh báo an ninh cổng trường!');
       onAlertResolved();
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setResolvingId(null);
     }

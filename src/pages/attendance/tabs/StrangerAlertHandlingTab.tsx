@@ -193,7 +193,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
       }
 
       if (!parentNotes.trim()) {
-        setValidationError('Vui lòng nhập Ghi chú xác nhận của Cha Mẹ (bắt buộc theo BR-069).');
+        setValidationError('Vui lòng nhập Ghi chú xác nhận của Cha Mẹ (bắt buộc theo quy định).');
         return;
       }
 
@@ -208,7 +208,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
 
       setToastMessage({
         type: 'success',
-        text: 'MSG-097: Xử lý và lập biên bản cảnh báo an ninh tại cổng trường thành công. Đã mở khóa quyền giao trẻ.'
+        text: 'Xử lý và lập biên bản cảnh báo an ninh tại cổng trường thành công. Đã mở khóa quyền giao trẻ.'
       });
 
       setSelectedAlert(null);
@@ -230,12 +230,12 @@ export const StrangerAlertHandlingTab: React.FC = () => {
       if (parentCallStatus === 'DENIED') {
         setToastMessage({
           type: 'error',
-          text: 'MSG-099: Cha mẹ phủ nhận ủy quyền! Giáo viên giữ an toàn cho bé và báo cáo Hiệu trưởng xử lý.'
+          text: 'Cha mẹ phủ nhận ủy quyền! Giáo viên giữ an toàn cho bé và báo cáo Hiệu trưởng xử lý.'
         });
       } else {
         setToastMessage({
           type: 'warning',
-          text: 'MSG-098: Không liên lạc được với cha mẹ. Bé tiếp tục được trông giữ an toàn tại lớp.'
+          text: 'Không liên lạc được với cha mẹ. Bé tiếp tục được trông giữ an toàn tại lớp.'
         });
       }
 
@@ -316,7 +316,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
             <ShieldAlert className="w-6 h-6 text-rose-600" />
-            <span>Xử Lý Cảnh Báo Người Lạ Tại Cổng (UC-024)</span>
+            <span>Xử Lý Cảnh Báo Người Lạ Tại Cổng</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Quy trình an ninh 3 bước: Xác minh CCCD vật lý, gọi đối soát với phụ huynh và lập biên bản kiểm toán an ninh theo Nghị định 13/2023/NĐ-CP &amp; BR-069.
@@ -486,7 +486,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
                 <ShieldAlert className="w-7 h-7 text-amber-300 shrink-0" />
                 <div>
                   <div className="text-xs font-extrabold uppercase tracking-wider text-rose-200">
-                    QUY TRÌNH XỬ LÝ AN NINH NGƯỜI LẠ (UC-024) • {selectedAlert.capturedAt}
+                    QUY TRÌNH XỬ LÝ AN NINH NGƯỜI LẠ • {selectedAlert.capturedAt}
                   </div>
                   <h3 className="text-lg font-bold">
                     Biên Bản Xác Minh Danh Tính &amp; Đối Soát Cha Mẹ
@@ -576,15 +576,15 @@ export const StrangerAlertHandlingTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* BƯỚC 2: GỌI ĐIỆN THOẠI ĐỐI SOÁT VỚI CHA MẸ (BR-027) */}
+              {/* BƯỚC 2: GỌI ĐIỆN THOẠI ĐỐI SOÁT VỚI CHA MẸ */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-[#1E4D40] uppercase tracking-wide">
                     <span className="w-5 h-5 rounded-full bg-[#275A4E] text-white flex items-center justify-center text-[10px]">2</span>
-                    <span>Bước 2: Gọi điện thoại đối soát trực tiếp với Cha Mẹ (BR-027)</span>
+                    <span>Bước 2: Gọi điện thoại đối soát trực tiếp với Cha Mẹ</span>
                   </div>
 
-                  <span className="text-[11px] text-slate-500">Bắt buộc theo BR-027</span>
+                  <span className="text-[11px] text-slate-500">Bắt buộc theo quy định</span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 p-3 bg-white rounded-xl border border-slate-200">
@@ -652,7 +652,7 @@ export const StrangerAlertHandlingTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* BƯỚC 3: GHI NHẬN BIÊN BẢN KIỂM TOÁN AN NINH (BR-069) */}
+              {/* BƯỚC 3: GHI NHẬN BIÊN BẢN KIỂM TOÁN AN NINH */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#1E4D40] uppercase tracking-wide">
                   <span className="w-5 h-5 rounded-full bg-[#275A4E] text-white flex items-center justify-center text-[10px]">3</span>

@@ -54,7 +54,7 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
     return selectedPermissions.includes(`${featureCode}_${action}`);
   };
 
-  // Toggle quyền kèm ràng buộc phụ thuộc (BR-005, BR-023)
+  // Toggle quyền kèm ràng buộc phụ thuộc
   const handleTogglePermission = (featureCode: string, action: PermissionAction) => {
     if (isSuperAdmin) {
       toast.warning(RBAC_MESSAGES.MSG_022);
@@ -203,7 +203,7 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
           <div className="px-6 py-3 bg-amber-50 border-b border-amber-200 text-amber-800 text-xs flex items-center gap-2 font-medium">
             <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              <strong>Bảo vệ Cấp cao (BR-010):</strong> Toàn bộ quyền hạn của Super Admin được khóa cố định, không thể chỉnh sửa hoặc thu hồi.
+              <strong>Bảo vệ Cấp cao:</strong> Toàn bộ quyền hạn của Super Admin được khóa cố định, không thể chỉnh sửa hoặc thu hồi.
             </span>
           </div>
         )}

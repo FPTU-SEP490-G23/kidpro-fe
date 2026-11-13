@@ -45,12 +45,12 @@ export const AuditLogToolbar: React.FC<AuditLogToolbarProps> = ({
         </button>
       </div>
 
-      {/* Cảnh báo vùng nóng > 90 ngày (MSG-057) */}
+      {/* Cảnh báo vùng nóng > 90 ngày */}
       {isDateOver90Days && (
         <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-[#E5A93C] shrink-0" />
           <span className="font-semibold">
-            MSG-057: Khoảng ngày tra cứu vượt quá 90 ngày (phân vùng nóng). Vui lòng kết nối kho lưu trữ trữ lạnh để trích xuất dữ liệu cũ hơn.
+            Khoảng ngày tra cứu vượt quá 90 ngày (phân vùng nóng). Vui lòng kết nối kho lưu trữ trữ lạnh để trích xuất dữ liệu cũ hơn.
           </span>
         </div>
       )}

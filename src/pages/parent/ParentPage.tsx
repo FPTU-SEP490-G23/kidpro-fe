@@ -250,7 +250,7 @@ export const ParentPage: React.FC = () => {
 
   const currentStudent = students.find((s) => s.id === selectedStudentId) || students[0];
 
-  // Lấy số lượng thông báo cổng chưa đọc (UC-046 badge)
+  // Lấy số lượng thông báo cổng chưa đọc
   const { data: _notifications = [] } = useQuery({
     queryKey: ['gate-notifications', currentStudent?.id],
     queryFn: () => parentApi.getGateNotifications(currentStudent?.id),
@@ -274,7 +274,7 @@ export const ParentPage: React.FC = () => {
               } shadow-xs`}
             >
               <Baby className="w-3.5 h-3.5" />
-              <span>Phụ Huynh • {currentMeta.uc}</span>
+              <span>Phụ Huynh</span>
             </span>
             {currentMeta.badge && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
@@ -320,7 +320,7 @@ export const ParentPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsStudentPresentToday((prev) => !prev)}
-            title="Nhấp để chuyển trạng thái kiểm thử có mặt / vắng mặt cho UC-043"
+            title="Nhấp để chuyển trạng thái kiểm thử có mặt / vắng mặt "
             className={`inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2.5 text-xs font-bold backdrop-blur-md transition border ${
               isStudentPresentToday
                 ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100 hover:bg-emerald-500/35'

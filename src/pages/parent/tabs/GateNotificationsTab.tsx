@@ -75,7 +75,7 @@ export const GateNotificationsTab: React.FC<GateNotificationsTabProps> = ({
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Handle Image Fallback (MSG-187)
+  // Handle Image Fallback
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallbackUrl?: string) => {
     const target = e.currentTarget;
     if (fallbackUrl && target.src !== fallbackUrl) {
@@ -83,7 +83,7 @@ export const GateNotificationsTab: React.FC<GateNotificationsTabProps> = ({
       setToastMessage({
         type: 'info',
         code: 'MSG-187',
-        text: 'MSG-187: Đang tải ảnh qua cổng dữ liệu bảo mật dự phòng CDN.',
+        text: 'Đang tải ảnh qua cổng dữ liệu bảo mật dự phòng CDN.',
       });
     }
   };
@@ -107,7 +107,7 @@ export const GateNotificationsTab: React.FC<GateNotificationsTabProps> = ({
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-[#275A4E]" />
-              <span>Nhật Ký Cổng Trường & Kiểm Chứng Ảnh Đón Trả (UC-046)</span>
+              <span>Nhật Ký Cổng Trường & Kiểm Chứng Ảnh Đón Trả</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Học sinh: <strong>{studentName}</strong> ({className}) • Mốc giờ chuẩn từng giây & ảnh chụp kiosk AI cổng trường
@@ -280,17 +280,17 @@ export const GateNotificationsTab: React.FC<GateNotificationsTabProps> = ({
                         </p>
                         {item.isEmergencyPickup && (
                           <span className="inline-block text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                            Ủy quyền đón hộ đột xuất trong ngày (UC-043)
+                            Ủy quyền đón hộ đột xuất trong ngày
                           </span>
                         )}
                       </div>
                     )}
 
-                    {/* SMS Fallback Banner (MSG-186) */}
+                    {/* SMS Fallback Banner */}
                     {item.smsFallbackTriggered && (
                       <div className="rounded-lg bg-amber-50 p-2 text-[11px] text-amber-900 border border-amber-200 flex items-center gap-1.5">
                         <MessageSquare className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                        <span>MSG-186: Thông báo đẩy qua mạng internet thất bại. Hệ thống đã gửi tin nhắn SMS dự phòng đến số điện thoại phụ huynh.</span>
+                        <span>Thông báo đẩy qua mạng internet thất bại. Hệ thống đã gửi tin nhắn SMS dự phòng đến số điện thoại phụ huynh.</span>
                       </div>
                     )}
                   </div>
@@ -404,7 +404,7 @@ export const GateNotificationsTab: React.FC<GateNotificationsTabProps> = ({
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
-                <strong>MSG-185: Sự kiện cổng đã được xác thực</strong> theo giao thức an toàn mầm non và Nghị định 13/2023/NĐ-CP.
+                <strong>Sự kiện cổng đã được xác thực</strong> theo giao thức an toàn mầm non và Nghị định 13/2023/NĐ-CP.
               </span>
             </div>
 

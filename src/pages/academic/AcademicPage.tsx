@@ -90,7 +90,7 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
   students: {
     uc: 'G4-UC-01',
     title: 'Quản Lý Danh Sách & Hồ Sơ Học Sinh',
-    description: 'Tiếp nhận hồ sơ nhập học, tự động cấp mã định danh HS duy nhất (BR-011), tra cứu tìm kiếm toàn trường và cập nhật lý lịch học sinh.',
+    description: 'Tiếp nhận hồ sơ nhập học, tự động cấp mã định danh HS duy nhất, tra cứu tìm kiếm toàn trường và cập nhật lý lịch học sinh.',
     icon: UserPlus,
     badge: 'Hồ Sơ Học Sinh',
   },
@@ -132,14 +132,14 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
   withdrawals: {
     uc: 'G4-UC-04',
     title: 'Xử Lý Hồ Sơ Rút Học Bạ & Chuyển Trường (Student Withdrawal)',
-    description: 'Tiếp nhận đơn chuyển trường, đối chiếu quyết toán tài chính công nợ học phí (BR-017), xuất biên bản bàn giao hồ sơ y tế và rút khỏi sĩ số lớp.',
+    description: 'Tiếp nhận đơn chuyển trường, đối chiếu quyết toán tài chính công nợ học phí, xuất biên bản bàn giao hồ sơ y tế và rút khỏi sĩ số lớp.',
     icon: School,
     badge: 'Rút Hồ Sơ & Chuyển Trường',
   },
   parent_accounts: {
     uc: 'G4-UC-08 / G4-UC-09',
     title: 'Quản Lý & Kích Hoạt Tài Khoản Phụ Huynh (Parent Mobile App)',
-    description: 'Khởi tạo tài khoản Mobile App theo số điện thoại (BR-016), gửi mã kích hoạt và liên kết nhiều con (Multi-child) chuyển đổi hồ sơ liền mạch.',
+    description: 'Khởi tạo tài khoản Mobile App theo số điện thoại, gửi mã kích hoạt và liên kết nhiều con (Multi-child) chuyển đổi hồ sơ liền mạch.',
     icon: Users,
     badge: 'Tài Khoản Phụ Huynh',
   },
@@ -217,14 +217,14 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
   club_assignments: {
     uc: 'G9-UC-02',
     title: 'Phân Công Giáo Viên Phụ Trách Câu Lạc Bộ Ngoại Khóa',
-    description: 'Phân công giáo viên chính & trợ giảng các lớp năng khiếu, tự động kiểm tra chống trùng lịch dạy chính khóa và định mức giờ dạy tối đa theo tuần (BR-046).',
+    description: 'Phân công giáo viên chính & trợ giảng các lớp năng khiếu, tự động kiểm tra chống trùng lịch dạy chính khóa và định mức giờ dạy tối đa theo tuần.',
     icon: Award,
     badge: 'Phân Công CLB',
   },
   equipment: {
     uc: 'G9-UC-06',
     title: 'Quản Lý Danh Mục Thiết Bị & Đồ Chơi Mầm Non',
-    description: 'Khai báo mã định danh tài sản duy nhất (BR-051), phân bổ giáo cụ về phòng học và thực hiện điều chuyển thiết bị an toàn giữa các phòng.',
+    description: 'Khai báo mã định danh tài sản duy nhất, phân bổ giáo cụ về phòng học và thực hiện điều chuyển thiết bị an toàn giữa các phòng.',
     icon: Boxes,
     badge: 'Thiết Bị Mầm Non',
   },
@@ -270,7 +270,7 @@ export const AcademicPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // If user is BGH, redirect to BGH's dedicated academic planning page (UC-009)
+  // If user is BGH, redirect to BGH's dedicated academic planning page
   if (role === 'BGH') {
     return <Navigate to="/bgh/academic-planning" replace />;
   }
@@ -340,7 +340,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-02',
         title: 'Lập Kế Hoạch Mở Lớp Học Mới',
-        description: 'Lập dự thảo mở các lớp học mới cho năm học, kiểm tra định mức sĩ số chuẩn Bộ GD&ĐT (BR-005, BR-007) để trình Ban Giám hiệu phê duyệt.',
+        description: 'Lập dự thảo mở các lớp học mới cho năm học, kiểm tra định mức sĩ số chuẩn Bộ GD&ĐT để trình Ban Giám hiệu phê duyệt.',
         icon: FileCheck2,
         badge: 'Đề Xuất Mở Lớp',
       };
@@ -348,7 +348,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-04',
         title: 'Lập Kế Hoạch Phân Công Giáo Viên Chủ Nhiệm & Phụ Tá',
-        description: 'Lập dự thảo phân công nhân sự sư phạm cho từng lớp, kiểm tra tài khoản khả dụng và tuân thủ định mức 1 GVCN/lớp (BR-006, BR-008).',
+        description: 'Lập dự thảo phân công nhân sự sư phạm cho từng lớp, kiểm tra tài khoản khả dụng và tuân thủ định mức 1 GVCN/lớp.',
         icon: UserCheck,
         badge: 'Phân Công Sư Phạm',
       };
@@ -356,7 +356,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-06',
         title: 'Xếp Trẻ Vào Lớp Học (Student Placement)',
-        description: 'Phân bổ học sinh chưa có lớp vào các lớp học phù hợp theo độ tuổi (BR-011) và kiểm soát sĩ số tối đa theo định mức quy định (BR-005).',
+        description: 'Phân bổ học sinh chưa có lớp vào các lớp học phù hợp theo độ tuổi và kiểm soát sĩ số tối đa theo định mức quy định.',
         icon: Users,
         badge: 'Xếp Trẻ Vào Lớp',
       };
@@ -364,7 +364,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-11',
         title: 'Lập Kế Hoạch Kết Chuyển Học Sinh Đầu Năm (Student Promotion)',
-        description: 'Kết chuyển học sinh sang khối lớp mới theo quy tắc lũy tiến (BR-009) hoặc tốt nghiệp (GRADUATED), hỗ trợ lưu ban có lý do theo nguyện vọng gia đình.',
+        description: 'Kết chuyển học sinh sang khối lớp mới theo quy tắc lũy tiến hoặc tốt nghiệp (GRADUATED), hỗ trợ lưu ban có lý do theo nguyện vọng gia đình.',
         icon: Sparkles,
         badge: 'Kết Chuyển Đầu Năm',
       };
@@ -372,7 +372,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-12',
         title: 'Đóng & Lưu Trữ Hồ Sơ Lớp Học (Class Archival)',
-        description: 'Đóng hồ sơ lớp học khi kết thúc niên khóa, chuyển toàn bộ dữ liệu lớp sang trạng thái chỉ đọc (ARCHIVED) để lưu trữ lịch sử (BR-010).',
+        description: 'Đóng hồ sơ lớp học khi kết thúc niên khóa, chuyển toàn bộ dữ liệu lớp sang trạng thái chỉ đọc (ARCHIVED) để lưu trữ lịch sử.',
         icon: Archive,
         badge: 'Lưu Trữ Lớp Học',
       };
@@ -380,7 +380,7 @@ export const AcademicPage: React.FC = () => {
       currentMeta = {
         uc: 'G3-UC-01',
         title: 'Quản Lý Danh Sách & Cập Nhật Thông Tin Lớp Học',
-        description: 'Tra cứu danh sách lớp học theo khối tuổi, cập nhật phân bổ phòng học chống trùng lặp (BR-005) và theo dõi sĩ số thực tế.',
+        description: 'Tra cứu danh sách lớp học theo khối tuổi, cập nhật phân bổ phòng học chống trùng lặp và theo dõi sĩ số thực tế.',
         icon: School,
         badge: 'Cơ Cấu Lớp Học',
       };
@@ -389,7 +389,7 @@ export const AcademicPage: React.FC = () => {
     currentMeta = {
       uc: 'G3-UC-08',
       title: 'Phê Duyệt Chuyển Lớp Cho Học Sinh (Class Transfer)',
-      description: 'Thẩm định điều kiện sĩ số lớp tiếp nhận (BR-005), điều chuyển học sinh sang lớp mới (BR-007) hoặc từ chối có lý do quy định.',
+      description: 'Thẩm định điều kiện sĩ số lớp tiếp nhận, điều chuyển học sinh sang lớp mới hoặc từ chối có lý do quy định.',
       icon: ArrowRightLeft,
       badge: 'Chuyển Lớp Học Sinh',
     };
@@ -397,7 +397,7 @@ export const AcademicPage: React.FC = () => {
     currentMeta = {
       uc: 'G3-UC-09',
       title: 'Xây Dựng Khung Thời Khóa Biểu Tuần (Weekly Timetable)',
-      description: 'Thiết lập khung giờ học tập, sinh hoạt, kiểm tra chống trùng lặp giáo viên & phòng chức năng toàn trường (BR-008) để trình BGH duyệt.',
+      description: 'Thiết lập khung giờ học tập, sinh hoạt, kiểm tra chống trùng lặp giáo viên & phòng chức năng toàn trường để trình BGH duyệt.',
       icon: Calendar,
       badge: 'Thời Khóa Biểu Tuần',
     };
@@ -419,7 +419,7 @@ export const AcademicPage: React.FC = () => {
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>
-                {role === 'GIAO_VIEN' ? 'Giáo Viên' : 'Cán bộ Giáo vụ'} • {currentMeta.uc}
+                {role === 'GIAO_VIEN' ? 'Giáo Viên' : 'Cán bộ Giáo vụ'}
               </span>
             </span>
             {currentMeta.badge && (

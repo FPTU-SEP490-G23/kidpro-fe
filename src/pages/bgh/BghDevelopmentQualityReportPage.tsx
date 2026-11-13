@@ -51,12 +51,12 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
       if (data && data.totalClasses > 0 && data.completedClasses < data.totalClasses) {
         setToastMsg({
           type: 'warning',
-          text: `MSG-274: Còn ${data.totalClasses - data.completedClasses} lớp chưa hoàn tất đánh giá kỳ này. Dữ liệu báo cáo mang tính tổng hợp tạm thời.`
+          text: `Còn ${data.totalClasses - data.completedClasses} lớp chưa hoàn tất đánh giá kỳ này. Dữ liệu báo cáo mang tính tổng hợp tạm thời.`
         });
       } else {
         setToastMsg({
           type: 'success',
-          text: 'MSG-273: Báo cáo đánh giá chất lượng phát triển của trẻ đã được tải thành công.'
+          text: 'Báo cáo đánh giá chất lượng phát triển của trẻ đã được tải thành công.'
         });
       }
     } catch (err: any) {
@@ -95,7 +95,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
 
       setToastMsg({
         type: 'success',
-        text: 'Xuất file báo cáo thành công theo định dạng chuẩn Bộ GD&ĐT (BR-117).'
+        text: 'Xuất file báo cáo thành công theo định dạng chuẩn Bộ GD&ĐT.'
       });
     } catch (err: any) {
       console.error('Lỗi xuất báo cáo:', err);
@@ -192,7 +192,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Tổng hợp & phân tích 5 lĩnh vực phát triển chuẩn GD&ĐT • Khóa sổ & xuất báo cáo (BR-116, BR-117)
+              Tổng hợp & phân tích 5 lĩnh vực phát triển chuẩn GD&ĐT • Khóa sổ & xuất báo cáo
             </p>
           </div>
         </div>
@@ -301,7 +301,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
 
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Trạng thái khóa sổ (BR-116)</span>
+                <span className="text-xs font-semibold text-gray-400 uppercase">Trạng thái khóa sổ</span>
                 <div className={`p-2 rounded-xl ${report?.isLockedAndApproved ? 'bg-purple-50 text-purple-600' : 'bg-green-50 text-green-600'}`}>
                   {report?.isLockedAndApproved ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
                 </div>

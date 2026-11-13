@@ -107,7 +107,7 @@ export interface Guardian {
 }
 
 // ==========================================
-// UC-053: TRUNG TÂM CẢNH BÁO DỊ ỨNG TOÀN HỆ THỐNG (ALLERGY COMMAND CENTER)
+// TRUNG TÂM CẢNH BÁO DỊ ỨNG TOÀN HỆ THỐNG (ALLERGY COMMAND CENTER)
 // ==========================================
 
 export type AllergyCategory =
@@ -136,7 +136,7 @@ export interface StudentAllergyProfile {
   allergyTags: string[]; // ['peanuts', 'shrimp']
   severity: AllergySeverity;
   severityLabel?: string;
-  firstAidProtocol: string; // Phác đồ sơ cứu & Vị trí thuốc cấp cứu (Bắt buộc nếu SEVERE_ANAPHYLAXIS - MSG-221)
+  firstAidProtocol: string; // Phác đồ sơ cứu & Vị trí thuốc cấp cứu (Bắt buộc nếu SEVERE_ANAPHYLAXIS)
   medicationLocation?: string; // Vị trí bút tiêm Epiphen / Thuốc chống sốc tại trường
   doctorCertificateUrl?: string; // Giấy chứng nhận y tế đính kèm
   isActive: boolean; // Huy hiệu khiên đỏ kích hoạt
@@ -158,7 +158,7 @@ export interface UpdateAllergyPayload {
 }
 
 // ==========================================
-// UC-054: KẾ HOẠCH & PHÊ DUYỆT GIÁO ÁN TUẦN (WEEKLY LESSON PLANS)
+// KẾ HOẠCH & PHÊ DUYỆT GIÁO ÁN TUẦN (WEEKLY LESSON PLANS)
 // ==========================================
 
 export type LessonPlanStatus =
@@ -205,7 +205,7 @@ export interface WeeklyLessonPlan {
   };
   attachmentUrls?: string[];
   submittedAt?: string;
-  isSubmittedLate?: boolean; // Nộp sau 17:00 Thứ Sáu (MSG-302)
+  isSubmittedLate?: boolean; // Nộp sau 17:00 Thứ Sáu
   reviewedAt?: string;
   reviewerName?: string;
   reviewerFeedback?: string;
@@ -230,7 +230,7 @@ export interface CreateLessonPlanPayload {
 }
 
 // ==========================================
-// UC-061: ĐÁNH GIÁ 5 LĨNH VỰC PHÁT TRIỂN MẦM NON (THÔNG TƯ 28/2016/TT-BGDĐT)
+// ĐÁNH GIÁ 5 LĨNH VỰC PHÁT TRIỂN MẦM NON (THÔNG TƯ 28/2016/TT-BGDĐT)
 // ==========================================
 
 export type EvaluationTerm = 'SEMESTER_1' | 'SEMESTER_2' | 'FULL_YEAR';
@@ -282,7 +282,7 @@ export interface SaveClassEvaluationPayload {
 }
 
 // ==========================================
-// UC-062: PHÊ DUYỆT GIÁO ÁN TUẦN (LESSON PLAN REVIEW & APPROVAL)
+// PHÊ DUYỆT GIÁO ÁN TUẦN (LESSON PLAN REVIEW & APPROVAL)
 // ==========================================
 
 export type LessonPlanReviewAction = 'APPROVED' | 'REVISION_REQUESTED';
@@ -295,7 +295,7 @@ export interface ReviewLessonPlanPayload {
 }
 
 // ==========================================
-// UC-063: QUẢN LÝ ĐỒ DÙNG & THIẾT BỊ DẠY HỌC LỚP (THÔNG TƯ 34/2013/TT-BGDĐT)
+// QUẢN LÝ ĐỒ DÙNG & THIẾT BỊ DẠY HỌC LỚP (THÔNG TƯ 34/2013/TT-BGDĐT)
 // ==========================================
 
 export type EquipmentCondition =
@@ -323,7 +323,7 @@ export interface ClassroomEquipmentItem {
   actualQuantity: number; // Số lượng tồn thực tế tại lớp
   condition: EquipmentCondition;
   brokenNotes?: string;
-  hasSafetyRisk?: boolean; // Cảnh báo nguy cơ cạnh sắc nhọn / nuốt nghẹn (MSG-273)
+  hasSafetyRisk?: boolean; // Cảnh báo nguy cơ cạnh sắc nhọn / nuốt nghẹn
   lastInspectedDate: string;
   inspectedBy?: string;
 }

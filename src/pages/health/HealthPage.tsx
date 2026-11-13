@@ -1235,7 +1235,7 @@ export const HealthPage: React.FC = () => {
               } shadow-xs`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Y Tế & Lớp Học • {currentHealthMeta.uc}</span>
+              <span>Y Tế & Lớp Học</span>
             </span>
             {currentHealthMeta.badge && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-emerald-100 border border-white/20">
@@ -1282,16 +1282,16 @@ export const HealthPage: React.FC = () => {
         </div>
       )}
 
-      {/* ================= TAB: SỰ VỤ Y TẾ & SƠ CẤU (UC-052) ================= */}
+      {/* ================= TAB: SỰ VỤ Y TẾ & SƠ CẤU ================= */}
       {activeTab === 'incidents' && <MedicalIncidentsTab />}
 
-      {/* ================= TAB: QUẢN LÝ UỐNG THUỐC (UC-027) ================= */}
+      {/* ================= TAB: QUẢN LÝ UỐNG THUỐC ================= */}
       {activeTab === 'medication' && <MedicationAdministrationTab />}
 
-      {/* ================= TAB: NHẬT KÝ HOẠT ĐỘNG LỚP (UC-028) ================= */}
+      {/* ================= TAB: NHẬT KÝ HOẠT ĐỘNG LỚP ================= */}
       {activeTab === 'journal' && <ClassroomJournalTab />}
 
-      {/* ================= TAB: CHỈ SỐ THỂ TRẠNG WHO (UC-051) ================= */}
+      {/* ================= TAB: CHỈ SỐ THỂ TRẠNG WHO ================= */}
       {activeTab === 'metrics' && <ClassHealthMetricsTab />}
 
       {/* Legacy metrics panel hidden */}
@@ -1626,7 +1626,7 @@ export const HealthPage: React.FC = () => {
         </div>
       )}
 
-      {/* ================= TAB 3: ĐÁNH GIÁ 5 LĨNH VỰC MẦM NON (UC-061) ================= */}
+      {/* ================= TAB 3: ĐÁNH GIÁ 5 LĨNH VỰC MẦM NON ================= */}
       {activeTab === 'evaluations' && (
         <div className="space-y-6">
           <EarlyChildhoodEvaluationTab />
@@ -1735,7 +1735,7 @@ export const HealthPage: React.FC = () => {
         </div>
       )}
 
-  {/* Ghi chú: Nhật ký hoạt động lớp học đã được chuyển sang ClassroomJournalTab (UC-028) */}
+  {/* Ghi chú: Nhật ký hoạt động lớp học đã được chuyển sang ClassroomJournalTab */}
 
       {/* ================= MODAL ĐÁNH GIÁ THÔNG TƯ 51 (TASK 14) ================= */}
       {showEvalModal && (

@@ -27,7 +27,7 @@ const TABS: TabItem[] = [
     key: 'quotas',
     uc: 'UC-006',
     label: 'Khối Lớp & Định Mức Sĩ Số',
-    description: 'Cấu hình định mức sĩ số tối đa theo quy chuẩn Bộ GD&ĐT (BR-006) cho từng khối lớp mầm non.',
+    description: 'Cấu hình định mức sĩ số tối đa theo quy chuẩn Bộ GD&ĐT cho từng khối lớp mầm non.',
     icon: Layers,
   },
   {

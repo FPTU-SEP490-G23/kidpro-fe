@@ -66,7 +66,7 @@ export const ClassTransferTab: React.FC = () => {
       return await classTransferService.approveRequest(id);
     },
     onSuccess: (data: any) => {
-      const msg = data?.message || 'MSG-037: Phê duyệt chuyển lớp cho học sinh thành công.';
+      const msg = data?.message || 'Phê duyệt chuyển lớp cho học sinh thành công.';
       success(msg);
       setModalMode('NONE');
       setSelectedRequest(null);
@@ -83,12 +83,12 @@ export const ClassTransferTab: React.FC = () => {
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
       if (!reason || reason.trim().length === 0) {
-        throw new Error('MSG-029: Vui lòng nhập lý do từ chối.');
+        throw new Error('Vui lòng nhập lý do từ chối.');
       }
       return await classTransferService.rejectRequest(id, { rejectionReason: reason.trim() });
     },
     onSuccess: (data: any) => {
-      const msg = data?.message || 'MSG-038: Đã từ chối đề xuất chuyển lớp của học sinh.';
+      const msg = data?.message || 'Đã từ chối đề xuất chuyển lớp của học sinh.';
       warning(msg);
       setModalMode('NONE');
       setSelectedRequest(null);
@@ -196,10 +196,10 @@ export const ClassTransferTab: React.FC = () => {
           <div>
             <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <ArrowRightLeft className="w-5 h-5 text-emerald-700" />
-              <span>Danh Sách Phiếu Đề Xuất Chuyển Lớp (G3-UC-08)</span>
+              <span>Danh Sách Phiếu Đề Xuất Chuyển Lớp</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Duyệt hoặc từ chối phiếu đề xuất chuyển lớp cho học sinh theo quy tắc định mức sĩ số (BR-005, BR-007)
+              Duyệt hoặc từ chối phiếu đề xuất chuyển lớp cho học sinh theo quy tắc định mức sĩ số
             </p>
           </div>
 
@@ -415,17 +415,17 @@ export const ClassTransferTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Warning if destination class is full (BR-005) */}
+              {/* Warning if destination class is full */}
               {isDestinationFull && (
                 <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>MSG-035: Lớp chuyển đến đã đủ sĩ số tối đa ({selectedRequest.toClassCapacity} trẻ). Không thể phê duyệt tiếp nhận.</span>
+                  <span>Lớp chuyển đến đã đủ sĩ số tối đa ({selectedRequest.toClassCapacity} trẻ). Không thể phê duyệt tiếp nhận.</span>
                 </div>
               )}
 
               {!isDestinationFull && (
                 <p className="text-slate-600 text-[11px]">
-                  Sau khi phê duyệt, hệ thống sẽ tự động cập nhật phân lớp của trẻ sang <strong>{selectedRequest.toClassName}</strong>, tăng sĩ số lớp mới lên 1 và giảm sĩ số lớp cũ đi 1 (BR-007).
+                  Sau khi phê duyệt, hệ thống sẽ tự động cập nhật phân lớp của trẻ sang <strong>{selectedRequest.toClassName}</strong>, tăng sĩ số lớp mới lên 1 và giảm sĩ số lớp cũ đi 1.
                 </p>
               )}
             </div>
@@ -478,7 +478,7 @@ export const ClassTransferTab: React.FC = () => {
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1.5">
-                  Lý do từ chối <span className="text-rose-600">* (Bắt buộc theo BR-007)</span>
+                  Lý do từ chối <span className="text-rose-600">* (Bắt buộc)</span>
                 </label>
                 <textarea
                   rows={4}

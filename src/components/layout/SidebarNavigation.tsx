@@ -375,14 +375,6 @@ export const SidebarNavigation: React.FC = () => {
                                   <span className="truncate">{item.title}</span>
                                   <div className="flex items-center gap-1 shrink-0">
                                     {renderBadge(item.badgeKey, false)}
-                                    {item.useCases && item.useCases.length > 0 && (
-                                      <span
-                                        className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-500 border border-slate-200/60"
-                                        title={`Đặc tả SRS: ${item.useCases.join(', ')}`}
-                                      >
-                                        {item.useCases[0]}
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                               )}
@@ -395,11 +387,6 @@ export const SidebarNavigation: React.FC = () => {
                                   <p className="text-xs font-bold leading-tight">{item.title}</p>
                                   {renderBadge(item.badgeKey, false)}
                                 </div>
-                                {item.useCases && item.useCases.length > 0 && (
-                                  <p className="text-[10px] text-slate-400 font-medium">
-                                    Use Cases: {item.useCases.join(', ')}
-                                  </p>
-                                )}
                               </div>
                             )}
                           </div>
@@ -443,7 +430,7 @@ export const SidebarNavigation: React.FC = () => {
                 <NavLink
                   to="/profile"
                   className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-85 transition"
-                  title="Xem hồ sơ cá nhân [UC-004]"
+                  title="Xem hồ sơ cá nhân"
                 >
                   <div className="h-8 w-8 rounded-full bg-emerald-50 border border-[#78C2AD] text-[#275A4E] font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">
                     {user.avatarUrl ? (
@@ -463,11 +450,11 @@ export const SidebarNavigation: React.FC = () => {
                 </NavLink>
               )}
 
-              {/* NÚT ĐĂNG XUẤT (UC-003) */}
+              {/* NÚT ĐĂNG XUẤT */}
               <button
                 type="button"
                 onClick={() => setShowLogoutModal(true)}
-                title="Đăng xuất tài khoản [UC-003]"
+                title="Đăng xuất tài khoản"
                 className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition shrink-0 cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
@@ -477,7 +464,7 @@ export const SidebarNavigation: React.FC = () => {
         </div>
       </aside>
 
-      {/* MODAL XÁC NHẬN ĐĂNG XUẤT AN TOÀN (UC-003) */}
+      {/* MODAL XÁC NHẬN ĐĂNG XUẤT AN TOÀN */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
@@ -489,7 +476,7 @@ export const SidebarNavigation: React.FC = () => {
               Xác Nhận Đăng Xuất Hệ Thống
             </h3>
             <p className="text-xs text-slate-500 text-center mt-1.5 leading-relaxed">
-              Bạn có chắc chắn muốn đăng xuất khỏi Hệ sinh thái KIDPRO? Phiên làm việc bảo mật của bạn sẽ được đóng an toàn [UC-003].
+              Bạn có chắc chắn muốn đăng xuất khỏi Hệ sinh thái KIDPRO? Phiên làm việc bảo mật của bạn sẽ được đóng an toàn.
             </p>
 
             <div className="mt-6 flex items-center gap-3">

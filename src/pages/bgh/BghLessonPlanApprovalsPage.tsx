@@ -44,7 +44,7 @@ export const BghLessonPlanApprovalsPage: React.FC = () => {
     mutationFn: (id: string) => lessonPlanApprovalApi.approve(id),
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['lesson-plan-approvals-bgh'] });
-      success(res?.data?.message || res?.message || 'MSG-270: Kế hoạch giáo án đã được thẩm định và phê duyệt thành công.');
+      success(res?.data?.message || res?.message || 'Kế hoạch giáo án đã được thẩm định và phê duyệt thành công.');
       setSelectedPlan(null);
     },
     onError: (err: any) => {
@@ -96,7 +96,7 @@ export const BghLessonPlanApprovalsPage: React.FC = () => {
   const handleConfirmRevision = (e: React.FormEvent) => {
     e.preventDefault();
     if (!revisionNotes.trim()) {
-      setValidationError('MSG-272: Vui lòng nhập đầy đủ nội dung góp ý chuyên môn hoặc yêu cầu điều chỉnh khi trả lại giáo án.');
+      setValidationError('Vui lòng nhập đầy đủ nội dung góp ý chuyên môn hoặc yêu cầu điều chỉnh khi trả lại giáo án.');
       return;
     }
     if (!revisingPlan) return;
@@ -110,11 +110,11 @@ export const BghLessonPlanApprovalsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-077 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Kế Hoạch Giáo Án Tháng</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Thẩm định tính sư phạm, mục tiêu phát triển và đồ dùng học liệu của giáo án tuần/tháng (BR-114, BR-115). Dữ liệu được lưu trực tiếp vào bảng academic.lesson_plan.
+            Thẩm định tính sư phạm, mục tiêu phát triển và đồ dùng học liệu của giáo án tuần/tháng. Dữ liệu được lưu trực tiếp vào bảng academic.lesson_plan.
           </p>
         </div>
         <button
@@ -351,7 +351,7 @@ export const BghLessonPlanApprovalsPage: React.FC = () => {
                   disabled={approveMutation.isPending}
                   className="px-5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition shadow-sm"
                 >
-                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt giáo án (MSG-270)'}
+                  {approveMutation.isPending ? 'Đang duyệt...' : 'Phê duyệt giáo án'}
                 </button>
               </div>
             </div>
@@ -419,7 +419,7 @@ export const BghLessonPlanApprovalsPage: React.FC = () => {
                   disabled={revisionMutation.isPending}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {revisionMutation.isPending ? 'Đang gửi...' : 'Gửi chỉ đạo chỉnh sửa (MSG-272)'}
+                  {revisionMutation.isPending ? 'Đang gửi...' : 'Gửi chỉ đạo chỉnh sửa'}
                 </button>
               </div>
             </form>

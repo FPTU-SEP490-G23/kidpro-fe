@@ -58,10 +58,10 @@ export const PaymentTab: React.FC<PaymentTabProps> = ({ initialConfig, onUpdateS
   const handleTestWebhook = async () => {
     const url = currentValues.webhookUrl;
     if (!url || !/^https?:\/\/.+/i.test(url)) {
-      showToast('MSG-028: Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.', 'error');
+      showToast('Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.', 'error');
       setTestResult({
         success: false,
-        message: 'MSG-028: Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.',
+        message: 'Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.',
       });
       return;
     }
@@ -72,23 +72,23 @@ export const PaymentTab: React.FC<PaymentTabProps> = ({ initialConfig, onUpdateS
     try {
       const res = await integrationApi.testPaymentWebhook(url, currentValues.secretKey);
       if (res.success) {
-        success('MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
+        success('Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
         setTestResult({
           success: true,
           message: res.message,
         });
       } else {
-        error('MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
+        error('Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.');
         setTestResult({
           success: false,
-          message: 'MSG-026: Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.',
+          message: 'Xác thực với dịch vụ bên thứ ba thất bại. Vui lòng kiểm tra lại thông tin API.',
         });
       }
     } catch {
-      showToast('MSG-028: Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.', 'error');
+      showToast('Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.', 'error');
       setTestResult({
         success: false,
-        message: 'MSG-028: Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.',
+        message: 'Không thể kết nối đến URL Webhook từ bên ngoài. Vui lòng kiểm tra lại tên miền DNS và tường lửa.',
       });
     } finally {
       setIsTestingWebhook(false);
@@ -100,9 +100,9 @@ export const PaymentTab: React.FC<PaymentTabProps> = ({ initialConfig, onUpdateS
     try {
       const updated = await integrationApi.updatePaymentConfig(data);
       onUpdateSuccess(updated);
-      success('MSG-025: Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
+      success('Cấu hình và kiểm tra kết nối dịch vụ ngoại vi thành công');
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setIsSaving(false);
     }

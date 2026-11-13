@@ -180,7 +180,7 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
                     errors.schoolCode ? 'border-rose-400 bg-rose-50/50' : 'border-slate-300 focus:border-[#275A4E]'
                   } focus:outline-hidden focus:ring-2 focus:ring-[#78C2AD]/40`}
                 />
-                <p className="text-[11px] text-slate-400">Viết liền, in hoa, không dấu (BR-076)</p>
+                <p className="text-[11px] text-slate-400">Viết liền, in hoa, không dấu</p>
                 {errors.schoolCode && (
                   <p className="text-xs text-rose-600">{errors.schoolCode.message}</p>
                 )}

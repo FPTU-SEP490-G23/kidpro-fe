@@ -81,7 +81,7 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
   });
   const [hoverRatings, setHoverRatings] = useState<{ [key: string]: number }>({});
   const [feedbackText, setFeedbackText] = useState<string>('');
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(true); // Mặc định ẩn danh bảo vệ danh tính (BR-074)
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true); // Mặc định ẩn danh bảo vệ danh tính
   const [sendToPrincipalOnly, setSendToPrincipalOnly] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -127,19 +127,19 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
 
     if (!campaign) return;
 
-    // BR: Khóa form khi đợt khảo sát hết hạn (MSG-295)
+    // BR: Khóa form khi đợt khảo sát hết hạn
     if (campaign.isExpired || !campaign.isActive) {
       setSystemMessage({ type: 'warning', text: MSG_295 });
       return;
     }
 
-    // BR: Chống nộp lặp (MSG-296)
+    // BR: Chống nộp lặp
     if (hasAlreadySubmitted) {
       setSystemMessage({ type: 'warning', text: MSG_296 });
       return;
     }
 
-    // BR: Bắt buộc chấm điểm cả 4 nhóm tiêu chí (MSG-294)
+    // BR: Bắt buộc chấm điểm cả 4 nhóm tiêu chí
     if (
       ratings.mealQuality === 0 ||
       ratings.teacherCare === 0 ||
@@ -292,10 +292,10 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-068: KHẢO SÁT CHẤT LƯỢNG DỊCH VỤ
+                KHẢO SÁT CHẤT LƯỢNG DỊCH VỤ
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
-                Bảo Vệ Danh Tính Ẩn Danh (BR-074)
+                Bảo Vệ Danh Tính Ẩn Danh
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
@@ -462,7 +462,7 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
                         Gửi Dưới Dạng Ẩn Danh (Anonymous Submission - Khuyến nghị)
                       </span>
                       <span className="block text-slate-500 text-[11px] mt-0.5">
-                        Khi chọn chế độ này, danh tính của bạn, số điện thoại, email và thông tin lớp học của con sẽ bị loại bỏ hoàn toàn khỏi bản ghi kết quả theo nguyên tắc BR-074.
+                        Khi chọn chế độ này, danh tính của bạn, số điện thoại, email và thông tin lớp học của con sẽ bị loại bỏ hoàn toàn khỏi bản ghi kết quả theo nguyên tắc bảo mật.
                       </span>
                     </label>
                   </div>
@@ -626,7 +626,7 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
                 66.7%
               </div>
               <p className="text-[11px] text-slate-500 font-medium mt-1">
-                Bảo mật BR-074
+                Bảo mật thông tin cá nhân
               </p>
             </div>
           </div>
@@ -724,7 +724,7 @@ export const ServiceSurveyTab: React.FC<ServiceSurveyTabProps> = ({
                         {sub.isAnonymous ? (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200 text-slate-700 flex items-center gap-1">
                             <EyeOff className="w-3 h-3 text-slate-500" />
-                            Phụ Huynh Ẩn Danh (BR-074)
+                            Phụ Huynh Ẩn Danh
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-[#1E4D40]">

@@ -31,7 +31,7 @@ export const BghGradeQuotasPage: React.FC = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['grade-level-quotas'] });
-      success(data?.message || 'MSG-015: Cập nhật định mức sĩ số cho khối lớp thành công.');
+      success(data?.message || 'Cập nhật định mức sĩ số cho khối lớp thành công.');
       setSelectedQuota(null);
       setValidationError('');
     },
@@ -39,7 +39,7 @@ export const BghGradeQuotasPage: React.FC = () => {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        'MSG-016: Sĩ số định mức vượt quá giới hạn tối đa cho phép theo quy định chuẩn của Bộ GD&ĐT (Nhà trẻ ≤ 26 trẻ, Mẫu giáo ≤ 35 trẻ).';
+        'Sĩ số định mức vượt quá giới hạn tối đa cho phép theo quy định chuẩn của Bộ GD&ĐT (Nhà trẻ ≤ 26 trẻ, Mẫu giáo ≤ 35 trẻ).';
       setValidationError(msg);
       error(msg);
     },
@@ -65,7 +65,7 @@ export const BghGradeQuotasPage: React.FC = () => {
     }
 
     if (newCapacity > limit) {
-      const msg = 'MSG-016: Sĩ số định mức vượt quá giới hạn tối đa cho phép theo quy định chuẩn của Bộ GD&ĐT (Nhà trẻ ≤ 26 trẻ, Mẫu giáo ≤ 35 trẻ).';
+      const msg = 'Sĩ số định mức vượt quá giới hạn tối đa cho phép theo quy định chuẩn của Bộ GD&ĐT (Nhà trẻ ≤ 26 trẻ, Mẫu giáo ≤ 35 trẻ).';
       setValidationError(msg);
       error(msg);
       return;
@@ -81,11 +81,11 @@ export const BghGradeQuotasPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>UC-006 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản lý Khối lớp & Định mức Sĩ số</h1>
           <p className="mt-2 text-teal-100 max-w-2xl text-sm leading-relaxed">
-            Xem và cấu hình định mức sĩ số tối đa cho từng khối lớp (Nhà trẻ, Mầm, Chồi, Lá) theo quy chuẩn Bộ GD&ĐT (BR-006).
+            Xem và cấu hình định mức sĩ số tối đa cho từng khối lớp (Nhà trẻ, Mầm, Chồi, Lá) theo quy chuẩn Bộ GD&ĐT.
           </p>
         </div>
         <button

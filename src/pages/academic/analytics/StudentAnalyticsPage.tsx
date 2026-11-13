@@ -79,8 +79,8 @@ export const StudentAnalyticsPage: React.FC = () => {
 
   const handleExport = () => {
     // Kích hoạt thông báo bảo mật che mờ dữ liệu định danh theo Nghị định 13
-    info('MSG-053: Tệp xuất đã được che mờ các trường dữ liệu định danh theo chính sách bảo mật trẻ em.');
-    success('MSG-050: Tạo báo cáo biến động học sinh thành công');
+    info('Tệp xuất đã được che mờ các trường dữ liệu định danh theo chính sách bảo mật trẻ em.');
+    success('Tạo báo cáo biến động học sinh thành công');
   };
 
   const pendingTransferCount = mobilities.filter((m) => m.status === 'PENDING').length;

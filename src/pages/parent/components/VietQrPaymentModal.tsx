@@ -82,7 +82,7 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['poll-invoice-status', invoice.referenceCode] });
       setToastMessage({
         type: 'success',
-        text: 'MSG-192: Đã xác nhận thanh toán thành công! Biên lai điện tử đã được tạo',
+        text: 'Đã xác nhận thanh toán thành công! Biên lai điện tử đã được tạo',
       });
     },
   });
@@ -121,12 +121,12 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
     const start = Date.now();
     window.location.href = deepLink;
 
-    // Fallback if app not installed (MSG-193)
+    // Fallback if app not installed
     setTimeout(() => {
       if (Date.now() - start < 1500) {
         setToastMessage({
           type: 'warning',
-          text: 'MSG-193: Không tìm thấy app ngân hàng. Vui lòng quét mã QR hoặc sao chép thông tin chuyển khoản.',
+          text: 'Không tìm thấy app ngân hàng. Vui lòng quét mã QR hoặc sao chép thông tin chuyển khoản.',
         });
       }
     }, 1200);
@@ -157,7 +157,7 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
 
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-slate-900">
-                Giao Dịch Thành Công! (MSG-192)
+                Giao Dịch Thành Công!
               </h3>
               <p className="text-xs text-slate-500">
                 Hệ thống ngân hàng MB Bank đã xác nhận khoản thanh toán học phí của bạn.

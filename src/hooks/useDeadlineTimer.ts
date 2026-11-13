@@ -12,7 +12,7 @@ export interface DeadlineTimerState {
 }
 
 /**
- * Hook tính toán đếm ngược đến hạn chót 17:00 Thứ Sáu tuần này (UC-054)
+ * Hook tính toán đếm ngược đến hạn chót 17:00 Thứ Sáu tuần này
  */
 export const useDeadlineTimer = (): DeadlineTimerState => {
   const calculateDeadline = (): Date => {

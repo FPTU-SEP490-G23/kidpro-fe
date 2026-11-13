@@ -130,7 +130,7 @@ export const AnnouncementsPage: React.FC = () => {
     loadAnnouncements();
   }, []);
 
-  // Xử lý chọn tệp đính kèm với validation dung lượng < 20MB (MSG-288)
+  // Xử lý chọn tệp đính kèm với validation dung lượng < 20MB
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -183,7 +183,7 @@ export const AnnouncementsPage: React.FC = () => {
       return;
     }
 
-    // BR: Giới hạn mức độ khẩn cấp URGENT chỉ dành cho BGH và SYSTEM_ADMIN (MSG-287)
+    // BR: Giới hạn mức độ khẩn cấp URGENT chỉ dành cho BGH và SYSTEM_ADMIN
     if (composerPriority === 'URGENT' && !isBghOrAdmin) {
       setFeedback({
         type: 'error',
@@ -361,7 +361,7 @@ export const AnnouncementsPage: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 flex items-center gap-1.5 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                UC-067: TRUYỀN THÔNG & THÔNG BÁO TOÀN TRƯỜNG
+                TRUYỀN THÔNG & THÔNG BÁO TOÀN TRƯỜNG
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
                 Firebase FCM & Trực Quan Tỷ Lệ Đọc
@@ -780,7 +780,7 @@ export const AnnouncementsPage: React.FC = () => {
               {/* Tệp công văn đính kèm */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tệp Công Văn / Quyết Định Đính Kèm (&lt; 20MB - MSG-288)
+                  Tệp Công Văn / Quyết Định Đính Kèm (&lt; 20MB)
                 </label>
                 <input
                   type="file"

@@ -39,7 +39,7 @@ export const MobilityRequestsTab: React.FC<MobilityRequestsTabProps> = ({
       success(status === 'APPROVED' ? 'Đã phê duyệt yêu cầu chuyển lớp!' : 'Đã từ chối yêu cầu chuyển lớp.');
       onReviewed();
     } catch {
-      error('MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     } finally {
       setProcessingId(null);
     }

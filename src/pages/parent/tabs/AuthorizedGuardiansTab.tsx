@@ -64,7 +64,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
         const res = await parentApi.getAuthorizedGuardians(studentId);
         return res.data;
       } catch {
-        showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+        showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
         throw new Error('Network error');
       }
     },
@@ -88,12 +88,12 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
       resetAddForm();
       showToast(
         'success',
-        'MSG-171: Đã gửi hồ sơ người đón ủy quyền. Nhà trường sẽ thẩm định và kích hoạt trong vòng 24 giờ'
+        'Đã gửi hồ sơ người đón ủy quyền. Nhà trường sẽ thẩm định và kích hoạt trong vòng 24 giờ'
       );
       queryClient.invalidateQueries({ queryKey: ['guardians', studentId] });
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     },
   });
 
@@ -108,12 +108,12 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
       setParentPasswordConfirm('');
       showToast(
         'success',
-        'MSG-172: Đã xóa người được ủy quyền và thu hồi quyền nhận diện đón trẻ thành công.'
+        'Đã xóa người được ủy quyền và thu hồi quyền nhận diện đón trẻ thành công.'
       );
       queryClient.invalidateQueries({ queryKey: ['guardians', studentId] });
     },
     onError: () => {
-      showToast('error', 'MSG-004: Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
+      showToast('error', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
     },
   });
 
@@ -135,7 +135,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
     if (guardianList.length >= 5) {
       showToast(
         'error',
-        'MSG-084: Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh. Vui lòng thu hồi người đón cũ trước.'
+        'Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh. Vui lòng thu hồi người đón cũ trước.'
       );
       return;
     }
@@ -145,7 +145,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
     if (!/^\d{12}$/.test(cleanCccd)) {
       showToast(
         'error',
-        'MSG-173: Số Căn cước công dân (CCCD) không hợp lệ. Vui lòng kiểm tra lại 12 chữ số.'
+        'Số Căn cước công dân (CCCD) không hợp lệ. Vui lòng kiểm tra lại 12 chữ số.'
       );
       return;
     }
@@ -161,7 +161,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
     if (!idCardFrontUrl || !idCardBackUrl || !photoUrl) {
       showToast(
         'error',
-        'MSG-174: Ảnh chụp 2 mặt thẻ CCCD là thông tin bắt buộc để nhà trường thẩm định an toàn.'
+        'Ảnh chụp 2 mặt thẻ CCCD là thông tin bắt buộc để nhà trường thẩm định an toàn.'
       );
       return;
     }
@@ -234,7 +234,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#78C2AD]/15 text-[#1E4D40]">
             <Users className="h-3.5 w-3.5 text-[#275A4E]" />
-            <span>UC-042 • Danh Sách Người Đón Được Ủy Quyền (Authorized Guardians)</span>
+            <span>Danh Sách Người Đón Được Ủy Quyền (Authorized Guardians)</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#1E4D40] tracking-tight">
             Quản Lý Danh Sách Người Thân Đón Bé
@@ -257,7 +257,7 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
               if (guardianList.length >= 5) {
                 showToast(
                   'error',
-                  'MSG-084: Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh. Vui lòng thu hồi người đón cũ trước.'
+                  'Đã đạt giới hạn tối đa 5 người đón ủy quyền cho một học sinh. Vui lòng thu hồi người đón cũ trước.'
                 );
               } else {
                 setShowAddModal(true);

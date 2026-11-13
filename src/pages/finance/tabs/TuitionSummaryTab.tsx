@@ -65,7 +65,7 @@ export const TuitionSummaryTab: React.FC = () => {
     if (!hasData) {
       showToast(
         'error',
-        `Tháng ${selectedMonth}/${selectedYear} chưa có số liệu tổng hợp trong bảng chi tiết theo từng lớp. Vui lòng sang tab [G8-UC-04] Lập bảng tính học phí để khởi tạo trước.`
+        `Tháng ${selectedMonth}/${selectedYear} chưa có số liệu tổng hợp trong bảng chi tiết theo từng lớp. Vui lòng sang tab Lập bảng tính học phí để khởi tạo trước.`
       );
       return;
     }
@@ -85,7 +85,7 @@ export const TuitionSummaryTab: React.FC = () => {
         'success',
         (res as any)?.message ||
           (res as any)?.data?.message ||
-          'Đã gửi thông báo yêu cầu Ban Giám hiệu phê duyệt bảng học phí toàn trường (UC-060).'
+          'Đã gửi thông báo yêu cầu Ban Giám hiệu phê duyệt bảng học phí toàn trường.'
       );
       await fetchSummary();
     } catch (err: any) {
@@ -225,7 +225,7 @@ export const TuitionSummaryTab: React.FC = () => {
           <div>
             <p className="font-bold">Chưa có số liệu tổng hợp cho tháng {selectedMonth}/{selectedYear}</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Để trình Ban Giám hiệu phê duyệt, vui lòng sang tab <strong>[G8-UC-04/05] Lập Bảng tính Học phí & Phụ phí Phát sinh</strong> và nhấn nút <strong>"Khởi tạo Bảng tính Học phí Tháng"</strong> trước.
+              Để trình Ban Giám hiệu phê duyệt, vui lòng sang tab <strong>Lập Bảng tính Học phí & Phụ phí Phát sinh</strong> và nhấn nút <strong>"Khởi tạo Bảng tính Học phí Tháng"</strong> trước.
             </p>
           </div>
         </div>
@@ -265,13 +265,12 @@ export const TuitionSummaryTab: React.FC = () => {
           </div>
           {summary.status === 'APPROVED' && (
             <span className="text-xs font-semibold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg">
-              Sẵn sàng phát hành (G8-UC-07)
+              Sẵn sàng phát hành
             </span>
           )}
           {summary.status === 'SUBMITTED' && (
             <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-800 rounded-lg">
-              Chờ BGH xử lý tại [UC-060]
-            </span>
+              Chờ BGH xử lý tại </span>
           )}
         </div>
       )}
@@ -309,7 +308,7 @@ export const TuitionSummaryTab: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-800">
-            Chi tiết Bảng Tổng hợp Học phí theo Từng Lớp Học (BR-038)
+            Chi tiết Bảng Tổng hợp Học phí theo Từng Lớp Học
           </h3>
           <span className="text-xs text-slate-500">Khóa sổ dữ liệu khi BGH phê duyệt</span>
         </div>
@@ -337,7 +336,7 @@ export const TuitionSummaryTab: React.FC = () => {
               ) : !summary || !summary.classSummaries || summary.classSummaries.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
-                    Chưa có số liệu tổng hợp cho tháng {selectedMonth}/{selectedYear}. Vui lòng sang tab [G8-UC-04] Lập bảng tính học phí để khởi tạo.
+                    Chưa có số liệu tổng hợp cho tháng {selectedMonth}/{selectedYear}. Vui lòng sang tab Lập bảng tính học phí để khởi tạo.
                   </td>
                 </tr>
               ) : (

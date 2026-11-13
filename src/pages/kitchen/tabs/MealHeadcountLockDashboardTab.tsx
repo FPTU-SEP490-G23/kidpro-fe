@@ -117,7 +117,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
       const totalCount = response?.totalMealsToPrepare ?? snapshotData?.totalMealsToPrepare ?? 0;
       setToastMessage({
         type: 'success',
-        text: `MSG-123: Đã khóa số lượng suất ăn bán trú lúc 08:30 thành công. Tổng số suất cần chế biến: ${totalCount} suất.`
+        text: `Đã khóa số lượng suất ăn bán trú lúc 08:30 thành công. Tổng số suất cần chế biến: ${totalCount} suất.`
       });
     },
     onError: (err: any) => {
@@ -182,7 +182,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
         </div>
       )}
 
-      {/* Cảnh báo các lớp chưa chốt điểm danh (MSG-125) */}
+      {/* Cảnh báo các lớp chưa chốt điểm danh */}
       {pendingClasses.length > 0 && (
         <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 shadow-sm flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
@@ -534,7 +534,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                             <span>Đã chốt sổ</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold animate-pulse" title="Lớp chưa hoàn tất chốt lúc 08:30 (MSG-125)">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold animate-pulse" title="Lớp chưa hoàn tất chốt lúc 08:30">
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                             <span>Chưa chốt điểm danh</span>
                           </span>
@@ -639,7 +639,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                   onClick={() => lockMutation.mutate(false)}
                   className="px-5 py-2.5 rounded-xl bg-[#E5A93C] hover:bg-[#d99d30] text-[#1E4D40] text-xs font-extrabold shadow-md min-h-[44px] flex items-center gap-2"
                 >
-                  {lockMutation.isPending ? 'Đang khóa...' : 'Khóa Ngay (MSG-123)'}
+                  {lockMutation.isPending ? 'Đang khóa...' : 'Khóa Ngay'}
                 </button>
               )}
             </div>

@@ -43,7 +43,7 @@ import {
 // Zod Form Validation Schemas
 // =========================================================================
 
-// G3-UC-01: Cập nhật thông tin lớp học
+// Cập nhật thông tin lớp học
 const updateClassSchema = z.object({
   name: z.string().min(2, 'Tên lớp học phải có ít nhất 2 ký tự').max(50, 'Tên lớp tối đa 50 ký tự'),
   roomId: z.string().optional(),
@@ -51,7 +51,7 @@ const updateClassSchema = z.object({
 });
 type UpdateClassFormValues = z.infer<typeof updateClassSchema>;
 
-// G3-UC-02: Lập kế hoạch mở lớp mới
+// Lập kế hoạch mở lớp mới
 const createProposalSchema = z.object({
   className: z.string().min(2, 'Tên lớp học phải có ít nhất 2 ký tự').max(50, 'Tên lớp tối đa 50 ký tự'),
   gradeLevel: z.enum(['INFANT', 'TODDLER', 'NURSERY', 'KINDERGARTEN', 'PRE_K']),
@@ -61,7 +61,7 @@ const createProposalSchema = z.object({
 });
 type CreateProposalFormValues = z.infer<typeof createProposalSchema>;
 
-// G3-UC-04: Dự thảo phân công giáo viên
+// Dự thảo phân công giáo viên
 const draftAssignmentSchema = z.object({
   classId: z.string().min(1, 'Vui lòng chọn lớp học'),
   teacherId: z.string().min(1, 'Vui lòng chọn giáo viên'),
@@ -101,7 +101,7 @@ export const ClassManagementTab: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
-  // G3-UC-12: Chế độ hiển thị lớp học (Đang hoạt động vs Đã lưu trữ)
+  // Chế độ hiển thị lớp học (Đang hoạt động vs Đã lưu trữ)
   const [classFilterMode, setClassFilterMode] = useState<'ACTIVE' | 'ARCHIVED'>(() => {
     if (subtabParam === 'archive' || subtabParam === 'archived' || modeParam === 'archived') return 'ARCHIVED';
     return 'ACTIVE';
@@ -169,7 +169,7 @@ export const ClassManagementTab: React.FC = () => {
     queryFn: () => facilityClassroomApi.getAllClassrooms(),
   });
 
-  // G3-UC-01: Danh sách lớp học
+  // Danh sách lớp học
   const {
     data: classesData,
     isLoading: isLoadingClasses,
@@ -187,7 +187,7 @@ export const ClassManagementTab: React.FC = () => {
     return classesList.filter((c) => c.status !== 'ARCHIVED');
   }, [classesList]);
 
-  // G3-UC-12: Danh sách lớp đã lưu trữ theo niên khóa
+  // Danh sách lớp đã lưu trữ theo niên khóa
   const {
     data: archivedClasses = [],
     isLoading: isLoadingArchived,
@@ -196,13 +196,13 @@ export const ClassManagementTab: React.FC = () => {
     queryFn: () => classService.getArchivedClasses(selectedYearId !== 'ALL' ? selectedYearId : undefined),
   });
 
-  // G3-UC-12: Đóng & Lưu trữ hồ sơ lớp học (BR-010, MSG-043, MSG-044)
+  // Đóng & Lưu trữ hồ sơ lớp học
   const archiveClassMutation = useMutation({
     mutationFn: (classId: string) => classService.archiveClass(classId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
       queryClient.invalidateQueries({ queryKey: ['archived-classes'] });
-      success('MSG-043: Lưu trữ hồ sơ lớp học thành công.');
+      success('Lưu trữ hồ sơ lớp học thành công.');
       setArchivingClass(null);
       // Tự động chuyển view sang tab Đã lưu trữ
       setClassFilterMode('ARCHIVED');
@@ -214,14 +214,14 @@ export const ClassManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-044' || msg?.includes('MSG-044') || msg?.includes('chưa đủ điều kiện')) {
-        error('MSG-044: Lớp học chưa đủ điều kiện đóng hồ sơ do còn học sinh chưa được xử lý kết chuyển hoặc chuyển trường.');
+        error('Lớp học chưa đủ điều kiện đóng hồ sơ do còn học sinh chưa được xử lý kết chuyển hoặc chuyển trường.');
       } else {
         error(msg || 'Lỗi khi đóng và lưu trữ hồ sơ lớp học.');
       }
     },
   });
 
-  // G3-UC-02: Danh sách đề xuất mở lớp
+  // Danh sách đề xuất mở lớp
   const {
     data: proposals = [],
     isLoading: isLoadingProposals,
@@ -234,7 +234,7 @@ export const ClassManagementTab: React.FC = () => {
       }),
   });
 
-  // G3-UC-04: Danh sách giáo viên khả dụng
+  // Danh sách giáo viên khả dụng
   const { data: availableTeachers = [] } = useQuery({
     queryKey: ['available-teachers', selectedYearId],
     queryFn: () =>
@@ -291,13 +291,13 @@ export const ClassManagementTab: React.FC = () => {
   // Mutations
   // =========================================================================
 
-  // G3-UC-01: Cập nhật thông tin lớp
+  // Cập nhật thông tin lớp
   const updateClassMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: any }) =>
       classService.updateClass(id, payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
-      success(res?.message || 'MSG-024: Cập nhật thông tin lớp học thành công.');
+      success(res?.message || 'Cập nhật thông tin lớp học thành công.');
       setEditingClass(null);
       resetEdit();
     },
@@ -305,14 +305,14 @@ export const ClassManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-025' || msg?.includes('MSG-025') || msg?.includes('Phòng học đã được phân bổ')) {
-        error('MSG-025: Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
+        error('Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
       } else {
         error(msg || 'Lỗi cập nhật thông tin lớp học.');
       }
     },
   });
 
-  // G3-UC-02: Tạo kế hoạch mở lớp mới
+  // Tạo kế hoạch mở lớp mới
   const createProposalMutation = useMutation({
     mutationFn: (payload: CreateProposalFormValues) =>
       classService.createProposal({
@@ -324,7 +324,7 @@ export const ClassManagementTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
       success(
         res?.message ||
-          'MSG-026: Lập kế hoạch mở lớp học mới thành công, đang chờ Ban Giám hiệu phê duyệt.'
+          'Lập kế hoạch mở lớp học mới thành công, đang chờ Ban Giám hiệu phê duyệt.'
       );
       setIsProposalModalOpen(false);
       resetProposal();
@@ -333,16 +333,16 @@ export const ClassManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-004' || msg?.includes('MSG-004') || msg?.includes('Tên lớp học đã tồn tại')) {
-        error('MSG-004: Tên lớp học đã tồn tại trong cùng khối lớp.');
+        error('Tên lớp học đã tồn tại trong cùng khối lớp.');
       } else if (code === 'MSG-025' || msg?.includes('MSG-025') || msg?.includes('Phòng học đã được phân bổ')) {
-        error('MSG-025: Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
+        error('Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
       } else {
         error(msg || 'Lỗi khi lập kế hoạch mở lớp mới.');
       }
     },
   });
 
-  // G3-UC-02: Cập nhật kế hoạch mở lớp
+  // Cập nhật kế hoạch mở lớp
   const updateProposalMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: any }) =>
       classService.updateProposal(id, payload),
@@ -356,16 +356,16 @@ export const ClassManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-004' || msg?.includes('MSG-004')) {
-        error('MSG-004: Tên lớp học đã tồn tại trong cùng khối lớp.');
+        error('Tên lớp học đã tồn tại trong cùng khối lớp.');
       } else if (code === 'MSG-025' || msg?.includes('MSG-025')) {
-        error('MSG-025: Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
+        error('Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
       } else {
         error(msg || 'Lỗi cập nhật kế hoạch mở lớp.');
       }
     },
   });
 
-  // G3-UC-04: Lập dự thảo phân công giáo viên
+  // Lập dự thảo phân công giáo viên
   const draftAssignmentMutation = useMutation({
     mutationFn: (payload: DraftAssignmentFormValues) =>
       assignmentService.createDraftAssignment({
@@ -377,7 +377,7 @@ export const ClassManagementTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['available-teachers'] });
       success(
         res?.message ||
-          'MSG-030: Lập dự thảo phân công giáo viên thành công, đang chờ Ban Giám hiệu phê duyệt.'
+          'Lập dự thảo phân công giáo viên thành công, đang chờ Ban Giám hiệu phê duyệt.'
       );
       setAssigningClass(null);
       resetAssign();
@@ -386,9 +386,9 @@ export const ClassManagementTab: React.FC = () => {
       const code = err?.response?.data?.code;
       const msg = err?.response?.data?.message || err?.message;
       if (code === 'MSG-019' || msg?.includes('MSG-019') || msg?.includes('tạm khóa')) {
-        error('MSG-019: Tài khoản giáo viên đang bị tạm khóa.');
+        error('Tài khoản giáo viên đang bị tạm khóa.');
       } else if (code === 'MSG-031' || msg?.includes('MSG-031') || msg?.includes('Giáo viên Chủ nhiệm ở lớp khác')) {
-        error('MSG-031: Giáo viên đã là Giáo viên Chủ nhiệm ở lớp khác trong cùng năm học.');
+        error('Giáo viên đã là Giáo viên Chủ nhiệm ở lớp khác trong cùng năm học.');
       } else {
         error(msg || 'Lỗi lập dự thảo phân công giáo viên.');
       }
@@ -500,7 +500,7 @@ export const ClassManagementTab: React.FC = () => {
                   <School className="w-4 h-4 text-[#275A4E]" />
                   <span>Danh Sách Lớp Học ({filteredClasses.length} lớp)</span>
                 </div>
-                {/* G3-UC-12: ACTIVE VS ARCHIVED TOGGLE */}
+                {/* ACTIVE VS ARCHIVED TOGGLE */}
                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                   <button
                     type="button"
@@ -766,7 +766,7 @@ export const ClassManagementTab: React.FC = () => {
                             type="button"
                             onClick={() => setArchivingClass(c)}
                             className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-900 border border-purple-200 text-xs font-bold rounded-xl transition min-h-[44px] cursor-pointer"
-                            title="Đóng & Lưu trữ hồ sơ lớp học (BR-010)"
+                            title="Đóng & Lưu trữ hồ sơ lớp học"
                           >
                             <Archive className="w-4 h-4" />
                           </button>
@@ -802,7 +802,7 @@ export const ClassManagementTab: React.FC = () => {
           <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-900 space-y-1">
-              <p className="font-bold">Quy định lập kế hoạch mở lớp mới (BR-005, BR-007):</p>
+              <p className="font-bold">Quy định lập kế hoạch mở lớp mới:</p>
               <p>
                 - Tên lớp học không được trùng lặp trong cùng khối lớp và niên khóa.
                 <br />- Định mức sĩ số theo chuẩn Bộ GD&ĐT: Nhà trẻ tối đa 26 trẻ, Mẫu giáo (Mầm, Chồi, Lá) tối đa 35 trẻ.
@@ -914,7 +914,7 @@ export const ClassManagementTab: React.FC = () => {
           <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
             <div className="text-xs text-emerald-950 space-y-1">
-              <p className="font-bold">Quy tắc phân công nhân sự sư phạm (BR-006, BR-008):</p>
+              <p className="font-bold">Quy tắc phân công nhân sự sư phạm:</p>
               <p>
                 - Tài khoản giáo viên bắt buộc ở trạng thái <strong>ACTIVE</strong> (Không bị tạm đình chỉ/khóa).
                 <br />- Mỗi lớp học chỉ có duy nhất <strong>01 Giáo viên Chủ nhiệm (GVCN)</strong>.
@@ -990,7 +990,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* MODAL G3-UC-01: CẬP NHẬT THÔNG TIN LỚP HỌC                          */}
+      {/* MODAL CẬP NHẬT THÔNG TIN LỚP HỌC                          */}
       {/* =================================================================== */}
       {editingClass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1035,10 +1035,10 @@ export const ClassManagementTab: React.FC = () => {
                 )}
               </div>
 
-              {/* Phân bổ phòng học (BR-005) */}
+              {/* Phân bổ phòng học */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Phòng học phân bổ (BR-005) <span className="text-rose-500">*</span>
+                  Phòng học phân bổ <span className="text-rose-500">*</span>
                 </label>
                 <select
                   {...registerEdit('roomId')}
@@ -1103,7 +1103,7 @@ export const ClassManagementTab: React.FC = () => {
                       {updateClassMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        'Lưu Thay Đổi (MSG-024)'
+                        'Lưu Thay Đổi'
                       )}
                     </button>
                   </>
@@ -1115,7 +1115,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* MODAL G3-UC-02: LẬP KẾ HOẠCH MỞ LỚP HỌC MỚI                         */}
+      {/* MODAL LẬP KẾ HOẠCH MỞ LỚP HỌC MỚI                         */}
       {/* =================================================================== */}
       {isProposalModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1184,7 +1184,7 @@ export const ClassManagementTab: React.FC = () => {
               {/* Tên lớp */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tên lớp học đề xuất (BR-005) <span className="text-rose-500">*</span>
+                  Tên lớp học đề xuất <span className="text-rose-500">*</span>
                 </label>
                 <input
                   {...registerProposal('className')}
@@ -1192,7 +1192,7 @@ export const ClassManagementTab: React.FC = () => {
                   placeholder="VD: Mầm 2, Chồi 3"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Tên lớp không được trùng lặp trong cùng khối lớp và năm học (MSG-004).
+                  Tên lớp không được trùng lặp trong cùng khối lớp và năm học.
                 </p>
                 {proposalErrors.className?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.className.message}</p>
@@ -1252,7 +1252,7 @@ export const ClassManagementTab: React.FC = () => {
                   {createProposalMutation.isPending || updateProposalMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Lưu Kế Hoạch (MSG-026)'
+                    'Lưu Kế Hoạch'
                   )}
                 </button>
               </div>
@@ -1262,7 +1262,7 @@ export const ClassManagementTab: React.FC = () => {
       )}
 
       {/* =================================================================== */}
-      {/* MODAL G3-UC-04: LẬP DỰ THẢO PHÂN CÔNG GIÁO VIÊN                     */}
+      {/* MODAL LẬP DỰ THẢO PHÂN CÔNG GIÁO VIÊN                     */}
       {/* =================================================================== */}
       {assigningClass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -1307,7 +1307,7 @@ export const ClassManagementTab: React.FC = () => {
                     />
                     <div>
                       <div className="text-xs font-bold text-slate-800">Giáo viên Chủ nhiệm</div>
-                      <div className="text-[10px] text-slate-500">Duy nhất 01 GV/lớp (BR-008)</div>
+                      <div className="text-[10px] text-slate-500">Duy nhất 01 GV/lớp</div>
                     </div>
                   </label>
 
@@ -1352,7 +1352,7 @@ export const ClassManagementTab: React.FC = () => {
                   })}
                 </select>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Tài khoản bị tạm khóa (MSG-019) hoặc đã làm GVCN lớp khác (MSG-031) sẽ bị hệ thống cảnh báo và từ chối.
+                  Tài khoản bị tạm khóa hoặc đã làm GVCN lớp khác sẽ bị hệ thống cảnh báo và từ chối.
                 </p>
                 {assignErrors.teacherId?.message && (
                   <p className="text-xs text-rose-500 mt-1">{assignErrors.teacherId.message}</p>
@@ -1376,7 +1376,7 @@ export const ClassManagementTab: React.FC = () => {
                   {draftAssignmentMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Lưu Dự Thảo (MSG-030)'
+                    'Lưu Dự Thảo'
                   )}
                 </button>
               </div>
@@ -1385,7 +1385,7 @@ export const ClassManagementTab: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL G3-UC-12: XÁC NHẬN ĐÓNG & LƯU TRỮ HỒ SƠ LỚP HỌC (BR-010, MSG-043, MSG-044) */}
+      {/* MODAL XÁC NHẬN ĐÓNG & LƯU TRỮ HỒ SƠ LỚP HỌC */}
       {archivingClass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
@@ -1395,7 +1395,7 @@ export const ClassManagementTab: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-extrabold">Đóng & Lưu Trữ Hồ Sơ Lớp Học</h3>
-                <p className="text-xs text-slate-500">Nghiệp vụ G3-UC-12 & Quy tắc BR-010</p>
+                <p className="text-xs text-slate-500">Quy định đóng và lưu trữ hồ sơ</p>
               </div>
             </div>
 
@@ -1410,9 +1410,9 @@ export const ClassManagementTab: React.FC = () => {
                 <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 text-xs leading-relaxed flex items-start gap-2.5">
                   <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Cảnh báo vi phạm BR-010:</span> Lớp học hiện vẫn còn <strong>{archivingClass.currentEnrollment} học sinh</strong> đang liên kết.
+                    <span className="font-bold">Cảnh báo:</span> Lớp học hiện vẫn còn <strong>{archivingClass.currentEnrollment} học sinh</strong> đang liên kết.
                     Theo quy định, chỉ được đóng sổ lưu trữ khi toàn bộ học sinh đã hoàn tất kết chuyển hoặc ra trường (sĩ số = 0).
-                    <p className="font-bold text-rose-700 mt-1">Mã lỗi: MSG-044</p>
+                    <p className="font-bold text-rose-700 mt-1"></p>
                   </div>
                 </div>
               ) : (

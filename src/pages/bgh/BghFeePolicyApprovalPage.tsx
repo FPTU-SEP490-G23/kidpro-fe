@@ -19,7 +19,7 @@ export const BghFeePolicyApprovalPage: React.FC = () => {
 
   return (
     <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
-      {/* HEADER PHÂN HỆ DÀNH RIÊNG CHO BGH (UC-011) */}
+      {/* HEADER PHÂN HỆ DÀNH RIÊNG CHO BGH */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-900 to-[#1E4D40] text-white p-6 rounded-3xl shadow-sm">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-900 mb-2">
@@ -28,7 +28,7 @@ export const BghFeePolicyApprovalPage: React.FC = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
             <Receipt className="h-8 w-8 text-[#78C2AD]" />
-            <span>Phê Duyệt Chính Sách Biểu Phí Học Phí (UC-011)</span>
+            <span>Phê Duyệt Chính Sách Biểu Phí Học Phí</span>
           </h1>
           <p className="text-xs sm:text-sm text-emerald-100/80 max-w-2xl">
             Thẩm định cấu trúc danh mục khoản thu, định mức hoàn tiền ăn vắng phép, khung phạt đón muộn và chính sách miễn giảm trước khi ban hành toàn trường.

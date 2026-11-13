@@ -210,10 +210,10 @@ export const GateAiAttendanceTab: React.FC = () => {
       const minutes = now.getMinutes();
       const isLate = hours > 8 || (hours === 8 && minutes > 30);
 
-      // 1. Validation: Confidence Score >= 0.72 (BR-024)
+      // 1. Validation: Confidence Score >= 0.72
       if (confidence < 0.72) {
-        setScanWarning('MSG-087: Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt. Vui lòng đứng gần hơn hoặc chuyển sang hỗ trợ thủ công.');
-        setToastMessage({ type: 'warning', text: 'MSG-087: Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt.' });
+        setScanWarning('Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt. Vui lòng đứng gần hơn hoặc chuyển sang hỗ trợ thủ công.');
+        setToastMessage({ type: 'warning', text: 'Không nhận diện được khuôn mặt hợp lệ trong cơ sở dữ liệu khuôn mặt.' });
         setTimeout(() => setToastMessage(null), 5000);
         return;
       }
@@ -223,8 +223,8 @@ export const GateAiAttendanceTab: React.FC = () => {
       const nowMs = Date.now();
       if (lastScanTime && (nowMs - lastScanTime) < 15 * 60 * 1000) {
         const lastFormatted = new Date(lastScanTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-        setScanWarning(`MSG-088: Học sinh đã điểm danh có mặt hôm nay lúc ${lastFormatted}.`);
-        setToastMessage({ type: 'warning', text: `MSG-088: Học sinh đã điểm danh có mặt hôm nay lúc ${lastFormatted}.` });
+        setScanWarning(`Học sinh đã điểm danh có mặt hôm nay lúc ${lastFormatted}.`);
+        setToastMessage({ type: 'warning', text: `Học sinh đã điểm danh có mặt hôm nay lúc ${lastFormatted}.` });
         setTimeout(() => setToastMessage(null), 5000);
         return;
       }
@@ -273,7 +273,7 @@ export const GateAiAttendanceTab: React.FC = () => {
 
       setToastMessage({
         type: 'success',
-        text: `MSG-086: Chào mừng bé ${student.fullName}! Điểm danh thành công (${timeStr})${isLate ? ' - [Ghi nhận Đi muộn]' : ''}`
+        text: `Chào mừng bé ${student.fullName}! Điểm danh thành công (${timeStr})${isLate ? ' - [Ghi nhận Đi muộn]' : ''}`
       });
       setTimeout(() => setToastMessage(null), 4000);
     }, 700);
@@ -306,7 +306,7 @@ export const GateAiAttendanceTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
             <Camera className="w-6 h-6 text-[#275A4E]" />
-            <span>Điểm Danh Đón Trẻ Bằng AI Khuôn Mặt (UC-021)</span>
+            <span>Điểm Danh Đón Trẻ Bằng AI Khuôn Mặt</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Camera AI trạm cổng tự động nhận diện học sinh (06:30 - 08:30 sáng), phát thông báo FCM tức thì cho phụ huynh
@@ -433,7 +433,7 @@ export const GateAiAttendanceTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* WELCOME POPOVER (MSG-086) */}
+              {/* WELCOME POPOVER */}
               {welcomeStudent && (
                 <div className="absolute bottom-6 left-6 right-6 z-30 bg-white/95 backdrop-blur-md rounded-3xl p-5 border-2 border-[#78C2AD] shadow-2xl animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between">
@@ -501,7 +501,7 @@ export const GateAiAttendanceTab: React.FC = () => {
                   onClick={() => triggerSimulatedScan(undefined, 0.65)}
                   disabled={isScanning}
                   className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
-                  title="Thử nghiệm trường hợp không đạt ngưỡng 0.72 (MSG-087)"
+                  title="Thử nghiệm trường hợp không đạt ngưỡng 0.72"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />
                   <span>Test Lỗi &lt; 0.72</span>

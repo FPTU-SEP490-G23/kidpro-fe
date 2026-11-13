@@ -29,7 +29,7 @@ import { numberToVietnameseWords } from '../utils/formatters';
 
 export const parentApi = {
   // ==========================================
-  // UC-041: ĐĂNG KÝ SINH TRẮC HỌC KHUÔN MẶT BÉ
+  // ĐĂNG KÝ SINH TRẮC HỌC KHUÔN MẶT BÉ
   // ==========================================
   // Lấy hồ sơ khuôn mặt hiện tại của học sinh
   getStudentFaceProfile: (studentId: string) => {
@@ -57,7 +57,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-042: ĐĂNG KÝ DANH SÁCH NGƯỜI THÂN ĐÓN BÉ
+  // ĐĂNG KÝ DANH SÁCH NGƯỜI THÂN ĐÓN BÉ
   // ==========================================
   // Lấy danh sách người đón được ủy quyền của học sinh
   getAuthorizedGuardians: (studentId: string) => {
@@ -80,7 +80,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-043: ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY
+  // ỦY QUYỀN ĐÓN HỘ ĐỘT XUẤT TRONG NGÀY
   // ==========================================
   // Phụ huynh tạo ủy quyền đón đột xuất (POST /api/parents/emergency-pickups)
   createEmergencyPickup: async (payload: EmergencyPickupPayload) => {
@@ -116,7 +116,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-044: NỘP ĐƠN XIN NGHỈ HỌC TRỰC TUYẾN
+  // NỘP ĐƠN XIN NGHỈ HỌC TRỰC TUYẾN
   // ==========================================
   // Phụ huynh nộp đơn xin nghỉ học (POST /api/parents/leave-requests)
   submitLeaveRequest: async (payload: SubmitLeaveRequestPayload) => {
@@ -149,7 +149,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-045: GỬI ĐƠN DẶN THUỐC ĐIỆN TỬ
+  // GỬI ĐƠN DẶN THUỐC ĐIỆN TỬ
   // ==========================================
   // Phụ huynh gửi đơn dặn thuốc (POST /api/health/medications)
   submitMedicationRequest: async (payload: SubmitMedicationPayload) => {
@@ -168,7 +168,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-046: NHẬN THÔNG BÁO ĐIỂM DANH & ĐÓN TRẢ KÈM ẢNH
+  // NHẬN THÔNG BÁO ĐIỂM DANH & ĐÓN TRẢ KÈM ẢNH
   // ==========================================
   // Lấy danh sách thông báo cổng (GET /api/notifications)
   getGateNotifications: async (studentId?: string, eventType?: string, unreadOnly?: boolean) => {
@@ -205,7 +205,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-047: XEM BẢNG KÊ HỌC PHÍ & CHI TIẾT KHẤU TRỪ
+  // XEM BẢNG KÊ HỌC PHÍ & CHI TIẾT KHẤU TRỪ
   // ==========================================
   // Tra cứu danh sách hóa đơn học phí của bé
   getTuitionInvoices: async (studentId: string) => {
@@ -303,7 +303,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-048: THANH TOÁN HỌC PHÍ QUA VIETQR 1-CHẠM
+  // THANH TOÁN HỌC PHÍ QUA VIETQR 1-CHẠM
   // ==========================================
   // Lấy dữ liệu VietQR chuẩn Napas247 (GET /api/finance/invoices/{id}/vietqr)
   getInvoiceVietQrData: async (invoiceId: string, amount?: number, refCode?: string) => {
@@ -376,7 +376,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-049: TẢI BIÊN LAI THU TIỀN ĐIỆN TỬ (ELECTRONIC RECEIPT & VAS)
+  // TẢI BIÊN LAI THU TIỀN ĐIỆN TỬ (ELECTRONIC RECEIPT & VAS)
   // ==========================================
   // Tra cứu chi tiết biên lai thu tiền điện tử có chữ ký số (GET /api/finance/invoices/{id}/receipt)
   getElectronicReceipt: async (
@@ -510,7 +510,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-050: NỘP ĐƠN YÊU CẦU SỰ VỤ HỌC SINH (STUDENT AFFAIRS & ACADEMIC PETITIONS)
+  // NỘP ĐƠN YÊU CẦU SỰ VỤ HỌC SINH (STUDENT AFFAIRS & ACADEMIC PETITIONS)
   // ==========================================
   // Danh sách các phiếu yêu cầu sự vụ của học sinh
   getStudentPetitions: async (studentId?: string): Promise<StudentPetitionItem[]> => {
@@ -549,7 +549,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-068: KHẢO SÁT Ý KIẾN & ĐÁNH GIÁ DỊCH VỤ (SERVICE QUALITY SURVEY)
+  // KHẢO SÁT Ý KIẾN & ĐÁNH GIÁ DỊCH VỤ (SERVICE QUALITY SURVEY)
   // ==========================================
 
   // Lấy thông tin đợt khảo sát ý kiến đang kích hoạt
@@ -665,7 +665,7 @@ export const parentApi = {
   },
 
   // ==========================================
-  // UC-069: QUYỀN XÓA DỮ LIỆU SINH TRẮC HỌC (NGHỊ ĐỊNH 13/2023/NĐ-CP)
+  // QUYỀN XÓA DỮ LIỆU SINH TRẮC HỌC (NGHỊ ĐỊNH 13/2023/NĐ-CP)
   // ==========================================
 
   // Yêu cầu cấp mã OTP xác thực hủy sinh trắc học qua SMS/Email (2FA Bước 1)

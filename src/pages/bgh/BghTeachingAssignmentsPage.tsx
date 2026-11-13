@@ -39,7 +39,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
     mutationFn: (id: number) => teachingAssignmentApi.approveAssignment(id),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teaching-assignment-approvals-bgh'] });
-      success(res?.message || 'MSG-037: Kế hoạch phân công giảng dạy đã được phê duyệt thành công và chính thức có hiệu lực.');
+      success(res?.message || 'Kế hoạch phân công giảng dạy đã được phê duyệt thành công và chính thức có hiệu lực.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || 'Không thể phê duyệt phân công giảng dạy');
@@ -52,7 +52,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
       teachingAssignmentApi.rejectAssignment(id, reason),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teaching-assignment-approvals-bgh'] });
-      success(res?.message || 'MSG-038: Đã từ chối bản phân công giảng dạy. Thông báo chỉ đạo điều chỉnh đã được chuyển đến Cán bộ Giáo vụ.');
+      success(res?.message || 'Đã từ chối bản phân công giảng dạy. Thông báo chỉ đạo điều chỉnh đã được chuyển đến Cán bộ Giáo vụ.');
       closeRejectModal();
     },
     onError: (err: any) => {
@@ -89,7 +89,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
   const handleConfirmReject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectionReason.trim()) {
-      setValidationError('MSG-033: Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
+      setValidationError('Vui lòng nhập lý do từ chối/yêu cầu điều chỉnh. Nội dung này không được phép để trống.');
       return;
     }
     if (!rejectingItem) return;
@@ -103,7 +103,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#78C2AD]" />
-            <span>UC-015 • Ban Giám Hiệu</span>
+            <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Phê Duyệt Phân Công Giảng Dạy</h1>
           <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
@@ -317,7 +317,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                     setRejectionReason(e.target.value);
                     setValidationError('');
                   }}
-                  placeholder="Ví dụ: Giáo viên này đã chủ nhiệm lớp khác theo quy định BR-012, đề nghị phân công cô Nguyễn Thị Lan..."
+                  placeholder="Ví dụ: Giáo viên này đã chủ nhiệm lớp khác theo quy định, đề nghị phân công cô Nguyễn Thị Lan..."
                   className="w-full text-sm p-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:border-[#275A4E] focus:ring-2 focus:ring-[#78C2AD]/20"
                 />
                 {validationError && (
@@ -341,7 +341,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                   disabled={rejectMutation.isPending}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
-                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối (MSG-038)'}
+                  {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
                 </button>
               </div>
             </form>

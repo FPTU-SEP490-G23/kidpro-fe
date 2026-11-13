@@ -191,7 +191,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     });
   }, [rawAllergyStudents]);
 
-  // Calculate Friday deadline check (BR-039)
+  // Calculate Friday deadline check
   const isAfterFridayDeadline = useMemo(() => {
     const now = new Date();
     // Friday deadline at 17:00 of the previous week
@@ -201,7 +201,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     return now > currentWeekFriday;
   }, [currentMonday]);
 
-  // Check Duplicate Main Proteins across the 5 days (MSG-122)
+  // Check Duplicate Main Proteins across the 5 days
   const duplicateProteins = useMemo(() => {
     const countMap: Record<string, number> = {};
     menuDays.forEach((day) => {
@@ -238,11 +238,11 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weekly-menu'] });
-      showToast('success', 'MSG-098: Đã gửi thực đơn tuần để Ban Giám hiệu phê duyệt.');
+      showToast('success', 'Đã gửi thực đơn tuần để Ban Giám hiệu phê duyệt.');
     },
     onError: (err: any) => {
       if (err.message === 'DUPLICATE_PROTEIN') {
-        showToast('error', 'MSG-122: Món đạm chính không được lặp lại quá 2 lần trong tuần.');
+        showToast('error', 'Món đạm chính không được lặp lại quá 2 lần trong tuần.');
       } else if (err.message === 'MENU_INCOMPLETE') {
         showToast('error', 'Vui lòng nhập đầy đủ món ăn cho cả 5 ngày trước khi gửi duyệt.');
       } else {
@@ -396,7 +396,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
             </span>
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-[#1E4D40]">
-                Thiết Lập Thực Đơn Bán Trú Tuần (UC-029)
+                Thiết Lập Thực Đơn Bán Trú Tuần
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 Quy chuẩn năng lượng Bộ GD&ĐT • Cảnh báo tự động dị nguyên nguy hiểm • Đối chiếu hồ sơ trẻ em
@@ -472,7 +472,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-slate-400">
-                Hạn duyệt: 17:00 Thứ Sáu (BR-039)
+                Hạn duyệt: 17:00 Thứ Sáu
               </span>
               {isAfterFridayDeadline ? (
                 <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
@@ -501,12 +501,12 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           </p>
         </div>
 
-        {/* Protein Diversity Check (MSG-122) */}
+        {/* Protein Diversity Check */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500">
             <span className="flex items-center gap-1.5 text-slate-700">
               <Sparkles className="h-4 w-4 text-[#275A4E]" />
-              Chính Sách Đa Dạng Món Đạm (MSG-122)
+              Chính Sách Đa Dạng Món Đạm
             </span>
             <span className="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md font-bold">
               Tối đa 2 lần/tuần
@@ -530,7 +530,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           )}
         </div>
 
-        {/* Severe Allergy Cross-check (BR-041, BR-042, MSG-121) */}
+        {/* Severe Allergy Cross-check */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500">
             <span className="flex items-center gap-1.5 text-slate-700">
@@ -690,7 +690,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 ))}
               </tr>
 
-              {/* Row 5: Thẻ Dị Ứng Cảnh Báo (BR-041, BR-042, MSG-121) */}
+              {/* Row 5: Thẻ Dị Ứng Cảnh Báo */}
               <tr className="hover:bg-slate-50/50 transition bg-[#FFFDFD]">
                 <td className="p-4 font-bold text-[#DC2626] bg-slate-50/30">
                   <div className="flex items-center gap-1.5">
