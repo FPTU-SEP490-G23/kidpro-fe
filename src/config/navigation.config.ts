@@ -326,6 +326,14 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         roles: ['GIAO_VU', 'BGH'],
         useCases: [],
       },
+      {
+        id: 'gv-meal-registrations',
+        title: 'Duyệt Đăng Ký Ăn Sáng',
+        path: '/academic/meal-registrations',
+        icon: 'Utensils',
+        roles: ['GIAO_VU', 'BGH'],
+        useCases: [],
+      },
     ],
   },
 
