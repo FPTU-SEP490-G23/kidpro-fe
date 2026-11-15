@@ -44,6 +44,9 @@ import BghChildcareHubPage from './pages/bgh/hubs/BghChildcareHubPage';
 import BghFinanceHubPage from './pages/bgh/hubs/BghFinanceHubPage';
 import BghCommunicationsHubPage from './pages/bgh/hubs/BghCommunicationsHubPage';
 import BghBusManagementPage from './pages/bgh/BghBusManagementPage';
+import { CameraDiagnosticPage } from './pages/diag/CameraDiagnosticPage';
+import { PwaInstallBanner } from './components/pwa/PwaInstallBanner';
+import { PwaUpdatePrompt } from './components/pwa/PwaUpdatePrompt';
 
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
@@ -59,9 +62,12 @@ const RoleBasedRedirect: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <PwaUpdatePrompt />
+      <PwaInstallBanner />
       <Routes>
         {/* Đường dẫn công khai */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/diag/camera" element={<CameraDiagnosticPage />} />
 
         {/* Hệ thống bảo vệ RBAC trong MainLayout */}
         <Route element={<MainLayout />}>
