@@ -517,6 +517,61 @@ export const ParentPage: React.FC = () => {
           )}
         </>
       )}
+
+      {/* Mobile Bottom Navigation Bar cố định cho Phụ huynh (Mobile-First HIG) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-safe shadow-lg">
+        <div className="flex items-center justify-around px-2 py-1.5">
+          <button
+            onClick={() => setActiveTab('gate-notifications')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 touch-target ${
+              activeTab === 'gate-notifications' ? 'text-emerald-700 font-bold' : 'text-slate-400'
+            }`}
+          >
+            <Bell className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Thông báo</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('health-profile')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 touch-target ${
+              activeTab === 'health-profile' ? 'text-emerald-700 font-bold' : 'text-slate-400'
+            }`}
+          >
+            <HeartPulse className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Sức khỏe</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('leave')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 touch-target ${
+              ['leave', 'emergency-pickup', 'medication', 'service-registers'].includes(activeTab)
+                ? 'text-emerald-700 font-bold'
+                : 'text-slate-400'
+            }`}
+          >
+            <Calendar className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Đơn từ</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('invoice')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 touch-target ${
+              activeTab === 'invoice' ? 'text-emerald-700 font-bold' : 'text-slate-400'
+            }`}
+          >
+            <Receipt className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Học phí</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 touch-target ${
+              ['chat', 'pickup-faces', 'face-biometric', 'guardians', 'privacy-decree13'].includes(activeTab)
+                ? 'text-emerald-700 font-bold'
+                : 'text-slate-400'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Tiện ích</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };
