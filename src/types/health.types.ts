@@ -187,11 +187,14 @@ export interface MedicalIncidentRecord {
 
 export interface CreateMedicalIncidentPayload {
   studentId: string;
-  category: MedicalIncidentCategory;
-  temperatureCelsius: number;
-  symptomsDescription: string;
-  firstAidMeasures: string[];
-  actionPlan: IncidentActionPlan;
+  category?: MedicalIncidentCategory;
+  temperatureCelsius?: number;
+  symptomDescription?: string;
+  symptomsDescription?: string;
+  firstAidGiven?: string;
+  firstAidMeasures?: string[];
+  isSevere?: boolean;
+  actionPlan?: IncidentActionPlan;
   notes?: string;
 }
 

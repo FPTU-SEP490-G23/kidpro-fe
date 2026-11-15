@@ -28,6 +28,7 @@ import {
   MedicalIncidentRecord,
   MedicalIncidentCategory,
   IncidentActionPlan,
+  CreateMedicalIncidentPayload,
 } from '../../../types/health.types';
 import { AllergyShieldBadge } from '../../../components/common/AllergyShieldBadge';
 
@@ -159,15 +160,19 @@ export const MedicalIncidentsTab: React.FC = () => {
   // Mutation to Create Incident
   const createIncidentMutation = useMutation({
     mutationFn: async (formData: IncidentFormData) => {
-      const payload = {
+      const firstAid = [
+        ...formData.firstAidMeasures,
+        ...(formData.customFirstAidNotes ? [formData.customFirstAidNotes] : []),
+      ];
+      const payload: CreateMedicalIncidentPayload = {
         studentId: formData.studentId,
         category: formData.category,
         temperatureCelsius: formData.temperatureCelsius,
+        symptomDescription: formData.symptomsDescription,
         symptomsDescription: formData.symptomsDescription,
-        firstAidMeasures: [
-          ...formData.firstAidMeasures,
-          ...(formData.customFirstAidNotes ? [formData.customFirstAidNotes] : []),
-        ],
+        firstAidGiven: firstAid.join('; '),
+        firstAidMeasures: firstAid,
+        isSevere: formData.temperatureCelsius >= 38.5 || formData.actionPlan === 'HOSPITAL_EMERGENCY_115',
         actionPlan: formData.actionPlan,
         notes: formData.notes,
       };

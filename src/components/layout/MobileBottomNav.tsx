@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
 import {
+  Home,
+  MessageSquare,
   AlertTriangle,
   Baby,
   GraduationCap,
@@ -38,11 +40,11 @@ const getRoleBottomNav = (role?: UserRole | null): BottomNavItem[] => {
 
     case 'GIAO_VIEN':
       return [
-        { name: 'Điểm danh', path: '/attendance', icon: ClipboardCheck },
-        { name: 'Giáo án & Lớp', path: '/academic', icon: GraduationCap },
-        { name: 'Sức khỏe', path: '/health', icon: HeartPulse },
-        { name: 'Báo bếp', path: '/kitchen', icon: UtensilsCrossed },
-        { name: 'Trao đổi', path: '/teacher/communication', icon: Megaphone },
+        { name: 'Trang chủ', path: '/teacher', icon: Home },
+        { name: 'Điểm danh', path: '/teacher/attendance', icon: ClipboardCheck },
+        { name: 'Tan học', path: '/teacher/dismissal', icon: ShieldCheck },
+        { name: 'Nhóm lớp', path: '/teacher/chat', icon: MessageSquare },
+        { name: 'Tài khoản', path: '/teacher/profile', icon: UserCheck },
       ];
 
     case 'BEP':

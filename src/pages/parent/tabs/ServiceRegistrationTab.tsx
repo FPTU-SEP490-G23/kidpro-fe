@@ -144,16 +144,21 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
   // 3. MUTATIONS
   // ==========================================
   const busMutation = useMutation({
-    mutationFn: () =>
-      parentApi.submitBusRegister({
+    mutationFn: () => {
+      const targetBusId = selectedBusId || buses[0]?.busId || buses[0]?.id;
+      if (!targetBusId || targetBusId === 'BUS-01') {
+        throw new Error('Vui lòng chọn tuyến xe buýt hợp lệ từ danh sách.');
+      }
+      return parentApi.submitBusRegister({
         studentId,
-        busId: selectedBusId || (buses[0]?.id || 'BUS-01'),
+        busId: targetBusId,
         pickupAddress: busPickupAddress.trim() || 'Đón tại điểm trạm theo tuyến',
         pickupType: busPickupType,
         startDate: busStartDate,
         endDate: busEndDate || undefined,
         note: busNote.trim() || undefined,
-      }),
+      });
+    },
     onSuccess: () => {
       showToast('success', 'Nộp đơn đăng ký xe buýt thành công! Giáo vụ sẽ thẩm định lộ trình.');
       refetchBus();
@@ -161,7 +166,10 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
       setBusPickupAddress('');
       setBusNote('');
     },
-    onError: () => showToast('error', 'Không thể gửi đơn đăng ký xe buýt. Vui lòng thử lại.'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể gửi đơn đăng ký xe buýt. Vui lòng thử lại.';
+      showToast('error', msg);
+    },
   });
 
   const mealMutation = useMutation({
@@ -452,8 +460,8 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
 
               <button
                 type="submit"
-                disabled={busMutation.isPending}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm transition"
+                disabled={busMutation.isPending || (buses.length === 0 && !selectedBusId)}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm transition"
               >
                 {busMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>Gửi Đơn Đăng Ký Xe Buýt</span>
