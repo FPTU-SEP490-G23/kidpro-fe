@@ -107,7 +107,7 @@ export const financeApi = {
       billingMonth: number;
       billingYear: number;
       message: string;
-    }>('/finance/invoices/generate', data);
+    }>('/finance/invoices/generate', data, { timeout: 120000 });
   },
 
   addIncidentalFee: (invoiceId: string, data: AddInvoiceItemRequestDto) => {
