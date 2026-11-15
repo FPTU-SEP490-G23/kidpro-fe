@@ -61,6 +61,24 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  // Đăng nhập nhanh 1 chạm cho tài khoản thử nghiệm
+  const handleQuickLogin = async (demoEmail: string, demoPass: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    try {
+      setIsLoading(true);
+      setErrorMsg('');
+      await loginWithPassword(demoEmail, demoPass);
+      const savedRole = localStorage.getItem('userRole');
+      const cleanRole = normalizeRole(savedRole);
+      navigate(getRoleHomePath(cleanRole), { replace: true });
+    } catch (err: any) {
+      setErrorMsg(typeof err === 'string' ? err : (err?.message || 'Sai thông tin đăng nhập'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 3. Mở Modal Quên mật khẩu
   const openForgotPasswordModal = () => {
     setForgotEmail(email.trim());
@@ -206,48 +224,38 @@ export const LoginPage: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <div className="h-px bg-slate-200 flex-1"></div>
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Tài khoản chạy thử nhanh
+                Tài khoản chạy thử nhanh (1 chạm)
               </span>
               <div className="h-px bg-slate-200 flex-1"></div>
             </div>
+
+            {/* Thẻ Phụ Huynh Học Sinh nổi bật */}
+            <div className="mb-2">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('nguyenvanhung.b1@kidpro.test', '123456')}
+                className="w-full flex items-center gap-3 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 p-2.5 text-left hover:bg-emerald-100 hover:border-emerald-400 transition cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                <div className="w-9 h-9 rounded-xl bg-[#275A4E] text-white flex items-center justify-center text-lg shrink-0">
+                  👨‍👩‍👧
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-extrabold text-emerald-950">Phụ Huynh Học Sinh</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200/80 font-bold text-emerald-900">Bé Bảo (Lớp Chồi B1)</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 truncate mt-0.5">nguyenvanhung.b1@kidpro.test • MK: 123456</p>
+                </div>
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('bep@kidpro.edu.vn');
-                  setPassword('password123');
-                }}
-                className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/70 p-2 text-left hover:bg-orange-100/80 transition cursor-pointer"
-              >
-                <span className="text-base">🍳</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-orange-950 truncate">Bộ phận Bếp</p>
-                  <p className="text-[10px] text-orange-700 truncate">bep@kidpro.edu.vn</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('bgh@kidpro.edu.vn');
-                  setPassword('password123');
-                }}
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2 text-left hover:bg-emerald-100/80 transition cursor-pointer"
-              >
-                <span className="text-base">🏫</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-emerald-950 truncate">Ban Giám Hiệu</p>
-                  <p className="text-[10px] text-emerald-700 truncate">bgh@kidpro.edu.vn</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('giaovien@kidpro.edu.vn');
-                  setPassword('password123');
-                }}
-                className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50/70 p-2 text-left hover:bg-teal-100/80 transition cursor-pointer"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('giaovien@kidpro.edu.vn', 'password123')}
+                className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50/70 p-2 text-left hover:bg-teal-100/80 transition cursor-pointer disabled:opacity-50"
               >
                 <span className="text-base">👩‍🏫</span>
                 <div className="min-w-0">
@@ -258,11 +266,35 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('ketoan@kidpro.edu.vn');
-                  setPassword('password123');
-                }}
-                className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-left hover:bg-blue-100/80 transition cursor-pointer"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('hieutruong@kidpro.edu.vn', 'password123')}
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2 text-left hover:bg-emerald-100/80 transition cursor-pointer disabled:opacity-50"
+              >
+                <span className="text-base">🏫</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-950 truncate">Ban Giám Hiệu</p>
+                  <p className="text-[10px] text-emerald-700 truncate">hieutruong@kidpro.edu.vn</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('bep@kidpro.edu.vn', 'password123')}
+                className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/70 p-2 text-left hover:bg-orange-100/80 transition cursor-pointer disabled:opacity-50"
+              >
+                <span className="text-base">🍳</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-orange-950 truncate">Bộ phận Bếp</p>
+                  <p className="text-[10px] text-orange-700 truncate">bep@kidpro.edu.vn</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('ketoan@kidpro.edu.vn', 'password123')}
+                className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-left hover:bg-blue-100/80 transition cursor-pointer disabled:opacity-50"
               >
                 <span className="text-base">💵</span>
                 <div className="min-w-0">
@@ -272,7 +304,7 @@ export const LoginPage: React.FC = () => {
               </button>
             </div>
             <p className="text-[10px] text-center text-slate-400 mt-2">
-              Mật khẩu mặc định: <span className="font-semibold text-slate-600">password123</span>
+              Mật khẩu mặc định: <span className="font-semibold text-slate-600">password123</span> (Phụ huynh: <span className="font-semibold text-slate-600">123456</span>)
             </p>
           </div>
         </div>

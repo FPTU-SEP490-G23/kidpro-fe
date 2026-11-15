@@ -100,11 +100,12 @@ export const LatePickupTrackingTab: React.FC = () => {
     queryFn: async () => {
       try {
         const res = await academicApi.getStudents({ status: 'ACTIVE' });
-        return Array.isArray(res) ? res : ((res as any)?.data || []);
+        const list = Array.isArray(res) ? res : ((res as any)?.data || []);
+        if (list.length > 0) return list;
       } catch {
-        const { data } = await supabase.from('students').select('*').eq('status', 'ACTIVE');
-        return data || [];
+        // ignore
       }
+      return [];
     }
   });
 

@@ -237,7 +237,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
             )}
 
             {/* Thẻ Hóa Đơn Kỳ Hiện Tại (Current Month Invoice Banner Card) */}
-            <div className="rounded-3xl border border-slate-200 bg-linear-to-r from-white via-slate-50/50 to-white p-6 shadow-xs relative overflow-hidden">
+            <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-white via-slate-50/50 to-white p-6 shadow-xs relative overflow-hidden">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
@@ -341,64 +341,86 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
-                      {/* 1. Học phí cơ bản */}
-                      <tr>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">1. Học phí cơ bản định mức</td>
-                        <td className="py-3.5 px-4 text-slate-500">Thu cố định hàng tháng (Khối {className})</td>
-                        <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                          + {formatCurrency(currentInvoice.baseTuition)}
-                        </td>
-                      </tr>
+                      {currentInvoice.items && currentInvoice.items.length > 0 ? (
+                        currentInvoice.items.map((it: any, idx: number) => {
+                          const amt = Number(it.amount || 0);
+                          const isNegative = amt < 0;
+                          return (
+                            <tr key={it.itemId || idx} className={isNegative ? 'bg-emerald-50/30' : ''}>
+                              <td className="py-3.5 px-4 font-bold text-slate-900">
+                                {idx + 1}. {it.itemDescription}
+                              </td>
+                              <td className="py-3.5 px-4 text-slate-500">
+                                {it.itemType || 'Khoản thu theo quy chế học phí'}
+                              </td>
+                              <td className={`py-3.5 px-4 text-right font-bold ${isNegative ? 'text-emerald-700' : 'text-slate-900'}`}>
+                                {isNegative ? '- ' : '+ '}{formatCurrency(Math.abs(amt))}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <>
+                          {/* 1. Học phí cơ bản */}
+                          <tr>
+                            <td className="py-3.5 px-4 font-bold text-slate-900">1. Học phí cơ bản định mức</td>
+                            <td className="py-3.5 px-4 text-slate-500">Thu cố định hàng tháng (Khối {className})</td>
+                            <td className="py-3.5 px-4 text-right font-bold text-slate-900">
+                              + {formatCurrency(currentInvoice.baseTuition)}
+                            </td>
+                          </tr>
 
-                      {/* 2. Tiền ăn bán trú */}
-                      <tr>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">2. Tiền ăn bán trú dự thu</td>
-                        <td className="py-3.5 px-4 text-slate-500">22 ngày tiêu chuẩn x 35.000 VNĐ/ngày</td>
-                        <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                          + {formatCurrency(currentInvoice.mealFee)}
-                        </td>
-                      </tr>
+                          {/* 2. Tiền ăn bán trú */}
+                          <tr>
+                            <td className="py-3.5 px-4 font-bold text-slate-900">2. Tiền ăn bán trú dự thu</td>
+                            <td className="py-3.5 px-4 text-slate-500">22 ngày tiêu chuẩn x 35.000 VNĐ/ngày</td>
+                            <td className="py-3.5 px-4 text-right font-bold text-slate-900">
+                              + {formatCurrency(currentInvoice.mealFee)}
+                            </td>
+                          </tr>
 
-                      {/* 3. Giảm trừ anh chị em */}
-                      {currentInvoice.siblingDiscount > 0 && (
-                        <tr className="bg-emerald-50/30">
-                          <td className="py-3.5 px-4 font-bold text-emerald-900">
-                            3. Giảm trừ chính sách gia đình (Anh chị em)
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500">Chính sách ưu đãi học sinh thứ 2 trở lên</td>
-                          <td className="py-3.5 px-4 text-right font-bold text-emerald-700">
-                            - {formatCurrency(currentInvoice.siblingDiscount)}
-                          </td>
-                        </tr>
+                          {/* 3. Giảm trừ anh chị em */}
+                          {currentInvoice.siblingDiscount > 0 && (
+                            <tr className="bg-emerald-50/30">
+                              <td className="py-3.5 px-4 font-bold text-emerald-900">
+                                3. Giảm trừ chính sách gia đình (Anh chị em)
+                              </td>
+                              <td className="py-3.5 px-4 text-slate-500">Chính sách ưu đãi học sinh thứ 2 trở lên</td>
+                              <td className="py-3.5 px-4 text-right font-bold text-emerald-700">
+                                - {formatCurrency(currentInvoice.siblingDiscount)}
+                              </td>
+                            </tr>
+                          )}
+
+                          {/* 4. Phụ phí trông trẻ đón muộn */}
+                          {currentInvoice.latePickupFee > 0 && (
+                            <tr className="bg-amber-50/30">
+                              <td className="py-3.5 px-4 font-bold text-amber-900">
+                                4. Phụ phí trông trẻ đón muộn lũy kế
+                              </td>
+                              <td className="py-3.5 px-4 text-slate-500">
+                                Tích lũy {currentInvoice.latePickupMinutes} phút đón sau 17:30 tháng trước
+                              </td>
+                              <td className="py-3.5 px-4 text-right font-bold text-amber-800">
+                                + {formatCurrency(currentInvoice.latePickupFee)}
+                              </td>
+                            </tr>
+                          )}
+
+                          {/* 5. Hoàn tiền ăn bán trú nghỉ phép */}
+                          <tr className="bg-emerald-50/50">
+                            <td className="py-3.5 px-4 font-bold text-[#275A4E]">
+                              5. Hoàn tiền ăn bán trú các ngày nghỉ phép tháng trước
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-600">
+                              {currentInvoice.mealRefundCount} ngày nghỉ có phép nộp trước 08:30 AM (35.000đ/ngày)
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-extrabold text-[#275A4E]">
+                              - {formatCurrency(currentInvoice.mealRefundTotal)}
+                            </td>
+                          </tr>
+                        </>
                       )}
-
-                      {/* 4. Phụ phí trông trẻ đón muộn */}
-                      {currentInvoice.latePickupFee > 0 && (
-                        <tr className="bg-amber-50/30">
-                          <td className="py-3.5 px-4 font-bold text-amber-900">
-                            4. Phụ phí trông trẻ đón muộn lũy kế
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500">
-                            Tích lũy {currentInvoice.latePickupMinutes} phút đón sau 17:30 tháng trước
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-bold text-amber-800">
-                            + {formatCurrency(currentInvoice.latePickupFee)}
-                          </td>
-                        </tr>
-                      )}
-
-                      {/* 5. Hoàn tiền ăn bán trú nghỉ phép */}
-                      <tr className="bg-emerald-50/50">
-                        <td className="py-3.5 px-4 font-bold text-[#275A4E]">
-                          5. Hoàn tiền ăn bán trú các ngày nghỉ phép tháng trước
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600">
-                          {currentInvoice.mealRefundCount} ngày nghỉ có phép nộp trước 08:30 AM (35.000đ/ngày)
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-extrabold text-[#275A4E]">
-                          - {formatCurrency(currentInvoice.mealRefundTotal)}
-                        </td>
-                      </tr>
 
                       {/* 6. Dòng điều chỉnh giảm trừ bổ sung (ADJUSTMENT - ) */}
                       {Boolean(currentInvoice.adjustmentAmount) && (

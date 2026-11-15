@@ -46,6 +46,21 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
   const [idCardFrontUrl, setIdCardFrontUrl] = useState<string>('');
   const [idCardBackUrl, setIdCardBackUrl] = useState<string>('');
 
+  const photoInputRef = React.useRef<HTMLInputElement>(null);
+  const frontInputRef = React.useRef<HTMLInputElement>(null);
+  const backInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setter(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Modal thu hồi quyền đón
   const [showRevokeModal, setShowRevokeModal] = useState<boolean>(false);
   const [selectedGuardianForRevoke, setSelectedGuardianForRevoke] = useState<AuthorizedGuardian | null>(null);
@@ -494,38 +509,72 @@ export const AuthorizedGuardiansTab: React.FC<AuthorizedGuardiansTabProps> = ({
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
+                  <input
+                    type="file"
+                    ref={photoInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, setPhotoUrl)}
+                  />
+                  <input
+                    type="file"
+                    ref={frontInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, setIdCardFrontUrl)}
+                  />
+                  <input
+                    type="file"
+                    ref={backInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, setIdCardBackUrl)}
+                  />
+
                   {/* Ảnh chân dung */}
-                  <div className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2">
+                  <div
+                    onClick={() => photoInputRef.current?.click()}
+                    className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2 cursor-pointer hover:border-[#275A4E] transition"
+                  >
                     <span className="text-[11px] font-bold text-slate-700 block">1. Ảnh chân dung</span>
                     {photoUrl ? (
                       <img src={photoUrl} alt="Chân dung" className="h-20 w-full object-cover rounded-xl" />
                     ) : (
-                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-slate-400">
-                        <Camera className="h-6 w-6" />
+                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 gap-1">
+                        <Camera className="h-5 w-5" />
+                        <span className="text-[10px]">Chọn file</span>
                       </div>
                     )}
                   </div>
 
                   {/* Mặt trước CCCD */}
-                  <div className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2">
+                  <div
+                    onClick={() => frontInputRef.current?.click()}
+                    className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2 cursor-pointer hover:border-[#275A4E] transition"
+                  >
                     <span className="text-[11px] font-bold text-slate-700 block">2. Mặt trước CCCD</span>
                     {idCardFrontUrl ? (
                       <img src={idCardFrontUrl} alt="Mặt trước" className="h-20 w-full object-cover rounded-xl" />
                     ) : (
-                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-slate-400">
-                        <Camera className="h-6 w-6" />
+                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 gap-1">
+                        <Camera className="h-5 w-5" />
+                        <span className="text-[10px]">Chọn file</span>
                       </div>
                     )}
                   </div>
 
                   {/* Mặt sau CCCD */}
-                  <div className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2">
+                  <div
+                    onClick={() => backInputRef.current?.click()}
+                    className="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-center space-y-2 cursor-pointer hover:border-[#275A4E] transition"
+                  >
                     <span className="text-[11px] font-bold text-slate-700 block">3. Mặt sau CCCD</span>
                     {idCardBackUrl ? (
                       <img src={idCardBackUrl} alt="Mặt sau" className="h-20 w-full object-cover rounded-xl" />
                     ) : (
-                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-slate-400">
-                        <Camera className="h-6 w-6" />
+                      <div className="h-20 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 gap-1">
+                        <Camera className="h-5 w-5" />
+                        <span className="text-[10px]">Chọn file</span>
                       </div>
                     )}
                   </div>

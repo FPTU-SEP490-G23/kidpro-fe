@@ -225,7 +225,7 @@ export const MedicationRequestTab: React.FC<MedicationRequestTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Quy Định Y Tế Học Đường (Medical Policy Disclaimer) */}
-      <div className="rounded-2xl border border-blue-200 bg-linear-to-r from-blue-50 via-indigo-50/40 to-white p-4 md:p-5 shadow-xs">
+      <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 via-indigo-50/40 to-white p-4 md:p-5 shadow-xs">
         <div className="flex items-start gap-3.5">
           <div className="rounded-xl bg-blue-600/10 p-2.5 text-blue-700 shrink-0">
             <HeartPulse className="h-6 w-6 text-blue-600" />

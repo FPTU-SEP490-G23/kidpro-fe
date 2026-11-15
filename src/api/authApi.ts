@@ -47,6 +47,7 @@ export const loginGoogle = async (googleUser: {
   email: string;
   fullName?: string;
   avatarUrl?: string;
+  accessToken?: string;
 }): Promise<LoginResponse> => {
   try {
     const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/google`, googleUser);

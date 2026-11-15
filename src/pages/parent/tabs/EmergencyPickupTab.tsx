@@ -334,7 +334,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Cảnh Báo An Toàn Cấp Cao (Security Notice Banner) */}
-      <div className="rounded-2xl border border-amber-300 bg-linear-to-r from-amber-50 to-orange-50 p-4 md:p-5 shadow-xs">
+      <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-4 md:p-5 shadow-xs">
         <div className="flex items-start gap-3.5">
           <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-700 shrink-0">
             <ShieldAlert className="h-6 w-6 text-[#E5A93C]" />
@@ -599,7 +599,7 @@ export const EmergencyPickupTab: React.FC<EmergencyPickupTabProps> = ({
         <div className="lg:col-span-5 space-y-6">
           {activeRecord ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-xs text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-[#275A4E] via-[#78C2AD] to-[#E5A93C]" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#275A4E] via-[#78C2AD] to-[#E5A93C]" />
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 mb-3">
                 <Clock className="h-3.5 w-3.5 text-emerald-600" />

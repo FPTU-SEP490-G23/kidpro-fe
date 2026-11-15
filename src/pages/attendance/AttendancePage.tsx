@@ -18,6 +18,10 @@ import { DismissalPickupTab } from './tabs/DismissalPickupTab';
 import { StrangerAlertHandlingTab } from './tabs/StrangerAlertHandlingTab';
 import { LatePickupTrackingTab } from './tabs/LatePickupTrackingTab';
 import { LeaveRequestReviewTab } from './tabs/LeaveRequestReviewTab';
+import { BusAttendanceTab } from './tabs/BusAttendanceTab';
+import { ClassroomEquipmentIncidentTab } from './tabs/ClassroomEquipmentIncidentTab';
+import { TeacherChatTab } from './tabs/TeacherChatTab';
+import { Bus, Wrench, MessageSquare } from 'lucide-react';
 
 type AttendanceTabType =
   | 'gate-ai'
@@ -25,7 +29,10 @@ type AttendanceTabType =
   | 'dismissal-pickup'
   | 'stranger-security'
   | 'late-pickup'
-  | 'leave-requests';
+  | 'leave-requests'
+  | 'bus-attendance'
+  | 'equipment-incidents'
+  | 'teacher-chat';
 
 interface TabMeta {
   title: string;
@@ -37,10 +44,10 @@ interface TabMeta {
 
 const TAB_META: Record<AttendanceTabType, TabMeta> = {
   'gate-ai': {
-    title: 'Điểm Danh AI Trạm Cổng (Face Biometric)',
-    description: 'Nhận diện tự động học sinh và phụ huynh khi qua cổng trường, kích hoạt viền xanh Mint Green (< 2s) và gửi thông báo tức thì.',
+    title: 'Điểm Danh AI Trạm Cổng (Live Camera Trực Tiếp)',
+    description: 'Nhận diện tự động học sinh và phụ huynh khi qua cổng trường bằng webcam máy tính, kích hoạt viền xanh Mint Green (< 2s) và gửi thông báo tức thì.',
     icon: Camera,
-    badge: 'AI Vision v2.4',
+    badge: 'Live Webcam AI',
   },
   'manual-tablet': {
     title: 'Điểm Danh Thủ Công Dự Phòng Trên Tablet',
@@ -49,10 +56,28 @@ const TAB_META: Record<AttendanceTabType, TabMeta> = {
     badge: 'Chuyên Cần Lớp',
   },
   'dismissal-pickup': {
-    title: 'Xác Thực Người Đón Tan Trường AI (Smart Dismissal)',
-    description: 'Xác thực danh tính người đón trẻ bằng camera AI đối chiếu hồ sơ người giám hộ hoặc mã QR ủy quyền hợp lệ.',
+    title: 'Xác Thực Người Đón Tan Trường AI (Live Camera Trực Tiếp)',
+    description: 'Xác thực danh tính người đón trẻ bằng live camera máy tính đối chiếu hồ sơ người giám hộ hoặc mã QR ủy quyền hợp lệ.',
     icon: ShieldCheck,
-    badge: 'Đón Trả An Toàn',
+    badge: 'Live Camera Người Đón',
+  },
+  'bus-attendance': {
+    title: 'Điểm Danh Xe Buýt & Chốt Khoang Xe Rỗng An Toàn',
+    description: 'Quản lý học sinh đón/trả tại từng trạm xe buýt và thực hiện quy trình bắt buộc xác nhận khoang xe rỗng tránh bỏ quên trẻ.',
+    icon: Bus,
+    badge: 'Xe Buýt Đưa Đón',
+  },
+  'equipment-incidents': {
+    title: 'Báo Cáo Hư Hỏng Thiết Bị & Cơ Sở Vật Chất Phòng Học',
+    description: 'Ghi nhận và tải ảnh hiện trạng thiết bị hư hỏng (quạt, điều hòa, bóng đèn...) để bộ phận kỹ thuật kịp thời sửa chữa.',
+    icon: Wrench,
+    badge: 'CSVC Phòng Học',
+  },
+  'teacher-chat': {
+    title: 'Kênh Trao Đổi Tin Nhắn Với Phụ Huynh & Lớp Học',
+    description: 'Giao tiếp hai chiều tức thời: Nhóm chat toàn lớp và Hội thoại riêng 1-1 với phụ huynh của từng học sinh.',
+    icon: MessageSquare,
+    badge: 'Chat Trực Tuyến',
   },
   'stranger-security': {
     title: 'Quy Trình Xử Lý Cảnh Báo Người Lạ Tại Cổng',
@@ -146,6 +171,9 @@ export const AttendancePage: React.FC = () => {
           {activeTab === 'gate-ai' && <GateAiAttendanceTab />}
           {activeTab === 'manual-tablet' && <ManualAttendanceTab />}
           {activeTab === 'dismissal-pickup' && <DismissalPickupTab />}
+          {activeTab === 'bus-attendance' && <BusAttendanceTab />}
+          {activeTab === 'equipment-incidents' && <ClassroomEquipmentIncidentTab />}
+          {activeTab === 'teacher-chat' && <TeacherChatTab />}
           {activeTab === 'stranger-security' && <StrangerAlertHandlingTab />}
           {activeTab === 'late-pickup' && <LatePickupTrackingTab />}
           {activeTab === 'leave-requests' && <LeaveRequestReviewTab />}

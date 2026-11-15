@@ -469,7 +469,7 @@ export const TuitionCalculationTab: React.FC = () => {
                                       ) : (
                                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                                       )}
-                                      <span>+{formatCurrency(itm.amount)}</span>
+                                      <span>{itm.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(itm.amount))}</span>
                                     </div>
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                       <button

@@ -65,11 +65,12 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
     queryFn: () => parentApi.getLeaveRequests(studentId),
   });
 
-  // Cut-off 08:30 AM logic
+  // Cut-off 07:00 / 08:00 AM logic
   const now = new Date();
   const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const isPast830 = currentHour > 8 || (currentHour === 8 && currentMinute >= 30);
+  const isBefore7 = currentHour < 7;
+  const isBetween7And8 = currentHour === 7;
+  const isPast8 = currentHour >= 8;
   const isStartToday = startDate === todayStr;
 
   // Calculate day count
@@ -88,27 +89,35 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
   const calculateRefundEligibility = () => {
     if (totalDays <= 0) return { eligible: false, estimatedAmount: 0, notice: '' };
     if (!isStartToday) {
-      // Bắt đầu từ ngày mai trở đi -> 100% được hoàn tất cả ngày
+      // Bắt đầu từ ngày mai trở đi -> được hoàn tất cả ngày
       return {
         eligible: true,
         estimatedAmount: totalDays * dailyRefundRate,
-        notice: `Đơn nghỉ trước ngày học: Đủ điều kiện hoàn 100% (${totalDays} ngày x ${formatCurrency(dailyRefundRate)} = ${formatCurrency(totalDays * dailyRefundRate)})`,
+        notice: `Đơn nghỉ báo trước ngày học: Đủ điều kiện hoàn tiền ăn đầy đủ (${totalDays} ngày x ${formatCurrency(dailyRefundRate)} = ${formatCurrency(totalDays * dailyRefundRate)}).`,
       };
     }
     // Bắt đầu từ hôm nay
-    if (!isPast830) {
+    if (isBefore7) {
       return {
         eligible: true,
         estimatedAmount: totalDays * dailyRefundRate,
-        notice: `Nộp trước 08:30 AM: Đủ điều kiện hoàn 100% tiền ăn (${totalDays} ngày x ${formatCurrency(dailyRefundRate)} = ${formatCurrency(totalDays * dailyRefundRate)})`,
+        notice: `Nộp trước 07:00: Được trừ tiền ăn Sáng, Trưa và Chiều (${totalDays} ngày).`,
+      };
+    } else if (isBetween7And8) {
+      const day1Lunch = 35000;
+      const nextDays = Math.max(0, totalDays - 1) * dailyRefundRate;
+      return {
+        eligible: true,
+        estimatedAmount: day1Lunch + nextDays,
+        notice: `Nộp từ 07:00 đến trước 08:00: Hôm nay chỉ trừ tiền ăn Trưa (35.000đ). ${totalDays > 1 ? `Hoàn ${totalDays - 1} ngày tiếp theo (${formatCurrency(nextDays)}).` : ''}`,
       };
     } else {
-      // Sau 08:30 AM: Ngày đầu không được hoàn
+      // Sau 08:00 AM: Ngày đầu không được hoàn
       const refundableDays = Math.max(0, totalDays - 1);
       return {
         eligible: refundableDays > 0,
         estimatedAmount: refundableDays * dailyRefundRate,
-        notice: `Nộp sau 08:30 AM: Không hoàn tiền ăn ngày đầu tiên do bếp đã lên thực đơn. Hoàn ${refundableDays} ngày tiếp theo (${formatCurrency(refundableDays * dailyRefundRate)}).`,
+        notice: `Nộp sau 08:00 AM: Không hoàn tiền ăn ngày đầu do bếp đã chốt suất ăn. ${refundableDays > 0 ? `Hoàn ${refundableDays} ngày tiếp theo (${formatCurrency(refundableDays * dailyRefundRate)}).` : ''}`,
       };
     }
   };
@@ -299,7 +308,7 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Thanh Thông Báo Quyền Lợi Hoàn Tiền Ăn (Refund Eligibility Alert) */}
-      <div className="rounded-2xl border border-emerald-300 bg-linear-to-r from-emerald-50 via-teal-50 to-white p-4 md:p-5 shadow-xs">
+      <div className="rounded-2xl border border-emerald-300 bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-4 md:p-5 shadow-xs">
         <div className="flex items-start gap-3.5">
           <div className="rounded-xl bg-emerald-600/10 p-2.5 text-[#275A4E] shrink-0">
             <Coins className="h-6 w-6 text-[#275A4E]" />
@@ -317,15 +326,18 @@ export const LeaveRequestTab: React.FC<LeaveRequestTabProps> = ({
               </span>
             </div>
             <p className="text-xs text-emerald-900 leading-relaxed">
-              {isPast830 ? (
+              {isPast8 ? (
                 <>
-                  <strong className="text-amber-800">Lưu ý hôm nay (sau 08:30 AM):</strong> Tiền ăn ngày đầu tiên không được hoàn do Bếp đã khóa sổ tiếp phẩm thực phẩm.
-                  Tiền ăn các ngày nghỉ tiếp theo (từ ngày thứ 2 trở đi) vẫn được khấu trừ tự động vào hóa đơn học phí tháng sau.
+                  <strong className="text-amber-800">Lưu ý hôm nay (sau 08:00 AM):</strong> Tiền ăn ngày đầu tiên không được hoàn do Bếp đã chốt toàn bộ suất ăn trong ngày.
+                  Tiền ăn các ngày nghỉ tiếp theo (từ ngày thứ 2 trở đi) vẫn được khấu trừ tự động vào hóa đơn học phí.
+                </>
+              ) : isBetween7And8 ? (
+                <>
+                  <strong className="text-blue-800">Nộp từ 07:00 đến trước 08:00 AM:</strong> Bé được giảm trừ tiền ăn <strong>bữa Trưa (35.000đ)</strong>. Bữa sáng và xế chiều không trừ do bếp đã chuẩn bị thực đơn.
                 </>
               ) : (
                 <>
-                  <strong className="text-emerald-800">Nộp trước 08:30 AM cùng ngày:</strong> Bé đủ điều kiện hoàn <strong>100%</strong> tiền ăn bán trú theo ngày ({formatCurrency(dailyRefundRate)}/ngày).
-                  Số tiền thừa sẽ tự động khấu trừ vào quyết toán hóa đơn học phí tháng kế tiếp.
+                  <strong className="text-emerald-800">Nộp trước 07:00 AM cùng ngày:</strong> Bé đủ điều kiện hoàn <strong>100%</strong> các bữa ăn trong ngày (Sáng nếu có đăng ký ăn sáng, Trưa, Xế chiều).
                 </>
               )}
             </p>

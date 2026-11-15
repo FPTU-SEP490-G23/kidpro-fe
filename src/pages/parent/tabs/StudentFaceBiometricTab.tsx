@@ -43,8 +43,8 @@ export const StudentFaceBiometricTab: React.FC<StudentFaceBiometricTabProps> = (
   const [guardianName, setGuardianName] = useState<string>('');
   const [relationship, setRelationship] = useState<string>('');
 
-  // Phương thức chụp / tải ảnh
-  const [captureMode, setCaptureMode] = useState<'WEBCAM' | 'UPLOAD'>('WEBCAM');
+  // Phương thức chụp / tải ảnh (Mặc định tải file từ máy tính cho phụ huynh)
+  const [captureMode, setCaptureMode] = useState<'WEBCAM' | 'UPLOAD'>('UPLOAD');
   const [currentAngle, setCurrentAngle] = useState<FaceAngleType>('FRONTAL');
 
   // Webcam stream

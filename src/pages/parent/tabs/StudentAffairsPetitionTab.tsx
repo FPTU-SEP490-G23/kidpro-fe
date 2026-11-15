@@ -314,7 +314,7 @@ export const StudentAffairsPetitionTab: React.FC<StudentAffairsPetitionTabProps>
                     onClick={() => setSelectedCategory(cat.key)}
                     className={`cursor-pointer rounded-3xl border-2 p-5 transition-all relative overflow-hidden flex flex-col justify-between ${
                       isSelected
-                        ? 'border-[#275A4E] bg-linear-to-b from-emerald-50/80 to-white shadow-md ring-2 ring-[#275A4E]/20'
+                        ? 'border-[#275A4E] bg-gradient-to-b from-emerald-50/80 to-white shadow-md ring-2 ring-[#275A4E]/20'
                         : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
                     }`}
                   >

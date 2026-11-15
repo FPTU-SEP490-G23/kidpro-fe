@@ -282,6 +282,7 @@ export interface TuitionInvoiceItem {
   disputeCategory?: 'MEAL_REFUND' | 'LATE_PICKUP' | 'BASE_TUITION' | 'OTHER';
   disputedAmount?: number;
   proofPhotoUrl?: string;
+  items?: any[];
 }
 
 export type DisputeCategoryType = 'MEAL_REFUND' | 'LATE_PICKUP' | 'BASE_TUITION' | 'OTHER';

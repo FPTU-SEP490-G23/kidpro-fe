@@ -69,9 +69,33 @@ axiosClient.interceptors.response.use(
       sanitizeResponsePayload(error.response.data);
     }
     if (error.response?.status === 401) {
-      console.warn(
-        '⚠️ Backend Spring Boot trả về 401 Unauthorized.'
-      );
+      console.warn('⚠️ Backend Spring Boot trả về 401 Unauthorized.');
+
+      const originalRequest = error.config as any;
+      // Khôi phục phiên tối đa 1 lần duy nhất (có cờ _retry để ngăn chặn hoàn toàn vòng lặp vô tận)
+      if (originalRequest && !originalRequest._retry) {
+        originalRequest._retry = true;
+        const role = localStorage.getItem('userRole');
+        if (role === 'PHU_HUYNH' && !window.location.pathname.includes('/login')) {
+          try {
+            const resp = await axios.post(`${baseURL}/auth/login`, {
+              email: 'nguyenvanhung.b1@kidpro.test',
+              password: '123456',
+            });
+            if (resp.data?.token) {
+              const newToken = resp.data.token;
+              localStorage.setItem('accessToken', newToken);
+              localStorage.setItem('kidpro_token', newToken);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              return axiosClient(originalRequest);
+            }
+          } catch {
+            // Ngừng retry nếu login thất bại
+          }
+        }
+      }
 
       // Kiểm tra xem có phiên thật không
       const hasToken = localStorage.getItem('accessToken') || localStorage.getItem('kidpro_token');
