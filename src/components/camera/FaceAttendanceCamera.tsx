@@ -69,8 +69,8 @@ export const FaceAttendanceCamera: React.FC<FaceAttendanceCameraProps> = ({
   const [isPausedByBackground, setIsPausedByBackground] = useState(false);
 
   // Refs
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateMachineRef = useRef<LivenessStateMachine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const autoResetTimerRef = useRef<NodeJS.Timeout | null>(null);

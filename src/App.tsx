@@ -48,6 +48,15 @@ import { CameraDiagnosticPage } from './pages/diag/CameraDiagnosticPage';
 import { PwaInstallBanner } from './components/pwa/PwaInstallBanner';
 import { PwaUpdatePrompt } from './components/pwa/PwaUpdatePrompt';
 
+// Teacher Mobile Routes
+import { TeacherShell } from './pages/teacher/TeacherShell';
+import { TeacherDashboardPage } from './pages/teacher/TeacherDashboardPage';
+import { TeacherAttendancePage } from './pages/teacher/TeacherAttendancePage';
+import { TeacherDismissalPage } from './pages/teacher/TeacherDismissalPage';
+import { TeacherChatPage } from './pages/teacher/TeacherChatPage';
+import { TeacherProfilePage } from './pages/teacher/TeacherProfilePage';
+import { TeacherSubTaskWrapperPage } from './pages/teacher/TeacherSubTaskWrapperPage';
+
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 import { useAuth } from './contexts/AuthContext';
@@ -623,7 +632,7 @@ export const App: React.FC = () => {
             }
           />
 
-          {/* 5. GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN -  -> , , , , ) */}
+          {/* 5. GIÁO VIÊN CHỦ NHIỆM (GIAO_VIEN - MOBILE SHELL & PARITY) */}
           <Route
             path="/attendance"
             element={
@@ -633,53 +642,29 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/teacher/attendance"
+            path="/teacher"
             element={
               <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <AttendancePage />
+                <TeacherShell />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/teacher/dismissal"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <AttendancePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <HealthPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/health"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <HealthPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/activities"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <AcademicPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/communication"
-            element={
-              <ProtectedRoute allowedRoles={['GIAO_VIEN', 'SYSTEM_ADMIN']}>
-                <AnnouncementsPage />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route index element={<TeacherDashboardPage />} />
+            <Route path="attendance" element={<TeacherAttendancePage />} />
+            <Route path="dismissal" element={<TeacherDismissalPage />} />
+            <Route path="chat" element={<TeacherChatPage />} />
+            <Route path="profile" element={<TeacherProfilePage />} />
+            <Route path="leave-requests" element={<TeacherSubTaskWrapperPage type="leave" title="Duyệt Đơn Nghỉ Học" subtitle="Xét duyệt đơn xin nghỉ từ phụ huynh" />} />
+            <Route path="medication" element={<TeacherSubTaskWrapperPage type="medication" title="Quản Lý Uống Thuốc" subtitle="Tiếp nhận và cho bé uống thuốc" />} />
+            <Route path="health-metrics" element={<TeacherSubTaskWrapperPage type="health-metrics" title="Đo Đạc Chỉ Số WHO" subtitle="Chiều cao, cân nặng & z-score" />} />
+            <Route path="health-incidents" element={<TeacherSubTaskWrapperPage type="health-incidents" title="Sự Cố Y Tế Học Đường" subtitle="Ghi nhận & xử trí sơ cứu" />} />
+            <Route path="bus" element={<TeacherSubTaskWrapperPage type="bus" title="Điểm Danh Tuyến Xe Buýt" subtitle="Đón trả trạm & khoang an toàn" />} />
+            <Route path="lesson-plans" element={<TeacherSubTaskWrapperPage type="lesson-plans" title="Kế Hoạch Bài Dạy" subtitle="Giáo án & phân phối chương trình" />} />
+            <Route path="evaluations" element={<TeacherSubTaskWrapperPage type="evaluations" title="Đánh Giá Phát Triển" subtitle="Chỉ số phát triển trẻ mầm non" />} />
+            <Route path="equipment" element={<TeacherSubTaskWrapperPage type="equipment" title="Báo Cáo CSVC Phòng Học" subtitle="Hư hỏng thiết bị, đồ dùng lớp" />} />
+            <Route path="journal" element={<TeacherSubTaskWrapperPage type="journal" title="Nhật Ký Hoạt Động Lớp" subtitle="Chia sẻ ảnh & gắn thẻ học sinh" />} />
+            <Route path="daily-activity" element={<TeacherSubTaskWrapperPage type="journal" title="Nhật Ký Sinh Hoạt Ngày" subtitle="Ăn uống, ngủ trưa, vệ sinh" />} />
+          </Route>
 
           {/* 6. NHÂN VIÊN BẾP BÁN TRÚ (BEP -  -> , ) */}
           <Route

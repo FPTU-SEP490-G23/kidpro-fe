@@ -213,7 +213,7 @@ export const getRoleHomePath = (role?: UserRole | string | null): string => {
     case 'KE_TOAN':
       return '/finance';
     case 'GIAO_VIEN':
-      return '/attendance';
+      return '/teacher';
     case 'GIAO_VU':
       return '/academic';
     case 'BGH':
