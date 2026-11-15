@@ -89,14 +89,14 @@ export function extractEulerAngles(matrix?: Float32Array | number[]): { yaw: num
   let yaw = Math.atan2(m02, m22) * (180 / Math.PI);
   let roll = Math.atan2(m10, m11) * (180 / Math.PI);
 
-  if (isNaN(pitch)) pitch = 0;
-  if (isNaN(yaw)) yaw = 0;
-  if (isNaN(roll)) roll = 0;
+  if (isNaN(pitch) || Math.abs(pitch) === 0) pitch = 0;
+  if (isNaN(yaw) || Math.abs(yaw) === 0) yaw = 0;
+  if (isNaN(roll) || Math.abs(roll) === 0) roll = 0;
 
   return {
-    yaw: Math.round(yaw * 10) / 10,
-    pitch: Math.round(pitch * 10) / 10,
-    roll: Math.round(roll * 10) / 10,
+    yaw: Math.round(yaw * 10) / 10 + 0,
+    pitch: Math.round(pitch * 10) / 10 + 0,
+    roll: Math.round(roll * 10) / 10 + 0,
   };
 }
 
