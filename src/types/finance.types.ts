@@ -660,6 +660,7 @@ export interface InvoiceDto {
   billingYear: number;
   totalAmount: number;
   discountAmount: number;
+  discountPolicyName?: string;
   finalAmount: number;
   dueDate: string;
   status: 'UNPAID' | 'DRAFT' | 'PENDING' | 'PARTIAL' | 'PAID' | 'CANCELLED' | 'OVERDUE' | 'DISPUTED';

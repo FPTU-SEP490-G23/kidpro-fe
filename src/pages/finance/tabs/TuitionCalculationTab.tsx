@@ -525,12 +525,14 @@ export const TuitionCalculationTab: React.FC = () => {
                         <div>
                           <p className="font-semibold text-sm">-{formatCurrency(inv.discountAmount)}</p>
                           {(() => {
-                            const pItem = (inv.items || []).find(
-                              i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('miễn giảm') || i.itemDescription.toLowerCase().includes('ưu đãi'))
-                            );
-                            if (pItem) {
-                              const cleanName = pItem.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '');
-                              return <p className="text-[11px] text-amber-700/80 font-normal leading-tight mt-0.5">{cleanName}</p>;
+                            const pName = inv.discountPolicyName || (() => {
+                              const pItem = (inv.items || []).find(
+                                i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('miễn giảm') || i.itemDescription.toLowerCase().includes('ưu đãi'))
+                              );
+                              return pItem ? pItem.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '') : null;
+                            })();
+                            if (pName) {
+                              return <p className="text-[11px] text-amber-700/80 font-normal leading-tight mt-0.5">{pName}</p>;
                             }
                             return null;
                           })()}
@@ -696,18 +698,33 @@ export const TuitionCalculationTab: React.FC = () => {
                     i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('tiền ăn') || i.itemDescription.toLowerCase().includes('nghỉ'))
                   );
 
+                  const policyName = viewingInvoice.discountPolicyName || (policyItems.length > 0
+                    ? policyItems.map(p => p.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '')).join(', ')
+                    : '');
+
                   if (policyItems.length > 0 || refundItems.length > 0) {
                     return (
                       <>
-                        {policyItems.map((p, pIdx) => {
-                          const cleanName = p.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '');
-                          return (
-                            <div key={pIdx} className="flex justify-between text-amber-600">
-                              <span>Miễn giảm chính sách ({cleanName}):</span>
-                              <span className="font-medium">-{formatCurrency(Math.abs(p.amount))}</span>
+                        {policyItems.length > 0 ? (
+                          policyItems.map((p, pIdx) => {
+                            const cleanName = p.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '');
+                            return (
+                              <div key={pIdx} className="flex justify-between text-amber-600">
+                                <span>Miễn giảm chính sách ({cleanName}):</span>
+                                <span className="font-medium">-{formatCurrency(Math.abs(p.amount))}</span>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          viewingInvoice.discountAmount > 0 && refundItems.length > 0 && (
+                            <div className="flex justify-between text-amber-600">
+                              <span>Miễn giảm chính sách{policyName ? ` (${policyName})` : ''}:</span>
+                              <span className="font-medium">
+                                -{formatCurrency(Math.max(0, viewingInvoice.discountAmount - refundItems.reduce((acc, r) => acc + Math.abs(r.amount), 0)))}
+                              </span>
                             </div>
-                          );
-                        })}
+                          )
+                        )}
                         {refundItems.map((r, rIdx) => (
                           <div key={rIdx} className="flex justify-between text-emerald-600">
                             <span>Giảm trừ tiền ăn nghỉ phép:</span>
@@ -721,8 +738,8 @@ export const TuitionCalculationTab: React.FC = () => {
                   if (viewingInvoice.discountAmount > 0) {
                     return (
                       <div className="flex justify-between text-amber-600">
-                        <span>Miễn giảm chính sách:</span>
-                        <span>-{formatCurrency(viewingInvoice.discountAmount)}</span>
+                        <span>Miễn giảm chính sách{policyName ? ` (${policyName})` : ''}:</span>
+                        <span className="font-medium">-{formatCurrency(viewingInvoice.discountAmount)}</span>
                       </div>
                     );
                   }
