@@ -431,40 +431,45 @@ export const TuitionCalculationTab: React.FC = () => {
                       <p className="text-xs text-slate-500">Mã: {inv.studentCode} | Lớp: {inv.className || 'Chưa phân lớp'}</p>
                       {/* Hiển thị chi tiết phụ phí phát sinh & các khoản tự nguyện ở màn hình chính */}
                       {(() => {
-                        const isMandatoryOrDiscount = (desc: string) => {
+                        const isCoreMandatory = (desc: string) => {
                           const d = (desc || '').toLowerCase();
-                          return d.includes('học phí chính khóa') ||
-                                 d.includes('học phí tiêu chuẩn') ||
-                                 d.includes('học phí') ||
-                                 d.includes('tiền ăn') ||
-                                 d.includes('bán trú') ||
-                                 d.includes('chăm sóc') ||
-                                 d.includes('giảm trừ') ||
-                                 d.includes('miễn giảm');
+                          return (d.includes('học phí') && !d.includes('đón muộn')) ||
+                                 (d.includes('tiền ăn') && !d.includes('giảm trừ') && !d.includes('nghỉ')) ||
+                                 (d.includes('bán trú') && !d.includes('giảm trừ') && !d.includes('nghỉ') && !d.includes('buýt')) ||
+                                 d.includes('chăm sóc');
                         };
 
                         const incidentalItems = (inv.items || []).filter(item => {
                           const desc = item.itemDescription || '';
-                          if (isMandatoryOrDiscount(desc)) return false;
-                          return true;
+                          return !isCoreMandatory(desc);
                         });
                         if (incidentalItems.length === 0) return null;
                         return (
                           <div className="mt-2 space-y-1.5">
                             {incidentalItems.map((itm, itmIdx) => {
-                              const isVoluntary = itm.itemDescription.includes('CLB') || itm.itemDescription.includes('buýt') || itm.itemDescription.includes('tự nguyện');
+                              const isRefund = itm.amount < 0 || itm.itemDescription.toLowerCase().includes('giảm trừ');
+                              const isVoluntary = !isRefund && (itm.itemDescription.includes('CLB') || itm.itemDescription.includes('buýt') || itm.itemDescription.includes('tự nguyện'));
+                              
+                              let cardClass = 'bg-amber-50/90 border border-amber-200/90 text-amber-900';
+                              let textClass = 'text-amber-800';
+                              if (isRefund) {
+                                cardClass = 'bg-emerald-50/90 border border-emerald-200/90 text-emerald-900';
+                                textClass = 'text-emerald-800';
+                              } else if (isVoluntary) {
+                                cardClass = 'bg-purple-50/90 border border-purple-200/90 text-purple-900';
+                                textClass = 'text-purple-800';
+                              }
+
                               return (
                                 <div
                                   key={itm.itemId || itmIdx}
-                                  className={`p-2 rounded-lg text-xs group shadow-2xs ${
-                                    isVoluntary
-                                      ? 'bg-purple-50/90 border border-purple-200/90 text-purple-900'
-                                      : 'bg-amber-50/90 border border-amber-200/90 text-amber-900'
-                                  }`}
+                                  className={`p-2 rounded-lg text-xs group shadow-2xs ${cardClass}`}
                                 >
                                   <div className="flex items-center justify-between gap-1.5">
                                     <div className="flex items-center gap-1.5 font-bold">
-                                      {isVoluntary ? (
+                                      {isRefund ? (
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                      ) : isVoluntary ? (
                                         <Sparkles className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
                                       ) : (
                                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -491,9 +496,7 @@ export const TuitionCalculationTab: React.FC = () => {
                                     </div>
                                   </div>
                                   <div
-                                    className={`mt-1 text-[11px] leading-snug break-words whitespace-normal pl-5 ${
-                                      isVoluntary ? 'text-purple-800' : 'text-amber-800'
-                                    }`}
+                                    className={`mt-1 text-[11px] leading-snug break-words whitespace-normal pl-5 ${textClass}`}
                                   >
                                     {itm.itemDescription}
                                   </div>
