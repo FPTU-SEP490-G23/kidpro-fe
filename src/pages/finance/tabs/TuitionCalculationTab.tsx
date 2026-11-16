@@ -448,11 +448,15 @@ export const TuitionCalculationTab: React.FC = () => {
                           <div className="mt-2 space-y-1.5">
                             {incidentalItems.map((itm, itmIdx) => {
                               const isRefund = itm.amount < 0 || itm.itemDescription.toLowerCase().includes('giảm trừ');
+                              const isPolicyDiscount = itm.amount < 0 && (itm.itemDescription.toLowerCase().includes('miễn giảm') || itm.itemDescription.toLowerCase().includes('ưu đãi'));
                               const isVoluntary = !isRefund && (itm.itemDescription.includes('CLB') || itm.itemDescription.includes('buýt') || itm.itemDescription.includes('tự nguyện'));
                               
                               let cardClass = 'bg-amber-50/90 border border-amber-200/90 text-amber-900';
                               let textClass = 'text-amber-800';
-                              if (isRefund) {
+                              if (isPolicyDiscount) {
+                                cardClass = 'bg-amber-50/90 border border-amber-200/90 text-amber-900';
+                                textClass = 'text-amber-800';
+                              } else if (isRefund) {
                                 cardClass = 'bg-emerald-50/90 border border-emerald-200/90 text-emerald-900';
                                 textClass = 'text-emerald-800';
                               } else if (isVoluntary) {
@@ -476,24 +480,26 @@ export const TuitionCalculationTab: React.FC = () => {
                                       )}
                                       <span>{itm.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(itm.amount))}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditFeeModal(inv, itm)}
-                                        className="p-1 hover:bg-slate-200/80 text-indigo-700 rounded transition"
-                                        title="Sửa khoản này"
-                                      >
-                                        <Pencil className="w-3.5 h-3.5" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteFee(inv, itm)}
-                                        className="p-1 hover:bg-rose-200/80 text-rose-700 rounded transition"
-                                        title="Xóa khoản ghi nhầm"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
+                                    {itm.amount > 0 && !itm.itemDescription.toLowerCase().includes('đón muộn') && (
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditFeeModal(inv, itm)}
+                                          className="p-1 hover:bg-slate-200/80 text-indigo-700 rounded transition"
+                                          title="Sửa khoản này"
+                                        >
+                                          <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteFee(inv, itm)}
+                                          className="p-1 hover:bg-rose-200/80 text-rose-700 rounded transition"
+                                          title="Xóa khoản ghi nhầm"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                   <div
                                     className={`mt-1 text-[11px] leading-snug break-words whitespace-normal pl-5 ${textClass}`}
@@ -515,7 +521,21 @@ export const TuitionCalculationTab: React.FC = () => {
                       {formatCurrency(inv.totalAmount)}
                     </td>
                     <td className="py-3.5 px-4 font-medium text-amber-600">
-                      {inv.discountAmount > 0 ? `-${formatCurrency(inv.discountAmount)}` : '—'}
+                      {inv.discountAmount > 0 ? (
+                        <div>
+                          <p className="font-semibold text-sm">-{formatCurrency(inv.discountAmount)}</p>
+                          {(() => {
+                            const pItem = (inv.items || []).find(
+                              i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('miễn giảm') || i.itemDescription.toLowerCase().includes('ưu đãi'))
+                            );
+                            if (pItem) {
+                              const cleanName = pItem.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '');
+                              return <p className="text-[11px] text-amber-700/80 font-normal leading-tight mt-0.5">{cleanName}</p>;
+                            }
+                            return null;
+                          })()}
+                        </div>
+                      ) : '—'}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-emerald-600">
                       {formatCurrency(inv.finalAmount)}
@@ -609,20 +629,30 @@ export const TuitionCalculationTab: React.FC = () => {
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {viewingInvoice.items && viewingInvoice.items.length > 0 ? (
                     viewingInvoice.items.map((item, idx) => {
-                      const isIncidental = item.itemDescription.includes('Lý do:') ||
+                      const isNegative = item.amount < 0;
+                      const isRefundOrDiscount = isNegative || item.itemDescription.toLowerCase().includes('giảm trừ') || item.itemDescription.toLowerCase().includes('miễn giảm');
+                      const isIncidental = !isRefundOrDiscount && item.amount > 0 && !item.itemDescription.toLowerCase().includes('đón muộn') && (
+                        item.itemDescription.includes('Lý do:') ||
                         item.itemDescription.includes('Phụ phí') ||
                         item.itemDescription.includes('Phạt') ||
                         item.itemDescription.includes('Đền bù') ||
                         item.itemDescription.includes('CLB') ||
-                        (!item.itemDescription.includes('Học phí') && !item.itemDescription.includes('Tiền ăn'));
+                        (!item.itemDescription.includes('Học phí') && !item.itemDescription.includes('Tiền ăn'))
+                      );
 
                       return (
-                        <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-slate-200/80 rounded-xl text-sm">
+                        <div key={idx} className={`flex justify-between items-center p-2.5 rounded-xl text-sm border ${
+                          isNegative 
+                            ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-900' 
+                            : 'bg-white border-slate-200/80 text-slate-700'
+                        }`}>
                           <div className="flex-1 mr-3">
-                            <span className="text-slate-700 font-medium block">{item.itemDescription}</span>
+                            <span className="font-medium block">{item.itemDescription}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900">{formatCurrency(item.amount)}</span>
+                            <span className={`font-semibold ${isNegative ? 'text-emerald-700' : 'text-slate-900'}`}>
+                              {item.amount < 0 ? `-${formatCurrency(Math.abs(item.amount))}` : formatCurrency(item.amount)}
+                            </span>
                             {isIncidental && item.itemId && (
                               <div className="flex items-center gap-1 ml-2 border-l pl-2 border-slate-200">
                                 <button
@@ -658,10 +688,46 @@ export const TuitionCalculationTab: React.FC = () => {
                   <span>Tổng tiền dự thu gốc:</span>
                   <span>{formatCurrency(viewingInvoice.totalAmount)}</span>
                 </div>
-                <div className="flex justify-between text-amber-600">
-                  <span>Miễn giảm chính sách:</span>
-                  <span>-{formatCurrency(viewingInvoice.discountAmount)}</span>
-                </div>
+                {(() => {
+                  const policyItems = (viewingInvoice.items || []).filter(
+                    i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('miễn giảm') || i.itemDescription.toLowerCase().includes('ưu đãi'))
+                  );
+                  const refundItems = (viewingInvoice.items || []).filter(
+                    i => i.amount < 0 && (i.itemDescription.toLowerCase().includes('tiền ăn') || i.itemDescription.toLowerCase().includes('nghỉ'))
+                  );
+
+                  if (policyItems.length > 0 || refundItems.length > 0) {
+                    return (
+                      <>
+                        {policyItems.map((p, pIdx) => {
+                          const cleanName = p.itemDescription.replace(/^(Miễn giảm chính sách:\s*|Miễn giảm:\s*)/i, '');
+                          return (
+                            <div key={pIdx} className="flex justify-between text-amber-600">
+                              <span>Miễn giảm chính sách ({cleanName}):</span>
+                              <span className="font-medium">-{formatCurrency(Math.abs(p.amount))}</span>
+                            </div>
+                          );
+                        })}
+                        {refundItems.map((r, rIdx) => (
+                          <div key={rIdx} className="flex justify-between text-emerald-600">
+                            <span>Giảm trừ tiền ăn nghỉ phép:</span>
+                            <span className="font-medium">-{formatCurrency(Math.abs(r.amount))}</span>
+                          </div>
+                        ))}
+                      </>
+                    );
+                  }
+
+                  if (viewingInvoice.discountAmount > 0) {
+                    return (
+                      <div className="flex justify-between text-amber-600">
+                        <span>Miễn giảm chính sách:</span>
+                        <span>-{formatCurrency(viewingInvoice.discountAmount)}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div className="flex justify-between text-base font-bold text-emerald-700 pt-1 border-t border-slate-200">
                   <span>Tổng thực thu cần đóng:</span>
                   <span>{formatCurrency(viewingInvoice.finalAmount)}</span>
