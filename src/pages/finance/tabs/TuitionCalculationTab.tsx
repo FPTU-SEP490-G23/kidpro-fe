@@ -17,8 +17,11 @@ import {
   DollarSign,
   User,
   Sparkles,
+  Lock,
+  Calculator,
 } from 'lucide-react';
 import { financeApi } from '../../../api/financeApi';
+import tuitionSummaryApi from '../../../api/tuitionSummaryApi';
 import axiosClient from '../../../api/axiosClient';
 import { formatCurrency } from '../../../utils/formatters';
 import {
@@ -40,6 +43,9 @@ export const TuitionCalculationTab: React.FC = () => {
   const [classesList, setClassesList] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [generating, setGenerating] = useState<boolean>(false);
+  const [summaryStatus, setSummaryStatus] = useState<string>('DRAFT');
+
+  const isPeriodApproved = summaryStatus === 'APPROVED';
 
   const [viewingInvoice, setViewingInvoice] = useState<InvoiceDto | null>(null);
 
@@ -61,6 +67,10 @@ export const TuitionCalculationTab: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   const openEditFeeModal = (invoice: InvoiceDto, item: any) => {
+    if (isPeriodApproved) {
+      showToast('error', `Bảng học phí tháng ${selectedMonth}/${selectedYear} đã được Ban Giám hiệu phê duyệt và khóa sổ dữ liệu. Không thể chỉnh sửa phụ phí.`);
+      return;
+    }
     setEditingItem({ invoice, item });
     let desc = item.itemDescription || '';
     let reason = '';
@@ -117,6 +127,10 @@ export const TuitionCalculationTab: React.FC = () => {
   };
 
   const handleDeleteFee = async (invoice: InvoiceDto, item: any) => {
+    if (isPeriodApproved) {
+      showToast('error', `Bảng học phí tháng ${selectedMonth}/${selectedYear} đã được Ban Giám hiệu phê duyệt và khóa sổ dữ liệu. Không thể xóa phụ phí.`);
+      return;
+    }
     if (!item.itemId) return;
     if (!window.confirm(`Bạn có chắc chắn muốn xóa khoản phụ phí "${item.itemDescription}" (${formatCurrency(item.amount)}) của học sinh ${invoice.studentName}?\n\nSố tiền này sẽ được khấu trừ ra khỏi tổng hóa đơn.`)) {
       return;
@@ -171,12 +185,23 @@ export const TuitionCalculationTab: React.FC = () => {
     }
   };
 
+  const fetchSummaryStatus = async () => {
+    try {
+      const res = await tuitionSummaryApi.getTuitionSummary({ month: selectedMonth, year: selectedYear });
+      const data = (res as any)?.data || res;
+      setSummaryStatus(data?.status || 'DRAFT');
+    } catch (e) {
+      setSummaryStatus('DRAFT');
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
   }, []);
 
   useEffect(() => {
     fetchInvoices();
+    fetchSummaryStatus();
   }, [selectedMonth, selectedYear, selectedClassId, statusFilter]);
 
   useEffect(() => {
@@ -188,6 +213,10 @@ export const TuitionCalculationTab: React.FC = () => {
   }, []);
 
   const handleGenerateBilling = async () => {
+    if (isPeriodApproved) {
+      showToast('error', `Bảng học phí tháng ${selectedMonth}/${selectedYear} đã được Ban Giám hiệu phê duyệt và khóa sổ dữ liệu. Không thể khởi tạo lại.`);
+      return;
+    }
     try {
       setGenerating(true);
       const payload: GenerateBillingRequestDto = {
@@ -210,6 +239,10 @@ export const TuitionCalculationTab: React.FC = () => {
   };
 
   const openIncidentalModal = (inv: InvoiceDto) => {
+    if (isPeriodApproved) {
+      showToast('error', `Bảng học phí tháng ${selectedMonth}/${selectedYear} đã được Ban Giám hiệu phê duyệt và khóa sổ dữ liệu. Không thể thêm phụ phí.`);
+      return;
+    }
     setTargetInvoiceForFee(inv);
     setFeeMode('VOLUNTARY');
     setSelectedServiceId('');
@@ -279,6 +312,27 @@ export const TuitionCalculationTab: React.FC = () => {
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span className="text-sm font-medium">{toast.message}</span>
+        </div>
+      )}
+
+      {isPeriodApproved && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200/90 rounded-2xl flex items-center justify-between gap-3 text-emerald-900 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-100 rounded-xl text-emerald-700 flex-shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm">Học phí Tháng {selectedMonth}/{selectedYear} đã được Ban Giám hiệu phê duyệt</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-200/80 text-emerald-800">
+                  ĐÃ KHÓA SỔ DỮ LIỆU
+                </span>
+              </div>
+              <p className="text-xs text-emerald-700/90 mt-0.5">
+                Bảng tính đã được chốt chính thức và phê duyệt bởi Ban Giám hiệu. Mọi thao tác tính lại học phí, thêm, chỉnh sửa hoặc xóa phụ phí đều bị vô hiệu hóa để bảo đảm nguồn thu không bị sai lệch.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -376,15 +430,22 @@ export const TuitionCalculationTab: React.FC = () => {
 
           <button
             onClick={handleGenerateBilling}
-            disabled={generating}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm transition-all"
+            disabled={generating || isPeriodApproved}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl shadow-sm transition-all ${
+              isPeriodApproved
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                : 'text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50'
+            }`}
+            title={isPeriodApproved ? `Học phí tháng ${selectedMonth}/${selectedYear} đã được BGH phê duyệt và khóa sổ dữ liệu` : 'Khởi tạo Bảng tính Học phí Tháng'}
           >
             {generating ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : isPeriodApproved ? (
+              <Lock className="w-4 h-4 text-slate-400" />
             ) : (
               <Cpu className="w-4 h-4" />
             )}
-            Khởi tạo Bảng tính Học phí Tháng
+            {isPeriodApproved ? 'Học phí đã khóa sổ' : 'Khởi tạo Bảng tính Học phí Tháng'}
           </button>
         </div>
       </div>
@@ -480,7 +541,7 @@ export const TuitionCalculationTab: React.FC = () => {
                                       )}
                                       <span>{itm.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(itm.amount))}</span>
                                     </div>
-                                    {itm.amount > 0 && !itm.itemDescription.toLowerCase().includes('đón muộn') && (
+                                    {!isPeriodApproved && itm.amount > 0 && !itm.itemDescription.toLowerCase().includes('đón muộn') && (
                                       <div className="flex items-center gap-1 flex-shrink-0">
                                         <button
                                           type="button"
@@ -578,10 +639,15 @@ export const TuitionCalculationTab: React.FC = () => {
                         </button>
                         <button
                           onClick={() => openIncidentalModal(inv)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200/50"
-                          title="Thêm phụ phí hoặc phạt phát sinh"
+                          disabled={isPeriodApproved}
+                          className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors border ${
+                            isPeriodApproved
+                              ? 'text-slate-400 bg-slate-100 border-slate-200 cursor-not-allowed opacity-50'
+                              : 'text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200/50'
+                          }`}
+                          title={isPeriodApproved ? 'BGH đã phê duyệt bảng học phí, không thể thêm phụ phí' : 'Thêm phụ phí hoặc phạt phát sinh'}
                         >
-                          <FilePlus2 className="w-3.5 h-3.5" />
+                          {isPeriodApproved ? <Lock className="w-3 h-3 text-slate-400" /> : <FilePlus2 className="w-3.5 h-3.5" />}
                           + Phụ phí
                         </button>
                       </div>
@@ -655,7 +721,7 @@ export const TuitionCalculationTab: React.FC = () => {
                             <span className={`font-semibold ${isNegative ? 'text-emerald-700' : 'text-slate-900'}`}>
                               {item.amount < 0 ? `-${formatCurrency(Math.abs(item.amount))}` : formatCurrency(item.amount)}
                             </span>
-                            {isIncidental && item.itemId && (
+                            {!isPeriodApproved && isIncidental && item.itemId && (
                               <div className="flex items-center gap-1 ml-2 border-l pl-2 border-slate-200">
                                 <button
                                   type="button"
