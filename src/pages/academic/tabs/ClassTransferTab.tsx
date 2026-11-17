@@ -125,6 +125,38 @@ export const ClassTransferTab: React.FC = () => {
     return cur >= max;
   }, [selectedRequest]);
 
+  // Remaining slots in target class
+  const remainingSlots = useMemo(() => {
+    if (!selectedRequest) return 0;
+    const cur = selectedRequest.toClassCurrentEnrollment || 0;
+    const max = selectedRequest.toClassCapacity || 35;
+    return Math.max(0, max - cur);
+  }, [selectedRequest]);
+
+  // Age group mismatch check
+  const isAgeGroupMismatched = useMemo(() => {
+    if (!selectedRequest) return false;
+    const months = selectedRequest.studentAgeMonths;
+    const grade = selectedRequest.toClassGrade;
+    if (!months || !grade) return false;
+
+    // Quy định độ tuổi theo khối (dung sai ±2 tháng)
+    switch (grade) {
+      case 'INFANT': // 1 tuổi: 10 - 26 tháng
+        return months < 10 || months > 26;
+      case 'TODDLER': // 2 tuổi: 22 - 38 tháng
+        return months < 22 || months > 38;
+      case 'NURSERY': // 3 tuổi: 34 - 50 tháng
+        return months < 34 || months > 50;
+      case 'KINDERGARTEN': // 4 tuổi: 46 - 62 tháng
+        return months < 46 || months > 62;
+      case 'PRE_K': // 5 tuổi: 58 - 75 tháng
+        return months < 58 || months > 75;
+      default:
+        return false;
+    }
+  }, [selectedRequest]);
+
   return (
     <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
       {/* Top Filter Bar */}
@@ -334,7 +366,7 @@ export const ClassTransferTab: React.FC = () => {
                                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer"
                               >
                                 <Check className="w-3.5 h-3.5" />
-                                <span>Phê duyệt</span>
+                                <span>Thẩm định đơn</span>
                               </button>
 
                               <button
@@ -374,7 +406,7 @@ export const ClassTransferTab: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5 text-emerald-800 font-extrabold text-base">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                <span>Xác Nhận Phê Duyệt Chuyển Lớp</span>
+                <span>Thẩm Định Đơn Chuyển Lớp</span>
               </div>
               <button
                 type="button"
@@ -389,7 +421,7 @@ export const ClassTransferTab: React.FC = () => {
               {/* Student info box */}
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
                 <div className="font-bold text-slate-900 text-sm">{selectedRequest.studentName}</div>
-                <div className="text-slate-500">Mã học sinh: <strong>{selectedRequest.studentCode}</strong></div>
+                <div className="text-slate-500">Mã học sinh: <strong>{selectedRequest.studentCode}</strong> {selectedRequest.studentAgeMonths ? `• ${selectedRequest.studentAgeMonths} tháng tuổi` : ''}</div>
                 <div className="text-slate-600 mt-1">
                   Lý do chuyển: <span className="italic">"{selectedRequest.reason || 'Nguyện vọng phụ huynh'}"</span>
                 </div>
@@ -404,12 +436,12 @@ export const ClassTransferTab: React.FC = () => {
                 </div>
 
                 <div className={`p-3.5 rounded-2xl border space-y-1 ${isDestinationFull ? 'border-rose-300 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/30'}`}>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Chuyển Đến</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lớp Chuyển Đến (Mục tiêu)</span>
                   <div className="font-bold text-slate-900 text-sm">{selectedRequest.toClassName}</div>
-                  <div className="text-[11px] font-semibold flex items-center justify-between">
-                    <span>Sĩ số:</span>
+                  <div className="text-[11px] font-semibold flex items-center justify-between mt-1">
+                    <span className="text-slate-600">Sĩ số lớp mục tiêu:</span>
                     <span className={isDestinationFull ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold'}>
-                      {selectedRequest.toClassCurrentEnrollment} / {selectedRequest.toClassCapacity}
+                      {selectedRequest.toClassCurrentEnrollment} / {selectedRequest.toClassCapacity} trẻ ({remainingSlots > 0 ? `Còn ${remainingSlots} chỗ trống` : 'Đã hết chỗ'})
                     </span>
                   </div>
                 </div>
@@ -419,11 +451,19 @@ export const ClassTransferTab: React.FC = () => {
               {isDestinationFull && (
                 <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>Lớp chuyển đến đã đủ sĩ số tối đa ({selectedRequest.toClassCapacity} trẻ). Không thể phê duyệt tiếp nhận.</span>
+                  <span>Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)</span>
                 </div>
               )}
 
-              {!isDestinationFull && (
+              {/* Warning if age group is mismatched */}
+              {isAgeGroupMismatched && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)</span>
+                </div>
+              )}
+
+              {!isDestinationFull && !isAgeGroupMismatched && (
                 <p className="text-slate-600 text-[11px]">
                   Sau khi phê duyệt, hệ thống sẽ tự động cập nhật phân lớp của trẻ sang <strong>{selectedRequest.toClassName}</strong>, tăng sĩ số lớp mới lên 1 và giảm sĩ số lớp cũ đi 1.
                 </p>
@@ -441,12 +481,25 @@ export const ClassTransferTab: React.FC = () => {
 
               <button
                 type="button"
-                disabled={approveMutation.isPending || isDestinationFull}
+                disabled={approveMutation.isPending || isDestinationFull || isAgeGroupMismatched}
                 onClick={() => approveMutation.mutate(selectedRequest.id)}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                title={
+                  isDestinationFull
+                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)'
+                    : isAgeGroupMismatched
+                    ? 'Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)'
+                    : 'Xác nhận phê duyệt chuyển lớp'
+                }
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs cursor-pointer"
               >
                 {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                <span>Xác Nhận Phê Duyệt</span>
+                <span>
+                  {isDestinationFull
+                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)'
+                    : isAgeGroupMismatched
+                    ? 'Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)'
+                    : 'Xác Nhận Phê Duyệt'}
+                </span>
               </button>
             </div>
           </div>
