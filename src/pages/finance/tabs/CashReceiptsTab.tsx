@@ -141,7 +141,305 @@ export const CashReceiptsTab: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (!receiptData) return;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+
+    const paymentMethodText =
+      receiptData.paymentMethod === 'CASH'
+        ? 'Tiền mặt tại quỹ'
+        : receiptData.paymentMethod === 'VIETQR_PAYOS'
+        ? 'Chuyển khoản VietQR / PayOS 24/7'
+        : 'Chuyển khoản trực tuyến';
+
+    const stampText =
+      receiptData.paymentMethod === 'CASH' ? 'ĐÃ THU TIỀN MẶT' : 'ĐÃ THANH TOÁN ONLINE';
+
+    const stampColor = receiptData.paymentMethod === 'CASH' ? '#047857' : '#1d4ed8';
+    const stampBorder = receiptData.paymentMethod === 'CASH' ? '#10b981' : '#3b82f6';
+    const stampBg = receiptData.paymentMethod === 'CASH' ? '#ecfdf5' : '#eff6ff';
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Biên lai thu tiền - ${receiptData.receiptId || receiptData.invoiceCode}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 15mm;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body {
+              background: #fff;
+              color: #0f172a;
+              display: flex;
+              justify-content: center;
+              padding: 10px;
+            }
+            .receipt-card {
+              width: 100%;
+              max-width: 680px;
+              border: 1.5px solid #cbd5e1;
+              border-radius: 16px;
+              padding: 32px 36px;
+              background: #ffffff;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px dashed #e2e8f0;
+              padding-bottom: 20px;
+              margin-bottom: 24px;
+            }
+            .school-name {
+              font-size: 16px;
+              font-weight: 800;
+              letter-spacing: -0.2px;
+              color: #0f172a;
+              text-transform: uppercase;
+            }
+            .school-meta {
+              font-size: 12px;
+              color: #64748b;
+              margin-top: 4px;
+              line-height: 1.5;
+            }
+            .title {
+              font-size: 20px;
+              font-weight: 900;
+              color: #312e81;
+              text-transform: uppercase;
+              letter-spacing: 1.5px;
+              margin-top: 16px;
+            }
+            .receipt-no {
+              font-size: 13px;
+              color: #475569;
+              font-family: Consolas, Monaco, monospace;
+              margin-top: 4px;
+            }
+            .time {
+              font-size: 12px;
+              color: #64748b;
+              margin-top: 2px;
+            }
+            .details-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 24px;
+              font-size: 13px;
+            }
+            .details-table tr {
+              border-bottom: 1px solid #f1f5f9;
+            }
+            .details-table td {
+              padding: 9px 4px;
+            }
+            .td-label {
+              color: #64748b;
+              width: 42%;
+            }
+            .td-value {
+              font-weight: 600;
+              color: #0f172a;
+              text-align: right;
+            }
+            .highlight-box {
+              background: #f8fafc;
+              border: 1.5px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 18px 20px;
+              margin-bottom: 28px;
+            }
+            .amount-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .amount-label {
+              font-size: 13px;
+              font-weight: 700;
+              color: #334155;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .amount-val {
+              font-size: 22px;
+              font-weight: 900;
+              color: #047857;
+            }
+            .debt-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 12px;
+              color: #64748b;
+              margin-top: 8px;
+              padding-top: 8px;
+              border-top: 1px dashed #e2e8f0;
+            }
+            .debt-val {
+              font-weight: 700;
+              color: #1e293b;
+            }
+            .signatures {
+              display: flex;
+              justify-content: space-between;
+              text-align: center;
+              margin-top: 10px;
+              padding-top: 16px;
+              border-top: 1px solid #e2e8f0;
+            }
+            .sig-col {
+              width: 46%;
+            }
+            .sig-title {
+              font-size: 13px;
+              font-weight: 700;
+              color: #1e293b;
+            }
+            .sig-note {
+              font-size: 11px;
+              font-style: italic;
+              color: #94a3b8;
+              margin-top: 3px;
+            }
+            .stamp-area {
+              height: 65px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .stamp-badge {
+              display: inline-block;
+              padding: 5px 14px;
+              border: 2px solid ${stampBorder};
+              background: ${stampBg};
+              color: ${stampColor};
+              font-size: 12px;
+              font-weight: 800;
+              border-radius: 8px;
+              letter-spacing: 0.5px;
+              transform: rotate(-5deg);
+            }
+            .sig-signer {
+              font-size: 13px;
+              font-weight: 600;
+              color: #1e293b;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 26px;
+              padding-top: 14px;
+              font-size: 11px;
+              color: #94a3b8;
+              font-family: Consolas, Monaco, monospace;
+              border-top: 1px dashed #f1f5f9;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-card">
+            <div class="header">
+              <div class="school-name">${receiptData.schoolName || 'HỆ THỐNG TRƯỜNG MẦM NON QUỐC TẾ KIDPRO'}</div>
+              <div class="school-meta">Mã số thuế: ${receiptData.schoolTaxCode || '0108992345'} | ${receiptData.schoolAddress || 'Khu Công Nghệ Cao Hòa Lạc, Thạch Thất, Hà Nội'}</div>
+              <div class="title">BIÊN LAI THU TIỀN HỌC PHÍ</div>
+              <div class="receipt-no">Số: <strong>${receiptData.receiptId}</strong></div>
+              <div class="time">Thời gian: ${receiptData.paymentTime}</div>
+            </div>
+
+            <table class="details-table">
+              <tr>
+                <td class="td-label">Họ và tên học sinh:</td>
+                <td class="td-value" style="font-size: 14px; font-weight: 700;">${receiptData.studentName}</td>
+              </tr>
+              <tr>
+                <td class="td-label">Mã số học sinh:</td>
+                <td class="td-value" style="font-family: monospace;">${receiptData.studentCode}</td>
+              </tr>
+              <tr>
+                <td class="td-label">Lớp học:</td>
+                <td class="td-value">${receiptData.className || 'Chưa phân lớp'}</td>
+              </tr>
+              <tr>
+                <td class="td-label">Người nộp tiền:</td>
+                <td class="td-value">${receiptData.payerName}</td>
+              </tr>
+              <tr>
+                <td class="td-label">Hình thức thanh toán:</td>
+                <td class="td-value" style="color: #4338ca; font-weight: 700;">${paymentMethodText}</td>
+              </tr>
+              <tr>
+                <td class="td-label">Mã hóa đơn liên kết:</td>
+                <td class="td-value" style="font-family: monospace;">${receiptData.invoiceCode}</td>
+              </tr>
+            </table>
+
+            <div class="highlight-box">
+              <div class="amount-row">
+                <span class="amount-label">SỐ TIỀN ĐÃ THU:</span>
+                <span class="amount-val">${formatCurrency(receiptData.amountPaid)}</span>
+              </div>
+              <div class="debt-row">
+                <span>Công nợ còn lại sau thanh toán:</span>
+                <span class="debt-val">${formatCurrency(receiptData.remainingDebt || 0)}</span>
+              </div>
+            </div>
+
+            <div class="signatures">
+              <div class="sig-col">
+                <div class="sig-title">Người nộp tiền</div>
+                <div class="sig-note">(Ký, ghi rõ họ tên)</div>
+                <div class="stamp-area"></div>
+                <div class="sig-signer">${receiptData.payerName}</div>
+              </div>
+              <div class="sig-col">
+                <div class="sig-title">Thủ quỹ / Kế toán</div>
+                <div class="sig-note">(Đã xác nhận & gạch nợ)</div>
+                <div class="stamp-area">
+                  <span class="stamp-badge">${stampText}</span>
+                </div>
+                <div class="sig-signer">Bộ phận Kế toán KidPro</div>
+              </div>
+            </div>
+
+            <div class="footer">
+              Mã xác thực điện tử: ${receiptData.verificationCode || 'VER-KIDPRO-2026'} | Tra cứu trực tuyến tại kidpro.edu.vn/verify
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 2000);
+    }, 300);
   };
 
   return (
