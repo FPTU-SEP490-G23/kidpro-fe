@@ -26,7 +26,8 @@ export const CashReceiptsTab: React.FC = () => {
   const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('UNPAID');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [stats, setStats] = useState<{ unpaid: number; paid: number }>({ unpaid: 0, paid: 0 });
 
   const [isPayModalOpen, setIsPayModalOpen] = useState<boolean>(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDto | null>(null);
@@ -39,12 +40,25 @@ export const CashReceiptsTab: React.FC = () => {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
   const [receiptData, setReceiptData] = useState<ReceiptDto | null>(null);
   const [loadingReceipt, setLoadingReceipt] = useState<boolean>(false);
+  const [activeReceiptInvoiceId, setActiveReceiptInvoiceId] = useState<string | null>(null);
 
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await financeApi.getInvoices({});
+      const list: InvoiceDto[] = (res as any)?.data || res || [];
+      const unpaidCount = list.filter((i) => i.status !== 'PAID').length;
+      const paidCount = list.filter((i) => i.status === 'PAID').length;
+      setStats({ unpaid: unpaidCount, paid: paidCount });
+    } catch {
+      // ignore
+    }
   };
 
   const fetchInvoices = async () => {
@@ -56,6 +70,7 @@ export const CashReceiptsTab: React.FC = () => {
 
       const res = await financeApi.getInvoices(params);
       setInvoices((res as any)?.data || res || []);
+      fetchStats();
     } catch (err: any) {
       showToast('error', err?.response?.data?.message || 'Không thể tải danh sách hóa đơn.');
     } finally {
@@ -99,6 +114,7 @@ export const CashReceiptsTab: React.FC = () => {
       showToast('success', 'Ghi nhận thu học phí tiền mặt và gạch nợ thành công.');
       setIsPayModalOpen(false);
       fetchInvoices();
+      fetchStats();
 
       setReceiptData(receipt);
       setIsReceiptModalOpen(true);
@@ -111,6 +127,7 @@ export const CashReceiptsTab: React.FC = () => {
 
   const handleViewReceipt = async (inv: InvoiceDto) => {
     try {
+      setActiveReceiptInvoiceId(inv.invoiceId);
       setLoadingReceipt(true);
       const res = await financeApi.getReceiptByInvoiceId(inv.invoiceId);
       setReceiptData((res as any)?.data || res);
@@ -119,6 +136,7 @@ export const CashReceiptsTab: React.FC = () => {
       showToast('error', err?.response?.data?.message || 'Không thể tải biên lai điện tử.');
     } finally {
       setLoadingReceipt(false);
+      setActiveReceiptInvoiceId(null);
     }
   };
 
@@ -140,24 +158,42 @@ export const CashReceiptsTab: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'UNPAID' ? 'ALL' : 'UNPAID')}
+          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${
+            statusFilter === 'UNPAID'
+              ? 'bg-amber-50/60 border-amber-300 ring-2 ring-amber-400'
+              : 'bg-white border-slate-200/80 hover:border-amber-200 hover:shadow-md'
+          }`}
+          title="Nhấn để lọc các phiếu chờ thu tiền"
+        >
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Phiếu chờ thu tiền</p>
             <p className="text-2xl font-bold text-amber-600 mt-1">
-              {invoices.filter((i) => i.status === 'UNPAID' || i.status === 'PARTIAL').length}
+              {stats.unpaid}
             </p>
+            <span className="text-[11px] text-slate-400">Thu tiền mặt trực tiếp tại quầy</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
             <Banknote className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'PAID' ? 'ALL' : 'PAID')}
+          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${
+            statusFilter === 'PAID'
+              ? 'bg-emerald-50/60 border-emerald-300 ring-2 ring-emerald-400'
+              : 'bg-white border-slate-200/80 hover:border-emerald-200 hover:shadow-md'
+          }`}
+          title="Nhấn để lọc các phiếu đã thanh toán và sẵn sàng in biên lai"
+        >
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Đã thanh toán (Sẵn sàng in biên lai)</p>
             <p className="text-2xl font-bold text-emerald-600 mt-1">
-              {invoices.filter((i) => i.status === 'PAID').length}
+              {stats.paid}
             </p>
+            <span className="text-[11px] text-slate-400">Bao gồm thanh toán Online & Tiền mặt</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
             <FileCheck2 className="w-6 h-6" />
@@ -196,10 +232,10 @@ export const CashReceiptsTab: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700"
           >
-            <option value="UNPAID">Chờ thanh toán (UNPAID)</option>
-            <option value="PAID">Đã thanh toán (PAID)</option>
-            <option value="PARTIAL">Nộp một phần (PARTIAL)</option>
             <option value="ALL">Tất cả trạng thái</option>
+            <option value="UNPAID">Chờ thanh toán (UNPAID)</option>
+            <option value="PAID">Đã thanh toán (PAID) — Sẵn sàng in biên lai</option>
+            <option value="PARTIAL">Nộp một phần (PARTIAL)</option>
           </select>
         </div>
 
@@ -264,11 +300,16 @@ export const CashReceiptsTab: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4">
                       {inv.status === 'PAID' ? (
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Đã thanh toán
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 w-fit">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Đã thanh toán
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">Sẵn sàng xuất biên lai</span>
+                        </div>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                           Chờ thanh toán
                         </span>
                       )}
@@ -287,10 +328,15 @@ export const CashReceiptsTab: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => handleViewReceipt(inv)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors border border-indigo-200/50"
+                            disabled={loadingReceipt && activeReceiptInvoiceId === inv.invoiceId}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800 rounded-xl transition-all border border-indigo-200/80 shadow-sm disabled:opacity-50"
                             title="Xuất hóa đơn điện tử & in biên lai"
                           >
-                            <Printer className="w-3.5 h-3.5" />
+                            {loadingReceipt && activeReceiptInvoiceId === inv.invoiceId ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                            )}
                             In biên lai
                           </button>
                         )}
@@ -456,7 +502,11 @@ export const CashReceiptsTab: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Hình thức thanh toán:</span>
                   <span className="font-bold text-indigo-700">
-                    {receiptData.paymentMethod === 'CASH' ? 'Tiền mặt tại quỹ' : 'Chuyển khoản VietQR 24/7'}
+                    {receiptData.paymentMethod === 'CASH'
+                      ? 'Tiền mặt tại quỹ'
+                      : receiptData.paymentMethod === 'VIETQR_PAYOS'
+                      ? 'Chuyển khoản VietQR / PayOS 24/7'
+                      : 'Chuyển khoản trực tuyến'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -490,7 +540,7 @@ export const CashReceiptsTab: React.FC = () => {
                   <p className="text-slate-400 italic text-[10px] mt-1">(Đã xác nhận & gạch nợ)</p>
                   <div className="h-12 flex items-center justify-center">
                     <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg font-bold text-[11px] rotate-[-5deg]">
-                      ĐÃ THU TIỀN
+                      {receiptData.paymentMethod === 'CASH' ? 'ĐÃ THU TIỀN MẶT' : 'ĐÃ THANH TOÁN ONLINE'}
                     </span>
                   </div>
                   <p className="font-medium text-slate-800">Bộ phận Kế toán KidPro</p>
