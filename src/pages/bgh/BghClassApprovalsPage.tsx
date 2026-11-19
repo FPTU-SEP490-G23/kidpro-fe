@@ -345,32 +345,9 @@ export const BghClassApprovalsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Nút Phê duyệt / Từ chối / Khôi phục Chờ duyệt */}
-                <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-                  {!isApproved && (
-                    <button
-                      type="button"
-                      onClick={() => approveMutation.mutate(c.classId)}
-                      disabled={approveMutation.isPending}
-                      className="flex-1 min-w-[100px] py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Phê duyệt</span>
-                    </button>
-                  )}
-
-                  {!isRejected && (
-                    <button
-                      type="button"
-                      onClick={() => openRejectModal(c)}
-                      className="px-3 py-2 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
-                    >
-                      Từ chối
-                    </button>
-                  )}
-
-                  {/* Nút Khôi phục Chờ duyệt khi đã phê duyệt hoặc từ chối */}
-                  {(isApproved || isRejected) && (
+                {/* Nút thao tác trên thẻ lớp học: Toàn bộ phê duyệt và từ chối thực hiện tập trung trên thanh tác vụ, chỉ giữ nút Khôi phục khi đã duyệt hoặc từ chối */}
+                {(isApproved || isRejected) && (
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
                     <button
                       type="button"
                       onClick={() => resetMutation.mutate(c.classId)}
@@ -381,8 +358,8 @@ export const BghClassApprovalsPage: React.FC = () => {
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Khôi phục Chờ duyệt</span>
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}

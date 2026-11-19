@@ -12,7 +12,16 @@ export const userProfileApi = {
     try {
       const res = await axiosClient.get<UserProfile>('/users/me');
       if (res && (res as any).id) {
-        return res as unknown as UserProfile;
+        const p = res as unknown as UserProfile;
+        const savedUserStr = localStorage.getItem('kidpro_user');
+        const savedUser = savedUserStr ? JSON.parse(savedUserStr) : null;
+        if (!p.avatarUrl && savedUser?.avatarUrl) {
+          p.avatarUrl = savedUser.avatarUrl;
+        } else if (p.avatarUrl && savedUser) {
+          savedUser.avatarUrl = p.avatarUrl;
+          localStorage.setItem('kidpro_user', JSON.stringify(savedUser));
+        }
+        return p;
       }
     } catch (err) {
       console.warn('Backend API /users/me chưa sẵn sàng, sử dụng dữ liệu phiên hoạt động hiện tại.');
