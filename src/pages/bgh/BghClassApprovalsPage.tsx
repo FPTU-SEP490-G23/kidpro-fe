@@ -27,11 +27,75 @@ export const BghClassApprovalsPage: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [validationError, setValidationError] = useState('');
 
+  // Batch rejection states
+  const [isBatchRejectModalOpen, setIsBatchRejectModalOpen] = useState(false);
+  const [selectedRejectionMap, setSelectedRejectionMap] = useState<Record<string, { selected: boolean; reason: string }>>({});
+
   // Fetch approvals list
   const { data: classes = [], isLoading, isFetching, refetch } = useQuery<ClassApprovalItem[]>({
     queryKey: ['class-approvals-bgh', statusFilter],
     queryFn: () => classApprovalApi.getApprovals(statusFilter),
   });
+
+  // Danh sách các lớp đang chờ duyệt trong đợt này
+  const pendingClasses = React.useMemo(() => {
+    return classes.filter(c => c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING');
+  }, [classes]);
+
+  // Phê duyệt toàn bộ các lớp đang chờ duyệt
+  const approveAllMutation = useMutation({
+    mutationFn: () => classApprovalApi.approveAllClasses(),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
+      success(res?.message || 'Đã phê duyệt toàn bộ các lớp học trong đợt kế hoạch thành công.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể phê duyệt toàn bộ kế hoạch mở lớp');
+    },
+  });
+
+  // Từ chối kế hoạch theo danh sách các lớp bị chọn kèm lý do từng lớp
+  const batchRejectMutation = useMutation({
+    mutationFn: (rejections: { classId: string; reason: string }[]) =>
+      classApprovalApi.batchRejectClasses(rejections),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
+      success(res?.message || 'Đã gửi quyết định từ chối các lớp học được chọn về cho Cán bộ Giáo vụ.');
+      setIsBatchRejectModalOpen(false);
+      setSelectedRejectionMap({});
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || 'Không thể từ chối kế hoạch mở lớp');
+    },
+  });
+
+  const openBatchRejectModal = () => {
+    const initMap: Record<string, { selected: boolean; reason: string }> = {};
+    pendingClasses.forEach(c => {
+      initMap[c.classId] = { selected: false, reason: '' };
+    });
+    setSelectedRejectionMap(initMap);
+    setIsBatchRejectModalOpen(true);
+  };
+
+  const handleBatchRejectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const items = Object.entries(selectedRejectionMap)
+      .filter(([_, val]) => val.selected)
+      .map(([classId, val]) => ({ classId, reason: val.reason.trim() }));
+
+    if (items.length === 0) {
+      error('Vui lòng tích chọn ít nhất một lớp học để từ chối.');
+      return;
+    }
+    const missingReason = items.find(it => !it.reason);
+    if (missingReason) {
+      error('Vui lòng nhập lý do từ chối cho tất cả các lớp đã chọn.');
+      return;
+    }
+
+    batchRejectMutation.mutate(items);
+  };
 
   // Approve mutation
   const approveMutation = useMutation({
@@ -128,6 +192,49 @@ export const BghClassApprovalsPage: React.FC = () => {
           <span>Làm mới</span>
         </button>
       </div>
+
+      {/* Batch Action Bar cho BGH khi có đợt kế hoạch chờ duyệt */}
+      {pendingClasses.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
+              <Clock className="w-5 h-5 animate-spin" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-800">
+                Đợt Kế Hoạch Mở Lớp Chờ Duyệt Tập Trung ({pendingClasses.length} lớp học)
+              </h4>
+              <p className="text-xs text-slate-600">
+                Giáo vụ đã tính toán và gửi toàn bộ danh sách lớp. BGH có thể duyệt toàn bộ hoặc từ chối từng lớp cụ thể.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={openBatchRejectModal}
+              disabled={batchRejectMutation.isPending || approveAllMutation.isPending}
+              className="px-4 py-2.5 rounded-xl border border-rose-300 bg-white hover:bg-rose-50 text-rose-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50 min-h-[40px]"
+            >
+              <XCircle className="w-4 h-4 text-rose-600" />
+              <span>Từ Chối Kế Hoạch</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => approveAllMutation.mutate()}
+              disabled={approveAllMutation.isPending || batchRejectMutation.isPending}
+              className="px-5 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 min-h-[40px]"
+            >
+              {approveAllMutation.isPending ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-[#78C2AD]" />
+              )}
+              <span>Phê Duyệt Toàn Bộ Lớp ({pendingClasses.length})</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
@@ -343,6 +450,126 @@ export const BghClassApprovalsPage: React.FC = () => {
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                 >
                   {rejectMutation.isPending ? 'Đang gửi...' : 'Xác nhận từ chối'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Từ Chối Kế Hoạch Dạng Checklist Các Lớp Kèm Lý Do Từng Lớp */}
+      {isBatchRejectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <XCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Từ Chối Kế Hoạch Mở Lớp</h3>
+                  <p className="text-xs text-slate-500">
+                    Tích chọn lớp cần từ chối và nhập lý do tương ứng để gửi về Giáo vụ điều chỉnh
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBatchRejectModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleBatchRejectSubmit} className="flex-1 overflow-y-auto space-y-4 py-4 pr-1">
+              <p className="text-xs text-slate-600">
+                Vui lòng tích chọn lớp học bạn muốn từ chối trong đợt này. Với mỗi lớp được chọn, hãy nêu rõ lý do từ chối để giáo vụ nắm thông tin chỉnh sửa:
+              </p>
+
+              <div className="space-y-3">
+                {pendingClasses.map((c) => {
+                  const state = selectedRejectionMap[c.classId] || { selected: false, reason: '' };
+                  return (
+                    <div
+                      key={c.classId}
+                      className={`p-4 rounded-2xl border transition ${
+                        state.selected
+                          ? 'border-rose-300 bg-rose-50/40'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={state.selected}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setSelectedRejectionMap((prev) => ({
+                              ...prev,
+                              [c.classId]: {
+                                ...prev[c.classId],
+                                selected: checked,
+                              },
+                            }));
+                          }}
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold text-slate-800">{c.className}</span>
+                            <span className="text-xs font-semibold text-[#275A4E]">{formatGradeLevel(c.gradeLevel)}</span>
+                          </div>
+                          <div className="text-xs text-slate-500 flex gap-4 mt-0.5">
+                            <span>Sĩ số: <strong>{c.maxCapacity || 25} trẻ</strong></span>
+                            <span>Phòng: <strong>{c.roomName || 'Chưa xếp'}</strong></span>
+                          </div>
+                        </div>
+                      </label>
+
+                      {state.selected && (
+                        <div className="mt-3 pt-3 border-t border-rose-200">
+                          <label className="block text-xs font-bold text-rose-800 mb-1">
+                            Lý do từ chối lớp {c.className} <span className="text-rose-500">*</span>
+                          </label>
+                          <textarea
+                            required
+                            rows={2}
+                            value={state.reason}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSelectedRejectionMap((prev) => ({
+                                ...prev,
+                                [c.classId]: {
+                                  ...prev[c.classId],
+                                  reason: val,
+                                },
+                              }));
+                            }}
+                            placeholder={`Ví dụ: Lớp ${c.className} cần dời sang phòng học rộng hơn hoặc giảm sĩ số...`}
+                            className="w-full text-xs p-3 border border-rose-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-400"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsBatchRejectModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={batchRejectMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {batchRejectMutation.isPending ? 'Đang gửi...' : 'Xác Nhận Từ Chối Các Lớp Đã Chọn'}
                 </button>
               </div>
             </form>

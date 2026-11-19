@@ -40,6 +40,19 @@ export const classApprovalApi = {
     const res: any = await axiosClient.post(`/bgh/classes/${classId}/reset-pending`);
     return res?.data || res;
   },
+
+  // BGH Phê duyệt toàn bộ kế hoạch mở lớp
+  approveAllClasses: async (academicYearId?: string): Promise<{ message: string; approvedCount: number }> => {
+    const params = academicYearId ? `?academicYearId=${academicYearId}` : '';
+    const res: any = await axiosClient.post(`/bgh/classes/approve-all${params}`);
+    return res?.data || res;
+  },
+
+  // BGH Từ chối kế hoạch mở lớp theo danh sách lớp kèm lý do từng lớp
+  batchRejectClasses: async (rejections: { classId: string; reason: string }[]): Promise<{ message: string; rejectedCount: number }> => {
+    const res: any = await axiosClient.post('/bgh/classes/batch-reject', rejections);
+    return res?.data || res;
+  },
 };
 
 export default classApprovalApi;

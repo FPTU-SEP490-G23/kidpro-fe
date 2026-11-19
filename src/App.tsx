@@ -171,11 +171,7 @@ export const App: React.FC = () => {
           {/* ======================================================== */}
           <Route
             path="/dashboard/executive"
-            element={
-              <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
-                <ExecutiveDashboardPage />
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/bgh/school-setup" replace />}
           />
           <Route
             path="/executive-dashboard"

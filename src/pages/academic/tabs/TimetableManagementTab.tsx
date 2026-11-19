@@ -30,6 +30,7 @@ import { assignmentService } from '../../../services/assignmentService';
 import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
 import { useToast } from '../../../contexts/ToastContext';
 import { ClassSummary } from '../../../types/classAffairs.types';
+import { formatAcademicYear } from '../../../utils/formatters';
 
 // Standard 5 preschool days (Monday -> Friday)
 const DAYS_OF_WEEK = [
@@ -110,7 +111,11 @@ export const TimetableManagementTab: React.FC = () => {
     }
   });
 
-  const classes: ClassSummary[] = classesData || [];
+  const classes: ClassSummary[] = useMemo(() => {
+    const raw: ClassSummary[] = classesData || [];
+    // Chỉ cho phép xếp thời khóa biểu cho các lớp đã được Ban Giám hiệu phê duyệt
+    return raw.filter((c: ClassSummary) => c.status === 'APPROVED' || c.status === 'ACTIVE');
+  }, [classesData]);
 
   // Automatically select first class
   React.useEffect(() => {
@@ -132,6 +137,60 @@ export const TimetableManagementTab: React.FC = () => {
       );
     }
   });
+
+  // Query giáo viên bị trùng lịch trên toàn trường trong khung giờ đang chọn
+  const { data: serverBusyTeachers = [] } = useQuery({
+    queryKey: ['busy-teachers-cross-school', selectedWeekNumber, slotDay, slotStartTime, slotEndTime, selectedClassId],
+    queryFn: async () => {
+      if (!isSlotModalOpen || !slotDay || !slotStartTime || !slotEndTime || slotStartTime >= slotEndTime) {
+        return [];
+      }
+      return await timetableService.getBusyTeachers({
+        weekNumber: selectedWeekNumber,
+        dayOfWeek: slotDay,
+        startTime: slotStartTime,
+        endTime: slotEndTime,
+        excludeClassId: selectedClassId || undefined
+      });
+    },
+    enabled: isSlotModalOpen && !!slotStartTime && !!slotEndTime && slotStartTime < slotEndTime
+  });
+
+  // Tìm giáo viên bị trùng lịch ngay trong thời khóa biểu tuần của lớp hiện tại
+  const busyTeacherIdsInCurrentClass = useMemo(() => {
+    if (!isSlotModalOpen || !slotDay || !slotStartTime || !slotEndTime) return new Set<string>();
+    const busy = new Set<string>();
+    localItems.forEach((it) => {
+      if (editingSlot && it.itemId === editingSlot.itemId) return;
+      if (it.dayOfWeek === slotDay && it.teacherId) {
+        if (slotStartTime < it.endTime && slotEndTime > it.startTime) {
+          busy.add(it.teacherId);
+        }
+      }
+    });
+    return busy;
+  }, [localItems, isSlotModalOpen, slotDay, slotStartTime, slotEndTime, editingSlot]);
+
+  // Danh sách giáo viên hợp lệ: đúng role giáo viên và không bị trùng lịch dạy
+  const selectableTeachers = useMemo(() => {
+    return availableTeachers.filter((t: any) => {
+      const teacherId = t.id || t.staffId;
+      // 1. Kiểm tra role giáo viên (loại trừ nếu có role quản trị / nhân viên khác)
+      const role = (t.role || '').toUpperCase();
+      if (role && role !== 'TEACHER' && role !== 'GIAO_VIEN') {
+        return false;
+      }
+      // 2. Không bị trùng lịch trong lớp hiện tại
+      if (busyTeacherIdsInCurrentClass.has(teacherId)) {
+        return false;
+      }
+      // 3. Không bị trùng lịch ở các lớp khác trên toàn trường
+      if (serverBusyTeachers.includes(teacherId)) {
+        return false;
+      }
+      return true;
+    });
+  }, [availableTeachers, busyTeacherIdsInCurrentClass, serverBusyTeachers]);
 
   // 4. Fetch Function Rooms / Classrooms
   const { data: classrooms = [] } = useQuery<FacilityClassroom[]>({
@@ -322,6 +381,13 @@ export const TimetableManagementTab: React.FC = () => {
       error('Giờ bắt đầu phải nhỏ hơn giờ kết thúc');
       return;
     }
+    const [startH, startM] = slotStartTime.split(':').map(Number);
+    const [endH, endM] = slotEndTime.split(':').map(Number);
+    const diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+    if (diffMinutes < 30) {
+      error('Thời lượng một tiết học/hoạt động phải tối thiểu 30 phút.');
+      return;
+    }
 
     const rawTeacherId = slotTeacherId && slotTeacherId.trim() !== '' ? slotTeacherId.trim() : undefined;
     let finalTeacherId: string | undefined = undefined;
@@ -413,7 +479,7 @@ export const TimetableManagementTab: React.FC = () => {
                     const isActive = y.status === 'ACTIVE' || y.isActive;
                     return (
                       <option key={yId} value={yId}>
-                        {yName} {isActive ? '★ (Hiện tại)' : ''}
+                        {formatAcademicYear(y)} {isActive ? '★ (Hiện tại)' : ''}
                       </option>
                     );
                   })}
@@ -684,14 +750,17 @@ export const TimetableManagementTab: React.FC = () => {
 
               {/* Teacher (optional) */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Giáo viên phụ trách</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Giáo viên phụ trách
+                  <span className="ml-1 text-[11px] font-normal text-slate-500">(Chỉ hiện giáo viên đúng role và trống lịch dạy)</span>
+                </label>
                 <select
                   value={slotTeacherId}
                   onChange={(e) => setSlotTeacherId(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-800"
                 >
                   <option value="">-- Chọn giáo viên (hoặc GVCN phụ trách) --</option>
-                  {availableTeachers.map((t: any) => {
+                  {selectableTeachers.map((t: any) => {
                     const teacherValue = t.id || t.staffId;
                     return (
                       <option key={teacherValue} value={teacherValue}>
@@ -700,6 +769,11 @@ export const TimetableManagementTab: React.FC = () => {
                     );
                   })}
                 </select>
+                {selectableTeachers.length === 0 && (
+                  <p className="text-[11px] text-amber-600 mt-1">
+                    ⚠️ Không có giáo viên khả dụng trong khung giờ này (tất cả giáo viên đã có tiết dạy hoặc không thuộc bộ phận giáo viên).
+                  </p>
+                )}
               </div>
 
               {/* Room (optional) */}

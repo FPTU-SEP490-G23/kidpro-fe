@@ -23,6 +23,15 @@ export const formatTime = (timeStr?: string): string => {
   return timeStr.slice(0, 5); // HH:mm
 };
 
+export const formatAcademicYear = (year?: { name?: string; yearName?: string; startDate?: string; endDate?: string } | null): string => {
+  if (!year) return '';
+  const name = year.name || year.yearName || '';
+  if (year.startDate && year.endDate) {
+    return `${name} (${formatDate(year.startDate)} - ${formatDate(year.endDate)})`;
+  }
+  return name;
+};
+
 export const calculateBmi = (weightKg: number, heightCm: number): number => {
   if (!weightKg || !heightCm) return 0;
   const heightM = heightCm / 100;
@@ -217,10 +226,10 @@ export const getRoleHomePath = (role?: UserRole | string | null): string => {
     case 'GIAO_VU':
       return '/academic';
     case 'BGH':
-      return '/dashboard/executive';
+      return '/bgh/school-setup';
     case 'SYSTEM_ADMIN':
       return '/admin/schools';
     default:
-      return '/dashboard/executive';
+      return '/bgh/school-setup';
   }
 };

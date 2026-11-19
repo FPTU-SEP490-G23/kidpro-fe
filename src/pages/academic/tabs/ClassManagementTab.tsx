@@ -25,12 +25,16 @@ import {
   ShieldAlert,
   Sparkles,
   Lock,
+  Eye,
+  Send,
+  Undo2,
 } from 'lucide-react';
 import { classService } from '../../../services/classService';
 import { assignmentService } from '../../../services/assignmentService';
 import { academicYearApi } from '../../../api/academicYearApi';
 import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
 import { useToast } from '../../../contexts/ToastContext';
+import { formatAcademicYear } from '../../../utils/formatters';
 import { StudentPlacementTab } from './StudentPlacementTab';
 import { StudentPromotionTab } from './StudentPromotionTab';
 import {
@@ -241,6 +245,47 @@ export const ClassManagementTab: React.FC = () => {
       assignmentService.getAvailableTeachers(
         selectedYearId !== 'ALL' ? selectedYearId : undefined
       ),
+  });
+
+  // Kiểm tra có đề xuất nào đang chờ BGH duyệt không
+  const hasPendingProposals = useMemo(() => {
+    return proposals.some(p => p.status === 'PENDING_APPROVAL');
+  }, [proposals]);
+
+  // Gửi toàn bộ kế hoạch mở lớp cho BGH phê duyệt
+  const submitAllProposalsMutation = useMutation({
+    mutationFn: () => classService.submitAllProposals(selectedYearId !== 'ALL' ? selectedYearId : undefined),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['class-proposals'] });
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
+      success(res?.message || 'Đã gửi toàn bộ danh sách lớp học cho Ban Giám hiệu phê duyệt.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Lỗi khi gửi duyệt kế hoạch mở lớp.');
+    }
+  });
+
+  // Thu hồi duyệt để chỉnh sửa hoặc tạo thêm lớp
+  const recallAllProposalsMutation = useMutation({
+    mutationFn: () => classService.recallAllProposals(selectedYearId !== 'ALL' ? selectedYearId : undefined),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['class-proposals'] });
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
+      success(res?.message || 'Đã thu hồi kế hoạch mở lớp về trạng thái dự thảo để chỉnh sửa.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Lỗi khi thu hồi kế hoạch mở lớp.');
+    }
+  });
+
+  // State xem chi tiết phân công dự thảo
+  const [viewingAssignmentClass, setViewingAssignmentClass] = useState<ClassSummary | null>(null);
+
+  // Fetch chi tiết phân công khi mở modal xem chi tiết
+  const { data: classAssignments = [], isLoading: isLoadingAssignments } = useQuery({
+    queryKey: ['class-assignments-detail', viewingAssignmentClass?.id],
+    queryFn: () => viewingAssignmentClass ? assignmentService.getAssignmentsByClass(viewingAssignmentClass.id) : [],
+    enabled: !!viewingAssignmentClass
   });
 
   // =========================================================================
@@ -553,14 +598,52 @@ export const ClassManagementTab: React.FC = () => {
           </div>
 
           {activeSubTab === 'PROPOSALS' && (
-            <button
-              type="button"
-              onClick={onOpenCreateProposal}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-[#1E4D40] text-white text-sm font-bold rounded-2xl shadow-sm hover:opacity-95 transition min-h-[44px] cursor-pointer"
-            >
-              <Plus className="w-4 h-4 text-[#E5A93C]" />
-              <span>+ Lập Kế Hoạch Mở Lớp Mới</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {hasPendingProposals ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => recallAllProposalsMutation.mutate()}
+                    disabled={recallAllProposalsMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-2xl shadow-sm transition min-h-[44px] cursor-pointer disabled:opacity-50"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                    <span>{recallAllProposalsMutation.isPending ? 'Đang thu hồi...' : 'Thu Hồi Duyệt'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    title="Đang gửi duyệt Ban Giám hiệu, không thể tạo thêm lớp trong đợt này. Nhấn 'Thu Hồi Duyệt' nếu muốn thêm hoặc sửa lớp."
+                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-400 text-xs font-bold rounded-2xl min-h-[44px] cursor-not-allowed"
+                  >
+                    <Lock className="w-4 h-4 text-slate-400" />
+                    <span>+ Lập Kế Hoạch Mở Lớp Mới</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={onOpenCreateProposal}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-[#1E4D40] text-white text-sm font-bold rounded-2xl shadow-sm hover:opacity-95 transition min-h-[44px] cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-[#E5A93C]" />
+                    <span>+ Lập Kế Hoạch Mở Lớp Mới</span>
+                  </button>
+                  {proposals.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => submitAllProposalsMutation.mutate()}
+                      disabled={submitAllProposalsMutation.isPending}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold rounded-2xl shadow-sm transition min-h-[44px] cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4 text-[#78C2AD]" />
+                      <span>{submitAllProposalsMutation.isPending ? 'Đang gửi...' : 'Gửi Toàn Bộ Lớp Cho BGH Duyệt'}</span>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           )}
         </div>
 
@@ -579,11 +662,10 @@ export const ClassManagementTab: React.FC = () => {
               <option value="ALL">-- Tất cả năm học --</option>
               {academicYears.map((y: any) => {
                 const yId = y.id || y.academicYearId;
-                const yName = y.name || y.yearName;
                 const isActive = y.status === 'ACTIVE' || y.isActive;
                 return (
                   <option key={yId} value={yId}>
-                    {yName} {isActive ? '★ (Hiện tại)' : ''}
+                    {formatAcademicYear(y)} {isActive ? '★ (Hiện tại)' : ''}
                   </option>
                 );
               })}
@@ -866,9 +948,9 @@ export const ClassManagementTab: React.FC = () => {
                           {p.proposedRoomName || 'Chưa bố trí'}
                         </td>
                         <td className="py-3.5 px-4">
-                          {p.status === 'PENDING_APPROVAL' && (
+                          {(p.status === 'PENDING_APPROVAL' || p.status === 'PENDING') && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                              <Clock className="w-3 h-3" /> Chờ BGH duyệt
+                              <Clock className="w-3 h-3" /> {p.status === 'PENDING' ? 'Dự thảo (Chưa gửi)' : 'Chờ BGH duyệt'}
                             </span>
                           )}
                           {p.status === 'APPROVED' && (
@@ -877,9 +959,16 @@ export const ClassManagementTab: React.FC = () => {
                             </span>
                           )}
                           {p.status === 'REJECTED' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                              <XCircle className="w-3 h-3" /> Bị từ chối
-                            </span>
+                            <div>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                <XCircle className="w-3 h-3" /> Bị từ chối
+                              </span>
+                              {p.rejectionReason && (
+                                <p className="mt-1 text-[11px] text-rose-600 font-medium">
+                                  Lý do: {p.rejectionReason}
+                                </p>
+                              )}
+                            </div>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -937,51 +1026,82 @@ export const ClassManagementTab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {classesList.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/60 transition">
-                      <td className="py-3.5 px-4 font-bold text-slate-800">
-                        {c.name}
-                        <span className="block text-[10px] text-slate-400 font-normal">{c.code}</span>
-                      </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700">
-                        {c.gradeLevel ? GRADE_LABELS[c.gradeLevel] || c.gradeLevel : '-'}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        {c.roomName || 'Chưa bố trí'}
-                      </td>
-                      <td className="py-3.5 px-4 font-bold">
-                        {c.homeroomTeacherName && c.homeroomTeacherName !== 'Chưa phân công' ? (
-                          <div className="flex items-center gap-1.5 text-emerald-800">
-                            <UserCheck className="w-4 h-4 text-emerald-600" />
-                            <span>{c.homeroomTeacherName}</span>
+                  {classesList.map((c) => {
+                    const isApproved = c.status === 'APPROVED' || c.status === 'ACTIVE';
+                    return (
+                      <tr key={c.id} className="hover:bg-slate-50/60 transition">
+                        <td className="py-3.5 px-4 font-bold text-slate-800">
+                          {c.name}
+                          <span className="block text-[10px] text-slate-400 font-normal">{c.code}</span>
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-slate-700">
+                          {c.gradeLevel ? GRADE_LABELS[c.gradeLevel] || c.gradeLevel : '-'}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600">
+                          {c.roomName || 'Chưa bố trí'}
+                        </td>
+                        <td className="py-3.5 px-4 font-bold">
+                          {c.homeroomTeacherName && c.homeroomTeacherName !== 'Chưa phân công' ? (
+                            <div className="flex items-center gap-1.5 text-emerald-800">
+                              <UserCheck className="w-4 h-4 text-emerald-600" />
+                              <span>{c.homeroomTeacherName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-amber-600 italic">Chưa có GVCN</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {!isApproved ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              <Clock className="w-3 h-3" /> Chờ BGH duyệt lớp
+                            </span>
+                          ) : c.homeroomTeacherName && c.homeroomTeacherName !== 'Chưa phân công' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              <CheckCircle className="w-3 h-3" /> Đã phân công
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                              <AlertTriangle className="w-3 h-3" /> Cần phân công
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setViewingAssignmentClass(c)}
+                              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition inline-flex items-center gap-1 min-h-[38px] cursor-pointer"
+                              title="Xem chi tiết phân công dự thảo"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Chi tiết</span>
+                            </button>
+
+                            {isApproved ? (
+                              <button
+                                type="button"
+                                onClick={() => onOpenAssignModal(c)}
+                                className="px-3.5 py-2 bg-[#1E4D40] hover:bg-[#16382f] text-white font-bold rounded-xl transition inline-flex items-center gap-1.5 min-h-[38px] cursor-pointer"
+                              >
+                                <UserCheck className="w-3.5 h-3.5 text-[#78C2AD]" />
+                                <span>Phân công GV</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                className="px-3.5 py-2 bg-slate-100 text-slate-400 font-bold rounded-xl inline-flex items-center gap-1 min-h-[38px] cursor-not-allowed"
+                                title="Lớp học chưa được BGH phê duyệt mở lớp. Cần chờ BGH duyệt trước khi phân công."
+                              >
+                                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                                <span>Chờ duyệt</span>
+                              </button>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-amber-600 italic">Chưa có GVCN</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {c.homeroomTeacherName && c.homeroomTeacherName !== 'Chưa phân công' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                            <CheckCircle className="w-3 h-3" /> Đã phân công
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                            <AlertTriangle className="w-3 h-3" /> Cần phân công
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => onOpenAssignModal(c)}
-                          className="px-3.5 py-2 bg-[#1E4D40] hover:bg-[#16382f] text-white font-bold rounded-xl transition inline-flex items-center gap-1.5 min-h-[38px] cursor-pointer"
-                        >
-                          <UserCheck className="w-3.5 h-3.5 text-[#78C2AD]" />
-                          <span>Phân công GV</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1441,6 +1561,139 @@ export const ClassManagementTab: React.FC = () => {
                   {archiveClassMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Xác Nhận Đóng Hồ Sơ Lớp
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XEM CHI TIẾT PHÂN CÔNG DỰ THẢO */}
+      {viewingAssignmentClass && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 bg-[#1E4D40] text-white flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-[#78C2AD]" />
+                <div>
+                  <h2 className="text-base font-bold">Chi Tiết Phân Công Giáo Viên</h2>
+                  <p className="text-xs text-white/80">Lớp: {viewingAssignmentClass.name} ({viewingAssignmentClass.code})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingAssignmentClass(null)}
+                className="text-white/70 hover:text-white transition cursor-pointer"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-400">Khối lớp:</span>{' '}
+                  <strong className="text-slate-700">{GRADE_LABELS[viewingAssignmentClass.gradeLevel] || viewingAssignmentClass.gradeLevel}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400">Phòng học:</span>{' '}
+                  <strong className="text-slate-700">{viewingAssignmentClass.roomName || 'Chưa bố trí'}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400">Sĩ số:</span>{' '}
+                  <strong className="text-slate-700">{viewingAssignmentClass.currentEnrollment}/{viewingAssignmentClass.maxCapacity} trẻ</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400">Trạng thái lớp:</span>{' '}
+                  <strong className="text-slate-700">
+                    {viewingAssignmentClass.status === 'APPROVED' || viewingAssignmentClass.status === 'ACTIVE' ? 'Đã duyệt' : 'Chờ BGH duyệt'}
+                  </strong>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  Danh Sách Giáo Viên Đã Phân Công
+                </h4>
+
+                {isLoadingAssignments ? (
+                  <div className="p-8 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-emerald-600 mx-auto" />
+                    <p className="text-xs text-slate-500 mt-2">Đang tải chi tiết phân công...</p>
+                  </div>
+                ) : classAssignments.length === 0 ? (
+                  <div className="p-6 bg-amber-50/60 rounded-2xl border border-amber-200 text-center space-y-1">
+                    <p className="text-xs font-bold text-amber-800">Chưa có phân công giáo viên nào cho lớp này.</p>
+                    <p className="text-[11px] text-amber-600">
+                      {viewingAssignmentClass.status === 'APPROVED' || viewingAssignmentClass.status === 'ACTIVE'
+                        ? 'Bấm nút "Phân Công Lại / Chỉnh Sửa" bên dưới để tiến hành phân công giáo viên.'
+                        : 'Lớp học cần được Ban Giám hiệu phê duyệt mở lớp trước khi có thể phân công giáo viên.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                        <tr>
+                          <th className="py-2.5 px-3">Vai Trò</th>
+                          <th className="py-2.5 px-3">Giáo Viên</th>
+                          <th className="py-2.5 px-3">Mã GV</th>
+                          <th className="py-2.5 px-3">Trạng Thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {classAssignments.map((a: any) => (
+                          <tr key={a.id} className="hover:bg-slate-50">
+                            <td className="py-2.5 px-3 font-bold text-emerald-800">
+                              {a.role === 'HOMEROOM' ? 'Chủ Nhiệm (GVCN)' : 'Phụ Tá'}
+                            </td>
+                            <td className="py-2.5 px-3 font-semibold text-slate-800">
+                              {a.teacherName}
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-500 font-mono">
+                              {a.staffCode || '-'}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              {a.status === 'APPROVED' ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                  <CheckCircle className="w-3 h-3" /> Đã duyệt
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                  <Clock className="w-3 h-3" /> Dự thảo
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setViewingAssignmentClass(null)}
+                  className="px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition text-xs min-h-[40px] cursor-pointer"
+                >
+                  Đóng
+                </button>
+                {(viewingAssignmentClass.status === 'APPROVED' || viewingAssignmentClass.status === 'ACTIVE') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cls = viewingAssignmentClass;
+                      setViewingAssignmentClass(null);
+                      onOpenAssignModal(cls);
+                    }}
+                    className="px-4 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex items-center gap-1.5 min-h-[40px] cursor-pointer"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-[#78C2AD]" />
+                    <span>Phân Công Lại / Chỉnh Sửa</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

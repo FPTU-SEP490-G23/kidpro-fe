@@ -83,15 +83,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     roles: ['BGH'],
     items: [
       {
-        id: 'bgh-dashboard',
-        title: 'Dashboard Điều Hành Toàn Trường',
-        path: '/dashboard/executive',
-        icon: 'LayoutDashboard',
-        badgeKey: 'unresolvedAlerts',
-        roles: ['BGH'],
-        useCases: [],
-      },
-      {
         id: 'bgh-school-setup',
         title: 'Thiết Lập Trường & CSVC',
         path: '/bgh/school-setup',
@@ -256,17 +247,9 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       },
       {
         id: 'gv-parent-provision',
-        title: 'Cấp TK Phụ Huynh',
+        title: 'Cấp TK & Liên Kết Phụ Huynh',
         path: '/academic/parent-accounts',
         icon: 'Smartphone',
-        roles: ['GIAO_VU'],
-        useCases: [],
-      },
-      {
-        id: 'gv-parent-multichild',
-        title: 'Liên Kết Đa Con',
-        path: '/academic/parent-accounts?mode=multichild',
-        icon: 'Link',
         roles: ['GIAO_VU'],
         useCases: [],
       },

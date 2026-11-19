@@ -5,7 +5,7 @@
 
 export type GradeLevel = 'INFANT' | 'TODDLER' | 'NURSERY' | 'KINDERGARTEN' | 'PRE_K';
 
-export type ClassStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+export type ClassStatus = 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
 export type TeacherRole = 'HOMEROOM' | 'ASSISTANT';
 

@@ -117,6 +117,24 @@ export const classService = {
     return res?.data || res;
   },
 
+  /**
+   * Giáo vụ gửi toàn bộ kế hoạch mở lớp cho Ban Giám hiệu phê duyệt (1 nút bấm duy nhất)
+   */
+  submitAllProposals: async (academicYearId?: string): Promise<ApiResponse<any>> => {
+    const params = academicYearId ? { academicYearId } : {};
+    const res: any = await axiosClient.post('/classes/proposals/submit-all', null, { params });
+    return res;
+  },
+
+  /**
+   * Giáo vụ thu hồi duyệt để chỉnh sửa hoặc tạo thêm lớp học
+   */
+  recallAllProposals: async (academicYearId?: string): Promise<ApiResponse<any>> => {
+    const params = academicYearId ? { academicYearId } : {};
+    const res: any = await axiosClient.post('/classes/proposals/recall-all', null, { params });
+    return res;
+  },
+
   // =========================================================================
   // Đóng & Lưu trữ Hồ sơ Lớp học
   // =========================================================================

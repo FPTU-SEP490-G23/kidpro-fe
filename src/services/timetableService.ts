@@ -59,5 +59,17 @@ export const timetableService = {
   copyPreviousWeek: async (payload: CopyPreviousWeekPayload): Promise<TimetableResponse> => {
     const res: any = await axiosClient.post('/timetables/copy-previous-week', payload);
     return res?.data !== undefined ? res.data : res;
+  },
+
+  getBusyTeachers: async (params: {
+    weekNumber: number;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+    excludeClassId?: string;
+  }): Promise<string[]> => {
+    const res: any = await axiosClient.get('/timetables/busy-teachers', { params });
+    const data = res?.data !== undefined ? res.data : res;
+    return Array.isArray(data) ? data : [];
   }
 };

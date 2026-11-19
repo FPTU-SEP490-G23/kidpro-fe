@@ -27,9 +27,9 @@ import { classService } from '../../../services/classService';
 import { academicYearApi } from '../../../api/academicYearApi';
 import { useToast } from '../../../contexts/ToastContext';
 import { ClassSummary, GradeLevel } from '../../../types/classAffairs.types';
+import { formatAcademicYear } from '../../../utils/formatters';
 
 const GRADE_LEVEL_LABELS: Record<string, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
   TODDLER: 'Nhà trẻ (12 - 36 tháng)',
   NURSERY: 'Khối Mầm (3 - 4 tuổi)',
   KINDERGARTEN: 'Khối Chồi/Lá (4 - 6 tuổi)',
@@ -80,7 +80,11 @@ export const StudentPlacementTab: React.FC = () => {
     }
   });
 
-  const classes: ClassSummary[] = classesData || [];
+  const classes: ClassSummary[] = useMemo(() => {
+    const raw: ClassSummary[] = classesData || [];
+    // Chỉ cho phép xếp trẻ vào các lớp đã được Ban Giám hiệu phê duyệt (APPROVED / ACTIVE)
+    return raw.filter((c: ClassSummary) => c.status === 'APPROVED' || c.status === 'ACTIVE');
+  }, [classesData]);
 
   // Automatically select first class if none selected
   React.useEffect(() => {
@@ -232,7 +236,7 @@ export const StudentPlacementTab: React.FC = () => {
               const isActive = y.status === 'ACTIVE' || y.isActive;
               return (
                 <option key={yId} value={yId}>
-                  {yName} {isActive ? '★ (Hiện tại)' : ''}
+                  {formatAcademicYear(y)} {isActive ? '★ (Hiện tại)' : ''}
                 </option>
               );
             })}
@@ -250,7 +254,6 @@ export const StudentPlacementTab: React.FC = () => {
             className="text-sm font-semibold border border-slate-200 rounded-xl px-3 py-1.5 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="ALL">Tất cả các khối độ tuổi</option>
-            <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
             <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
             <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
             <option value="KINDERGARTEN">Khối Chồi/Lá (4 - 6 tuổi)</option>
