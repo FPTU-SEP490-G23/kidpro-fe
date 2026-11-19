@@ -104,15 +104,16 @@ export const academicYearApi = {
     try {
       const res: any = await axiosClient.get('/academic-years/active');
       const item = res?.data || res;
-      if (item && (item.academicYearId || item.id)) {
+      if (item && (item.academicYearId || item.id) && item.isActive !== false && item.status !== 'CLOSED') {
         return mapBackendToAcademicYear(item);
       }
     } catch (err) {
-      console.warn('Lỗi gọi GET /api/academic-years/active:', err);
+      console.warn('Lỗi gọi GET /api/academic-years/active (chưa có niên khóa hoạt động):', err);
+      return null;
     }
 
     const list = getStoredYears();
-    return list.find((y: AcademicYear) => y.status === 'ACTIVE') || list[0] || null;
+    return list.find((y: AcademicYear) => y.status === 'ACTIVE') || null;
   },
 
   // Lấy chi tiết niên khóa theo ID

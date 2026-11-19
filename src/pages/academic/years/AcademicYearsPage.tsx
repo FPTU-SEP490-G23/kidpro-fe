@@ -77,14 +77,16 @@ export const AcademicYearsPage: React.FC = () => {
   // Mutation Kích hoạt (Chuyển sang ACTIVE)
   const activateMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await academicYearApi.updateAcademicYear(id, { status: 'ACTIVE' });
+      return await academicYearApi.updateStatus(id, 'ACTIVE');
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
-      success('Đã kích hoạt áp dụng niên khóa mới');
+      queryClient.invalidateQueries({ queryKey: ['active-academic-year'] });
+      success(data?.notes || 'Đã kích hoạt áp dụng niên khóa mới thành công.');
     },
     onError: (err: any) => {
-      error(err?.message || 'Không thể kết nối đến máy chủ.');
+      const msg = err?.response?.data?.message || err?.message || 'Không thể kích hoạt niên khóa.';
+      error(msg);
     },
   });
 
@@ -331,10 +333,12 @@ export const AcademicYearsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => activateMutation.mutate(item.id)}
+                              disabled={activateMutation.isPending}
                               title="Kích hoạt áp dụng niên khóa này"
-                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
                             >
-                              <CheckCircle2 className="w-4 h-4" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>{activateMutation.isPending ? 'Đang duyệt...' : 'Kích hoạt'}</span>
                             </button>
                           )}
 

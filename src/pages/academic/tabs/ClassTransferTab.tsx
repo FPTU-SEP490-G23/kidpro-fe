@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRightLeft,
@@ -167,9 +167,8 @@ export const ClassTransferTab: React.FC = () => {
             <button
               type="button"
               onClick={() => setStatusFilter('PENDING')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === 'PENDING' ? 'bg-[#1E4D40] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${statusFilter === 'PENDING' ? 'bg-[#1E4D40] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
             >
               <Clock className="w-3.5 h-3.5" />
               <span>Chờ Phê Duyệt</span>
@@ -178,9 +177,8 @@ export const ClassTransferTab: React.FC = () => {
             <button
               type="button"
               onClick={() => setStatusFilter('APPROVED')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === 'APPROVED' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${statusFilter === 'APPROVED' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Đã Phê Duyệt</span>
@@ -189,9 +187,8 @@ export const ClassTransferTab: React.FC = () => {
             <button
               type="button"
               onClick={() => setStatusFilter('REJECTED')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === 'REJECTED' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${statusFilter === 'REJECTED' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
             >
               <XCircle className="w-3.5 h-3.5" />
               <span>Đã Từ Chối</span>
@@ -200,9 +197,8 @@ export const ClassTransferTab: React.FC = () => {
             <button
               type="button"
               onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === 'ALL' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${statusFilter === 'ALL' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                }`}
             >
               <span>Tất Cả</span>
             </button>
@@ -451,7 +447,7 @@ export const ClassTransferTab: React.FC = () => {
               {isDestinationFull && (
                 <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)</span>
+                  <span>Lớp học mục tiêu đã đủ sĩ số tối đa</span>
                 </div>
               )}
 
@@ -459,7 +455,7 @@ export const ClassTransferTab: React.FC = () => {
               {isAgeGroupMismatched && (
                 <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)</span>
+                  <span>Độ tuổi không phù hợp với khối lớp chuyển đến</span>
                 </div>
               )}
 
@@ -485,20 +481,20 @@ export const ClassTransferTab: React.FC = () => {
                 onClick={() => approveMutation.mutate(selectedRequest.id)}
                 title={
                   isDestinationFull
-                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)'
+                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa'
                     : isAgeGroupMismatched
-                    ? 'Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)'
-                    : 'Xác nhận phê duyệt chuyển lớp'
+                      ? 'Độ tuổi không phù hợp với khối lớp chuyển đến'
+                      : 'Xác nhận phê duyệt chuyển lớp'
                 }
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs cursor-pointer"
               >
                 {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 <span>
                   {isDestinationFull
-                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa (MSG-078)'
+                    ? 'Lớp học mục tiêu đã đủ sĩ số tối đa'
                     : isAgeGroupMismatched
-                    ? 'Độ tuổi không phù hợp với khối lớp chuyển đến (MSG-079)'
-                    : 'Xác Nhận Phê Duyệt'}
+                      ? 'Độ tuổi không phù hợp với khối lớp chuyển đến'
+                      : 'Xác Nhận Phê Duyệt'}
                 </span>
               </button>
             </div>

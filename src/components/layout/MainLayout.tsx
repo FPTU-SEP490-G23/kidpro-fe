@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MobileBottomNav from './MobileBottomNav';
 import { ErrorBoundary } from '../common/ErrorBoundary';
+import ActiveAcademicYearGuard from '../common/ActiveAcademicYearGuard';
 
 export const MainLayout: React.FC = () => {
   return (
@@ -13,7 +14,9 @@ export const MainLayout: React.FC = () => {
         <Sidebar />
         <main className="flex-1 p-4 sm:p-6 md:p-8 pb-20 md:pb-8 overflow-y-auto max-w-7xl mx-auto w-full">
           <ErrorBoundary>
-            <Outlet />
+            <ActiveAcademicYearGuard>
+              <Outlet />
+            </ActiveAcademicYearGuard>
           </ErrorBoundary>
         </main>
       </div>
