@@ -28,6 +28,7 @@ import {
   Eye,
   Send,
   Undo2,
+  Trash2,
 } from 'lucide-react';
 import { classService } from '../../../services/classService';
 import { assignmentService } from '../../../services/assignmentService';
@@ -417,6 +418,35 @@ export const ClassManagementTab: React.FC = () => {
       }
     },
   });
+
+  // Xóa kế hoạch mở lớp khi giáo vụ add thừa lớp (ở trạng thái PENDING hoặc REJECTED)
+  const deleteProposalMutation = useMutation({
+    mutationFn: (id: string) => classService.deleteProposal(id),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['class-proposals'] });
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
+      success(res?.message || 'Đã xóa kế hoạch mở lớp thừa thành công.');
+      setIsProposalModalOpen(false);
+      setEditingProposal(null);
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Không thể xóa kế hoạch mở lớp.');
+    },
+  });
+
+  const handleDeleteProposal = (proposal: ClassProposalResponse) => {
+    if (proposal.status === 'PENDING_APPROVAL') {
+      error('Kế hoạch mở lớp đang trong đợt gửi Ban Giám hiệu phê duyệt. Vui lòng nhấn "Thu Hồi Duyệt" trước khi xóa lớp.');
+      return;
+    }
+    if (proposal.status === 'APPROVED') {
+      error('Kế hoạch mở lớp đã được Ban Giám hiệu phê duyệt chính thức. Không thể xóa.');
+      return;
+    }
+    if (window.confirm(`Bạn có chắc chắn muốn xóa kế hoạch mở lớp "${proposal.className}" không? Lớp học này sẽ được gỡ bỏ khỏi đợt kế hoạch.`)) {
+      deleteProposalMutation.mutate(proposal.id);
+    }
+  };
 
   // Lập dự thảo phân công giáo viên
   const draftAssignmentMutation = useMutation({
@@ -1020,14 +1050,27 @@ export const ClassManagementTab: React.FC = () => {
                               <CheckCircle className="w-3.5 h-3.5" /> Đã duyệt chính thức
                             </span>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => onOpenEditProposal(p)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-[#1E4D40] hover:text-white text-slate-700 font-bold rounded-xl transition inline-flex items-center gap-1 cursor-pointer"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                              <span>Sửa kế hoạch</span>
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => onOpenEditProposal(p)}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-[#1E4D40] hover:text-white text-slate-700 font-bold rounded-xl transition inline-flex items-center gap-1 cursor-pointer"
+                                title="Chỉnh sửa thông tin kế hoạch mở lớp"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                                <span>Sửa</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProposal(p)}
+                                disabled={deleteProposalMutation.isPending}
+                                className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 font-bold rounded-xl transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                title="Xóa kế hoạch mở lớp thừa"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Xóa</span>
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -1402,6 +1445,17 @@ export const ClassManagementTab: React.FC = () => {
 
               {/* Actions */}
               <div className="pt-3 border-t border-slate-100 flex gap-3">
+                {editingProposal && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProposal(editingProposal)}
+                    disabled={deleteProposalMutation.isPending}
+                    className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-xl transition text-xs flex items-center gap-1.5 min-h-[44px] cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Xóa lớp này</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setIsProposalModalOpen(false)}
