@@ -34,6 +34,25 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
     queryFn: () => teachingAssignmentApi.getApprovals(statusFilter),
   });
 
+  // Bản đồ kiểm tra tính đầy đủ nhân sự của từng lớp học (phải có cả GVCN và Phụ tá)
+  const classRosterStatusMap = React.useMemo(() => {
+    const map: Record<string, { hasHomeroom: boolean; hasAssistant: boolean }> = {};
+    assignments.forEach((item) => {
+      const key = item.classId || item.className;
+      if (!map[key]) {
+        map[key] = { hasHomeroom: false, hasAssistant: false };
+      }
+      if (item.status !== 'REJECTED') {
+        if (item.isHeadTeacher) {
+          map[key].hasHomeroom = true;
+        } else {
+          map[key].hasAssistant = true;
+        }
+      }
+    });
+    return map;
+  }, [assignments]);
+
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: (id: number) => teachingAssignmentApi.approveAssignment(id),
@@ -235,21 +254,66 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                       <strong>Lý do từ chối:</strong> {item.rejectionReason}
                     </div>
                   )}
+
+                  {/* Cảnh báo nếu lớp chưa phân công đủ GVCN và Phụ tá */}
+                  {(() => {
+                    const classKey = item.classId || item.className;
+                    const classRoster = classRosterStatusMap[classKey];
+                    const isMissingRole = classRoster && (!classRoster.hasHomeroom || !classRoster.hasAssistant);
+                    const missingMsg = isMissingRole
+                      ? (!classRoster.hasHomeroom && !classRoster.hasAssistant
+                          ? 'GVCN và Giáo viên Phụ tá'
+                          : !classRoster.hasHomeroom
+                          ? 'Giáo viên Chủ nhiệm (GVCN)'
+                          : 'Giáo viên Phụ tá')
+                      : null;
+
+                    if (isMissingRole && !isApproved) {
+                      return (
+                        <div className="mt-3 p-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold">Chưa đủ điều kiện duyệt:</span> Lớp học còn thiếu {missingMsg}.
+                            Cần phân công đủ cả GVCN và Phụ tá để phê duyệt.
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 {/* Nút Phê duyệt / Từ chối / Khôi phục Chờ duyệt */}
                 <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-                  {!isApproved && (
-                    <button
-                      type="button"
-                      onClick={() => approveMutation.mutate(item.assignmentId)}
-                      disabled={approveMutation.isPending}
-                      className="flex-1 min-w-[100px] py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Phê duyệt</span>
-                    </button>
-                  )}
+                  {!isApproved && (() => {
+                    const classKey = item.classId || item.className;
+                    const classRoster = classRosterStatusMap[classKey];
+                    const isMissingRole = classRoster && (!classRoster.hasHomeroom || !classRoster.hasAssistant);
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isMissingRole) {
+                            const missingMsg = (!classRoster.hasHomeroom && !classRoster.hasAssistant)
+                              ? 'GVCN và Giáo viên Phụ tá'
+                              : (!classRoster.hasHomeroom ? 'Giáo viên Chủ nhiệm (GVCN)' : 'Giáo viên Phụ tá');
+                            error(`Không thể phê duyệt: Lớp '${item.className}' hiện còn thiếu ${missingMsg}. Theo quy định, lớp phải có đủ cả GVCN và Phụ tá thì BGH mới phê duyệt.`);
+                            return;
+                          }
+                          approveMutation.mutate(item.assignmentId);
+                        }}
+                        disabled={approveMutation.isPending}
+                        title={isMissingRole ? 'Lớp chưa đủ GVCN và Phụ tá' : 'Phê duyệt phân công'}
+                        className={`flex-1 min-w-[100px] py-2 rounded-xl text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer ${
+                          isMissingRole ? 'bg-slate-400 hover:bg-slate-500' : 'bg-[#275A4E] hover:bg-[#1E4D40]'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Phê duyệt</span>
+                      </button>
+                    );
+                  })()}
 
                   {!isRejected && (
                     <button

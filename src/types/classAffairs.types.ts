@@ -28,6 +28,7 @@ export interface ClassSummary {
   maxCapacity: number;
   currentEnrollment: number;
   status: ClassStatus;
+  assignmentStatus?: 'NOT_ASSIGNED' | 'PENDING_APPROVAL' | 'APPROVED' | string;
   homeroomTeacherId?: string;
   homeroomTeacherName?: string;
   createdAt?: string;

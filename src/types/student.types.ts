@@ -15,7 +15,7 @@ export interface GuardianInfo {
   guardianId?: number;
   fullName: string;
   relationship: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   email?: string;
   isPrimary?: boolean;
   isAllowedPickup?: boolean;
@@ -62,6 +62,7 @@ export interface CreateStudentPayload {
   academicYearId?: string;
   notes?: string;
   avatarFileId?: string;
+  existingParentId?: string;
   guardians: GuardianInfo[];
 }
 

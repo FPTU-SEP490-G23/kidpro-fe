@@ -29,6 +29,7 @@ import {
 import { studentService } from '../../../services/studentService';
 import { classService } from '../../../services/classService';
 import { academicYearApi } from '../../../api/academicYearApi';
+import { parentAccountService } from '../../../services/parentAccountService';
 import { useToast } from '../../../contexts/ToastContext';
 import {
   StudentItem,
@@ -226,6 +227,41 @@ export const StudentAdmissionTab: React.FC = () => {
 
   const [createForm, setCreateForm] = useState<CreateStudentPayload>(defaultCreateForm);
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
+  const [isSelectParentModalOpen, setIsSelectParentModalOpen] = useState(false);
+  const [parentSearchTerm, setParentSearchTerm] = useState('');
+
+  // Fetch parent accounts when modal is open
+  const { data: parentAccounts = [], isLoading: isLoadingParentAccounts } = useQuery({
+    queryKey: ['parent-accounts-select', parentSearchTerm],
+    queryFn: () => parentAccountService.getAccounts(parentSearchTerm),
+    enabled: isSelectParentModalOpen,
+  });
+
+  const handleSelectExistingParent = (p: any) => {
+    const updated = [...createForm.guardians];
+    updated[0] = {
+      ...updated[0],
+      fullName: p.fullName || '',
+      phoneNumber: p.phoneNumber || '',
+      email: p.email || '',
+      isPrimary: true,
+      isAllowedPickup: true,
+    };
+    setCreateForm({
+      ...createForm,
+      existingParentId: p.parentId,
+      guardians: updated,
+    });
+    setIsSelectParentModalOpen(false);
+    success(`Đã chọn phụ huynh: ${p.fullName} (${p.email || p.phoneNumber})`);
+  };
+
+  const handleClearExistingParent = () => {
+    setCreateForm({
+      ...createForm,
+      existingParentId: undefined,
+    });
+  };
 
   // Tính tuổi cho form tạo mới
   const createAgeMonths = useMemo(() => {
@@ -328,33 +364,47 @@ export const StudentAdmissionTab: React.FC = () => {
       error('Vui lòng nhập họ tên người giám hộ chính.');
       return;
     }
-    if (!primary.phoneNumber.trim()) {
-      error('Vui lòng nhập số điện thoại người giám hộ chính.');
+    // Email là bắt buộc (Ảnh 1)
+    if (!primary.email || !primary.email.trim()) {
+      error('Vui lòng nhập địa chỉ email của người giám hộ chính (Bắt buộc).');
       return;
     }
-    const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-    if (!phoneRegex.test(primary.phoneNumber.trim())) {
-      error('Số điện thoại người giám hộ chính không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(primary.email.trim())) {
+      error('Địa chỉ email của người giám hộ chính không đúng định dạng.');
       return;
+    }
+
+    // SĐT là tùy chọn. Nếu nhập thì phải đúng định dạng 10 số
+    const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+    if (primary.phoneNumber && primary.phoneNumber.trim()) {
+      if (!phoneRegex.test(primary.phoneNumber.trim())) {
+        error('Số điện thoại người giám hộ chính không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
+        return;
+      }
     }
 
     // Kiểm tra người giám hộ phụ (nếu có khai báo)
     const secondary = createForm.guardians[1];
-    if (secondary && (secondary.fullName?.trim() || secondary.phoneNumber?.trim())) {
+    if (secondary && (secondary.fullName?.trim() || secondary.phoneNumber?.trim() || secondary.email?.trim())) {
       if (!secondary.fullName?.trim()) {
         error('Vui lòng nhập họ tên người giám hộ phụ.');
         return;
       }
-      if (!secondary.phoneNumber?.trim()) {
-        error('Vui lòng nhập số điện thoại người giám hộ phụ.');
+      if (secondary.email && secondary.email.trim() && !emailRegex.test(secondary.email.trim())) {
+        error('Địa chỉ email người giám hộ phụ không đúng định dạng.');
         return;
       }
-      if (!phoneRegex.test(secondary.phoneNumber.trim())) {
+      if (secondary.phoneNumber && secondary.phoneNumber.trim() && !phoneRegex.test(secondary.phoneNumber.trim())) {
         error('Số điện thoại người giám hộ phụ không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
         return;
       }
-      if (primary.phoneNumber.trim() === secondary.phoneNumber.trim()) {
+      if (primary.phoneNumber?.trim() && secondary.phoneNumber?.trim() && primary.phoneNumber.trim() === secondary.phoneNumber.trim()) {
         error('Số điện thoại của người giám hộ 1 và người giám hộ 2 không được trùng nhau.');
+        return;
+      }
+      if (primary.email.trim().toLowerCase() === secondary.email?.trim().toLowerCase()) {
+        error('Địa chỉ email của người giám hộ 1 và người giám hộ 2 không được trùng nhau.');
         return;
       }
     }
@@ -988,8 +1038,43 @@ export const StudentAdmissionTab: React.FC = () => {
               {/* BƯỚC 2: NGƯỜI GIÁM HỘ (PHỤ HUYNH) */}
               {createStep === 2 && (
                 <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="text-xs text-slate-600">
+                      Đã có tài khoản phụ huynh trong hệ thống? Chọn tài khoản có sẵn để liên kết:
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setParentSearchTerm('');
+                        setIsSelectParentModalOpen(true);
+                      }}
+                      className="px-3.5 py-1.5 bg-[#1E4D40] hover:bg-[#16382f] text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-[#78C2AD]" />
+                      <span>Chọn tài khoản phụ huynh đã tồn tại</span>
+                    </button>
+                  </div>
+
+                  {createForm.existingParentId && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>
+                          <strong>Đang liên kết với phụ huynh:</strong> {createForm.guardians[0]?.fullName} ({createForm.guardians[0]?.email || createForm.guardians[0]?.phoneNumber})
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleClearExistingParent}
+                        className="text-xs text-rose-600 hover:text-rose-800 font-bold underline cursor-pointer"
+                      >
+                        Bỏ liên kết
+                      </button>
+                    </div>
+                  )}
+
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-xs">
-                    <span className="font-bold">Quy tắc:</span> Bắt buộc phải có thông tin liên lạc của ít nhất 01 phụ huynh/người giám hộ để liên hệ trong các trường hợp khẩn cấp.
+                    <span className="font-bold">Quy tắc:</span> Bắt buộc phải có email liên lạc của ít nhất 01 phụ huynh/người giám hộ để cấp tài khoản và gửi thông báo. Số điện thoại là tùy chọn.
                   </div>
 
                   {createForm.guardians.map((g, idx) => (
@@ -1061,24 +1146,7 @@ export const StudentAdmissionTab: React.FC = () => {
 
                         <div>
                           <label className="block font-bold text-slate-700 mb-1">
-                            Số điện thoại (10 số) <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            value={g.phoneNumber}
-                            onChange={(e) => {
-                              const updated = [...createForm.guardians];
-                              updated[idx].phoneNumber = e.target.value;
-                              setCreateForm({ ...createForm, guardians: updated });
-                            }}
-                            placeholder="0912345678"
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">
-                            Địa chỉ Email
+                            Địa chỉ Email {idx === 0 ? <span className="text-rose-500">*</span> : '(Tùy chọn)'}
                           </label>
                           <input
                             type="email"
@@ -1089,6 +1157,23 @@ export const StudentAdmissionTab: React.FC = () => {
                               setCreateForm({ ...createForm, guardians: updated });
                             }}
                             placeholder="phuhuynh@gmail.com"
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">
+                            Số điện thoại liên hệ (Tùy chọn)
+                          </label>
+                          <input
+                            type="tel"
+                            value={g.phoneNumber || ''}
+                            onChange={(e) => {
+                              const updated = [...createForm.guardians];
+                              updated[idx].phoneNumber = e.target.value;
+                              setCreateForm({ ...createForm, guardians: updated });
+                            }}
+                            placeholder="0912345678 (Tùy chọn)"
                             className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                           />
                         </div>
@@ -1143,55 +1228,43 @@ export const StudentAdmissionTab: React.FC = () => {
                         <span className="font-bold">{createForm.guardians[0]?.fullName}</span>
                       </div>
                       <div>
-                        SĐT: <span className="font-bold">{createForm.guardians[0]?.phoneNumber}</span>
+                        Email: <span className="font-bold text-[#1E4D40]">{createForm.guardians[0]?.email}</span>
                       </div>
+                      {createForm.guardians[0]?.phoneNumber && (
+                        <div>
+                          SĐT: <span className="font-bold">{createForm.guardians[0]?.phoneNumber}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div>
                       <label className="block font-bold text-slate-700 mb-1">
-                        Khối lớp tiếp nhận <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        value={createForm.gradeLevel}
-                        onChange={(e) =>
-                          setCreateForm({
-                            ...createForm,
-                            gradeLevel: e.target.value as GradeLevel,
-                            classId: '',
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
-                      >
-                        <option value="TODDLER">Khối Nhà trẻ (12 - 36 tháng)</option>
-                        <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-                        <option value="KINDERGARTEN">Khối Chồi (4 - 5 tuổi)</option>
-                        <option value="PRE_K">Khối Lá (5 - 6 tuổi)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">
                         Lớp học tiếp nhận ban đầu (Tùy chọn)
                       </label>
                       <select
                         value={createForm.classId || ''}
-                        onChange={(e) =>
-                          setCreateForm({ ...createForm, classId: e.target.value })
-                        }
+                        onChange={(e) => {
+                          const cid = e.target.value;
+                          const selectedCls = allClasses.find((c) => c.id === cid);
+                          setCreateForm({
+                            ...createForm,
+                            classId: cid,
+                            gradeLevel: selectedCls ? selectedCls.gradeLevel : createForm.gradeLevel,
+                          });
+                        }}
                         className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                       >
                         <option value="">-- Để trống: Đưa vào danh sách "Chờ xếp lớp" (Khuyến nghị) --</option>
                         {allClasses
                           .filter(
                             (c) =>
-                              c.gradeLevel === createForm.gradeLevel &&
                               (!createForm.academicYearId || c.academicYearId === createForm.academicYearId)
                           )
                           .map((c) => (
                             <option key={c.id} value={c.id}>
-                              {c.name} (Sĩ số hiện tại: {c.currentEnrollment}/{c.maxCapacity})
+                              {c.name} ({GRADE_LABELS[c.gradeLevel]?.split(' ')[0] || c.gradeLevel}) (Sĩ số hiện tại: {c.currentEnrollment}/{c.maxCapacity})
                             </option>
                           ))}
                       </select>
@@ -1589,6 +1662,87 @@ export const StudentAdmissionTab: React.FC = () => {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
                 <span>Lưu Thay Đổi</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* MODAL CHỌN PHỤ HUYNH CÓ SẴN */}
+      {isSelectParentModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-[#1E4D40] flex items-center justify-center font-bold">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-800">Chọn Tài Khoản Phụ Huynh Đã Tồn Tại</h3>
+                  <p className="text-xs text-slate-500">Liên kết học sinh với phụ huynh đã có sẵn trong hệ thống</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSelectParentModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={parentSearchTerm}
+                onChange={(e) => setParentSearchTerm(e.target.value)}
+                placeholder="Tìm phụ huynh theo họ tên, email, SĐT..."
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+              />
+            </div>
+
+            <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+              {isLoadingParentAccounts ? (
+                <div className="p-8 text-center text-slate-400">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#1E4D40]" />
+                  <p className="text-xs mt-2">Đang tải danh sách phụ huynh...</p>
+                </div>
+              ) : parentAccounts.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  Không tìm thấy phụ huynh nào phù hợp.
+                </div>
+              ) : (
+                parentAccounts.map((p: any) => (
+                  <div
+                    key={p.parentId || p.accountId}
+                    onClick={() => handleSelectExistingParent(p)}
+                    className="p-3 rounded-xl border border-slate-200 hover:border-[#1E4D40] hover:bg-emerald-50/50 transition cursor-pointer flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="font-bold text-xs text-slate-800">{p.fullName}</div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                        {p.email && <span>✉️ {p.email}</span>}
+                        {p.phoneNumber && <span>📞 {p.phoneNumber}</span>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="px-2.5 py-1 bg-[#1E4D40] text-white text-[11px] font-bold rounded-lg hover:bg-[#16382f] cursor-pointer"
+                    >
+                      Chọn
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setIsSelectParentModalOpen(false)}
+                className="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 cursor-pointer"
+              >
+                Đóng
               </button>
             </div>
           </div>

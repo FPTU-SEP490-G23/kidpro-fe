@@ -311,6 +311,13 @@ export const ClassManagementTab: React.FC = () => {
     enabled: !!viewingAssignmentClass
   });
 
+  // Fetch phân công hiện tại của lớp đang được phân công để chặn trùng vai trò
+  const { data: assigningClassAssignments = [] } = useQuery({
+    queryKey: ['class-assignments-for-assigning', assigningClass?.id],
+    queryFn: () => assigningClass ? assignmentService.getAssignmentsByClass(assigningClass.id) : [],
+    enabled: !!assigningClass
+  });
+
   // =========================================================================
   // React Hook Forms
   // =========================================================================
@@ -606,6 +613,27 @@ export const ClassManagementTab: React.FC = () => {
     },
   });
 
+  // Xóa bản phân công giáo viên
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (assignmentId: number) => assignmentService.deleteAssignment(assignmentId),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['class-assignments-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['available-teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['class-assignments-for-assigning'] });
+      success(res?.message || 'Đã xóa bản phân công giáo viên thành công.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Không thể xóa bản phân công giáo viên.');
+    },
+  });
+
+  const handleDeleteAssignment = (assignmentId: number, teacherName: string) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa phân công cho giáo viên "${teacherName}" không?`)) {
+      deleteAssignmentMutation.mutate(assignmentId);
+    }
+  };
+
   // =========================================================================
   // Handlers
   // =========================================================================
@@ -742,6 +770,13 @@ export const ClassManagementTab: React.FC = () => {
   };
 
   const onSubmitAssign = (values: DraftAssignmentFormValues) => {
+    const isAlreadyInThisClass = assigningClassAssignments.some(
+      (a: any) => (a.teacherId === values.teacherId || a.staffId === values.teacherId) && a.status !== 'REJECTED'
+    );
+    if (isAlreadyInThisClass) {
+      error('Giáo viên này đã được phân công trong lớp này. Theo quy định, một giáo viên không thể cùng đảm nhận cả 2 vai trò GVCN và Phụ tá trong cùng một lớp.');
+      return;
+    }
     draftAssignmentMutation.mutate(values);
   };
 
@@ -1318,17 +1353,17 @@ export const ClassManagementTab: React.FC = () => {
                           )}
                         </td>
                         <td className="py-3.5 px-4">
-                          {!isApproved ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                              <Clock className="w-3 h-3" /> Chờ BGH duyệt lớp
-                            </span>
-                          ) : c.homeroomTeacherName && c.homeroomTeacherName !== 'Chưa phân công' ? (
+                          {c.assignmentStatus === 'APPROVED' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                               <CheckCircle className="w-3 h-3" /> Đã phân công
                             </span>
-                          ) : (
+                          ) : c.assignmentStatus === 'PENDING_APPROVAL' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                              <AlertTriangle className="w-3 h-3" /> Cần phân công
+                              <Clock className="w-3 h-3" /> Chờ BGH duyệt
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                              <AlertTriangle className="w-3 h-3" /> Chưa phân công
                             </span>
                           )}
                         </td>
@@ -1801,14 +1836,18 @@ export const ClassManagementTab: React.FC = () => {
                   {availableTeachers.map((t) => {
                     const isLocked = t.status !== 'ACTIVE';
                     const hasConflict = t.isAssignedHomeroom;
+                    const isAlreadyInThisClass = assigningClassAssignments.some(
+                      (a: any) => (a.teacherId === t.id || a.staffId === t.id) && a.status !== 'REJECTED'
+                    );
                     return (
                       <option
                         key={t.id}
                         value={t.id}
-                        disabled={isLocked}
+                        disabled={isLocked || isAlreadyInThisClass}
                       >
                         {t.fullName} ({t.staffCode || 'GV'}) - Trạng thái: {t.status}
                         {hasConflict ? ` [Đã làm GVCN: ${t.currentHomeroomClassName}]` : ''}
+                        {isAlreadyInThisClass ? ' [⚠️ Đã được phân công trong lớp này]' : ''}
                       </option>
                     );
                   })}
@@ -1981,6 +2020,7 @@ export const ClassManagementTab: React.FC = () => {
                           <th className="py-2.5 px-3">Giáo Viên</th>
                           <th className="py-2.5 px-3">Mã GV</th>
                           <th className="py-2.5 px-3">Trạng Thái</th>
+                          <th className="py-2.5 px-3 text-right">Thao Tác</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -2004,6 +2044,22 @@ export const ClassManagementTab: React.FC = () => {
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                                   <Clock className="w-3 h-3" /> Dự thảo
                                 </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-right">
+                              {a.status !== 'APPROVED' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAssignment(a.id, a.teacherName)}
+                                  disabled={deleteAssignmentMutation.isPending}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition cursor-pointer"
+                                  title="Xóa bản phân công này"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  <span>Xóa</span>
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">Đã duyệt (bất biến)</span>
                               )}
                             </td>
                           </tr>
