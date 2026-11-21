@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getRoleDisplayName, getRoleBadgeColor } from '../../utils/formatters';
 import {
@@ -16,12 +16,14 @@ import {
   Clock,
   Paperclip,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
 import { notificationApi, AppNotification } from '../../api/notificationApi';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();
+  const navigate = useNavigate();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -98,6 +100,14 @@ export const Navbar: React.FC = () => {
     const allIds = notifications.map((n) => n.notificationId);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     await notificationApi.markAllAsRead(allIds, user?.id);
+  };
+
+  // Điều hướng chuyển trang khi bấm vào nút tác vụ liên kết
+  const handleNavigateToAction = (actionUrl?: string) => {
+    if (!actionUrl) return;
+    setIsNotificationOpen(false);
+    setSelectedNotification(null);
+    navigate(actionUrl);
   };
 
   // Định dạng thời gian
@@ -260,9 +270,26 @@ export const Navbar: React.FC = () => {
                             {n.body}
                           </p>
 
-                          <div className="flex items-center justify-between pt-0.5 text-[10px] text-slate-400">
-                            <span>{n.authorName || 'Hệ thống'}</span>
-                            <span>{formatTime(n.createdAt)}</span>
+                          <div className="flex items-center justify-between pt-0.5 text-[10px]">
+                            <span className="text-slate-400">{n.authorName || 'Hệ thống'}</span>
+                            <div className="flex items-center gap-2">
+                              {n.actionUrl && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectNotification(n);
+                                    handleNavigateToAction(n.actionUrl);
+                                  }}
+                                  className="text-[10px] font-bold text-[#275A4E] hover:underline flex items-center gap-0.5 cursor-pointer"
+                                  title="Chuyển đến trang làm việc liên quan"
+                                >
+                                  <span>Xử lý ngay</span>
+                                  <span>→</span>
+                                </button>
+                              )}
+                              <span className="text-slate-400">{formatTime(n.createdAt)}</span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -426,6 +453,27 @@ export const Navbar: React.FC = () => {
                 {selectedNotification.body}
               </div>
 
+              {selectedNotification.actionUrl && (
+                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+                  <div>
+                    <p className="font-bold text-[#1E4D40] flex items-center gap-1.5">
+                      <span>Nghiệp vụ liên kết trực tiếp</span>
+                    </p>
+                    <p className="text-[11px] text-emerald-800 mt-0.5">
+                      Bạn có thể chuyển hướng nhanh tới trang để xem chi tiết và phê duyệt / xử lý.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleNavigateToAction(selectedNotification.actionUrl)}
+                    className="px-3.5 py-1.5 bg-[#275A4E] hover:bg-[#1E4D40] text-white rounded-xl font-bold transition shrink-0 ml-2 flex items-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    <span>Đi tới trang</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {selectedNotification.attachmentName && (
                 <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-emerald-900 font-semibold truncate">
@@ -457,16 +505,29 @@ export const Navbar: React.FC = () => {
                 className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Xóa thông báo này</span>
+                <span>Xóa thông báo</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setSelectedNotification(null)}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#275A4E] hover:bg-[#1E4D40] text-white transition shadow-2xs cursor-pointer"
-              >
-                Đóng
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedNotification.actionUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavigateToAction(selectedNotification.actionUrl)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#275A4E] hover:bg-[#1E4D40] text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  >
+                    <span>Xem & xử lý ngay</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedNotification(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
           </div>
         </div>

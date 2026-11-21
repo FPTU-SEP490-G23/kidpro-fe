@@ -10,9 +10,94 @@ export interface AppNotification {
   authorName?: string;
   attachmentName?: string;
   attachmentUrl?: string;
+  actionUrl?: string;
 }
 
 const STORAGE_KEY_PREFIX = 'kidpro_notifications_read_deleted_';
+
+// Tự động suy luận đường dẫn điều hướng chuyển trang theo nội dung và vai trò
+export const inferNotificationActionUrl = (title: string, body: string, role?: string | null): string | undefined => {
+  const combined = (title + ' ' + body).toLowerCase();
+
+  // 1. Phê duyệt & Kế hoạch mở lớp
+  if (combined.includes('kế hoạch mở lớp') || combined.includes('mở lớp') || combined.includes('phê duyệt lớp')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/class-approvals';
+    }
+    return '/academic?subtab=proposals';
+  }
+
+  // 2. Thực đơn tuần & Bán trú
+  if (combined.includes('thực đơn') || combined.includes('khẩu phần') || combined.includes('dinh dưỡng')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/menu-approvals';
+    }
+    return '/kitchen/menus';
+  }
+
+  // 3. Suất ăn & Dị ứng & Lưu mẫu thực phẩm
+  if (combined.includes('suất ăn') || combined.includes('dị ứng') || combined.includes('lưu mẫu')) {
+    if (role === 'BEP' || role === 'KITCHEN_STAFF') {
+      return '/kitchen/allergies';
+    }
+    return '/kitchen/safety';
+  }
+
+  // 4. Học phí & Quyết toán & Hóa đơn
+  if (combined.includes('học phí') || combined.includes('hóa đơn') || combined.includes('quyết toán') || combined.includes('tiền ăn') || combined.includes('công nợ')) {
+    if (role === 'KE_TOAN' || role === 'ACCOUNTANT') {
+      return '/finance/billing-engine';
+    }
+    if (role === 'PHU_HUYNH' || role === 'PARENT') {
+      return '/parent/tuition';
+    }
+    return '/finance/payments';
+  }
+
+  // 5. Phân công giáo viên
+  if (combined.includes('phân công') || combined.includes('giáo viên chủ nhiệm')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/teaching-assignments';
+    }
+    return '/academic?subtab=assignments';
+  }
+
+  // 6. Thời khóa biểu
+  if (combined.includes('thời khóa biểu') || combined.includes('tiết học')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/timetable-approvals';
+    }
+    return '/academic/timetables';
+  }
+
+  // 7. Chuyển lớp
+  if (combined.includes('chuyển lớp')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/academic-approvals';
+    }
+    return '/academic/transfers';
+  }
+
+  // 8. Cấp tài khoản phụ huynh & học sinh
+  if (combined.includes('tài khoản phụ huynh') || combined.includes('liên kết con')) {
+    return '/academic/parent-accounts';
+  }
+
+  // 9. Điểm danh & Đón trả
+  if (combined.includes('điểm danh') || combined.includes('đến lớp') || combined.includes('vắng mặt') || combined.includes('đón trả')) {
+    if (role === 'PHU_HUYNH' || role === 'PARENT') {
+      return '/parent/daily-care';
+    }
+    return '/teacher/attendance';
+  }
+
+  // 10. Thông báo toàn trường & Cảnh báo
+  if (combined.includes('thông báo') || combined.includes('bản tin') || combined.includes('nghỉ lễ') || combined.includes('khẩn cấp')) {
+    return '/announcements';
+  }
+
+  return undefined;
+};
 
 // Tạo danh sách thông báo mặc định theo vai trò nếu backend trả về rỗng
 export const getRoleDefaultNotifications = (role?: string | null): AppNotification[] => {
@@ -29,6 +114,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(15),
         type: 'ATTENDANCE',
         authorName: 'Hệ thống Quản lý Bán trú',
+        actionUrl: '/kitchen/meals',
       },
       {
         notificationId: 102,
@@ -38,6 +124,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(60),
         type: 'REQUEST',
         authorName: 'Y tế Học đường',
+        actionUrl: '/kitchen/allergies',
       },
       {
         notificationId: 103,
@@ -47,6 +134,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(180),
         type: 'GENERAL',
         authorName: 'Ban Giám Hiệu',
+        actionUrl: '/kitchen/safety',
       },
       {
         notificationId: 104,
@@ -56,6 +144,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(300),
         type: 'GENERAL',
         authorName: 'Thủ kho thực phẩm',
+        actionUrl: '/kitchen/inventory',
       },
       {
         notificationId: 105,
@@ -65,6 +154,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(1440),
         type: 'ANNOUNCEMENT',
         authorName: 'Ban Giám Hiệu',
+        actionUrl: '/kitchen/menus',
       },
       {
         notificationId: 106,
@@ -74,6 +164,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(2880),
         type: 'GENERAL',
         authorName: 'Quản lý Bếp',
+        actionUrl: '/kitchen/safety',
       },
     ];
   }
@@ -88,6 +179,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(25),
         type: 'BILLING',
         authorName: 'Phần mềm Tài chính KidPro',
+        actionUrl: '/finance/billing-engine',
       },
       {
         notificationId: 202,
@@ -97,6 +189,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(90),
         type: 'BILLING',
         authorName: 'Cổng thanh toán tự động',
+        actionUrl: '/finance/payments',
       },
       {
         notificationId: 203,
@@ -106,6 +199,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(220),
         type: 'REQUEST',
         authorName: 'Ban Giám Hiệu',
+        actionUrl: '/finance/tuition-rates',
       },
       {
         notificationId: 204,
@@ -115,6 +209,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(480),
         type: 'BILLING',
         authorName: 'Cán bộ Giáo vụ',
+        actionUrl: '/finance/refunds',
       },
       {
         notificationId: 205,
@@ -124,6 +219,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(1500),
         type: 'GENERAL',
         authorName: 'Hệ thống Kế toán',
+        actionUrl: '/finance/reports',
       },
       {
         notificationId: 206,
@@ -133,6 +229,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(3000),
         type: 'GENERAL',
         authorName: 'Phòng Kế toán',
+        actionUrl: '/finance/suppliers',
       },
     ];
   }
@@ -147,6 +244,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(20),
         type: 'ANNOUNCEMENT',
         authorName: 'Cán bộ Giáo vụ',
+        actionUrl: role === 'BGH' ? '/bgh/class-approvals' : '/academic?subtab=proposals',
       },
       {
         notificationId: 302,
@@ -156,6 +254,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(80),
         type: 'REQUEST',
         authorName: 'Bộ phận Tuyển sinh',
+        actionUrl: role === 'BGH' ? '/bgh/academic-approvals' : '/academic/transfers',
       },
       {
         notificationId: 303,
@@ -165,6 +264,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(240),
         type: 'ANNOUNCEMENT',
         authorName: 'Thầy Hiệu Trưởng',
+        actionUrl: '/announcements',
       },
       {
         notificationId: 304,
@@ -174,6 +274,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(500),
         type: 'GENERAL',
         authorName: 'Tổ chuyên môn Mầm non',
+        actionUrl: role === 'BGH' ? '/bgh/timetable-approvals' : '/academic/timetables',
       },
       {
         notificationId: 305,
@@ -183,6 +284,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(1600),
         type: 'GENERAL',
         authorName: 'Quản trị Thiết bị & CSVC',
+        actionUrl: role === 'BGH' ? '/bgh/school-setup' : '/academic/equipment',
       },
       {
         notificationId: 306,
@@ -192,6 +294,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
         createdAt: formatTime(3200),
         type: 'GENERAL',
         authorName: 'Cán bộ Giáo vụ',
+        actionUrl: '/academic/parent-accounts',
       },
     ];
   }
@@ -206,6 +309,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(10),
       type: 'GENERAL',
       authorName: 'Trung tâm Vận hành Hệ thống',
+      actionUrl: '/admin/system-health',
     },
     {
       notificationId: 402,
@@ -215,6 +319,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(45),
       type: 'ANNOUNCEMENT',
       authorName: 'Ban Giám Hiệu',
+      actionUrl: '/announcements',
     },
     {
       notificationId: 403,
@@ -224,6 +329,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(350),
       type: 'GENERAL',
       authorName: 'Robot Backup Tự Động',
+      actionUrl: '/admin/audit-logs',
     },
     {
       notificationId: 404,
@@ -233,6 +339,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(720),
       type: 'GENERAL',
       authorName: 'Hệ thống Bảo mật An ninh',
+      actionUrl: '/admin/users',
     },
     {
       notificationId: 405,
@@ -242,6 +349,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(1800),
       type: 'GENERAL',
       authorName: 'Phân hệ Quản trị',
+      actionUrl: '/bgh/school-setup',
     },
     {
       notificationId: 406,
@@ -251,6 +359,7 @@ export const getRoleDefaultNotifications = (role?: string | null): AppNotificati
       createdAt: formatTime(3600),
       type: 'GENERAL',
       authorName: 'Quản trị viên Hệ thống',
+      actionUrl: '/admin/system-health',
     },
   ];
 };
@@ -273,17 +382,23 @@ export const notificationApi = {
     try {
       const res: any = await axiosClient.get('/notifications');
       const raw = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-      remoteList = raw.map((item: any) => ({
-        notificationId: Number(item.notificationId || item.id || 0),
-        title: item.title || '',
-        body: item.body || item.content || '',
-        isRead: Boolean(item.isRead),
-        createdAt: item.createdAt || new Date().toISOString(),
-        type: item.type || 'GENERAL',
-        authorName: item.authorName || 'Nhà trường',
-        attachmentName: item.attachmentName,
-        attachmentUrl: item.attachmentUrl,
-      }));
+      remoteList = raw.map((item: any) => {
+        const title = item.title || '';
+        const body = item.body || item.content || '';
+        const actionUrl = item.actionUrl || inferNotificationActionUrl(title, body, role);
+        return {
+          notificationId: Number(item.notificationId || item.id || 0),
+          title,
+          body,
+          isRead: Boolean(item.isRead),
+          createdAt: item.createdAt || new Date().toISOString(),
+          type: item.type || 'GENERAL',
+          authorName: item.authorName || 'Nhà trường',
+          attachmentName: item.attachmentName,
+          attachmentUrl: item.attachmentUrl,
+          actionUrl,
+        };
+      });
     } catch (err) {
       console.warn('Lỗi kết nối /notifications, chuyển sang nạp thông báo hệ thống:', err);
     }
