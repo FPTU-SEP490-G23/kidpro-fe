@@ -53,6 +53,13 @@ export const classApprovalApi = {
     const res: any = await axiosClient.post('/bgh/classes/batch-reject', rejections);
     return res?.data || res;
   },
+
+  // BGH Khôi phục toàn bộ kế hoạch mở lớp về Chờ duyệt
+  resetAllPendingClasses: async (academicYearId?: string): Promise<{ message: string; resetCount: number }> => {
+    const params = academicYearId ? `?academicYearId=${academicYearId}` : '';
+    const res: any = await axiosClient.post(`/bgh/classes/reset-all-pending${params}`);
+    return res?.data || res;
+  },
 };
 
 export default classApprovalApi;

@@ -39,34 +39,12 @@ const getStoredYears = (): AcademicYear[] => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (err) {
     console.warn('Lỗi đọc academic years từ localStorage:', err);
   }
-  return [
-    {
-      id: 'c1111111-1111-1111-1111-111111111111',
-      name: '2026-2027',
-      startDate: '2026-09-01',
-      endDate: '2027-05-31',
-      term1Start: '2026-09-01',
-      term1End: '2027-01-15',
-      term2Start: '2027-01-18',
-      term2End: '2027-05-31',
-      nurseryQuota: 45,
-      mamQuota: 75,
-      choiQuota: 85,
-      laQuota: 95,
-      totalQuota: 300,
-      enrolledCount: 268,
-      maxSchoolCapacity: 350,
-      status: 'ACTIVE',
-      notes: 'Niên khóa hiện hành đang vận hành theo chuẩn Bộ GD&ĐT.',
-      createdAt: '2026-06-15T08:00:00Z',
-      updatedAt: '2026-09-01T08:00:00Z',
-    },
-  ];
+  return [];
 };
 
 const saveStoredYears = (list: AcademicYear[]): void => {
@@ -83,53 +61,48 @@ export const academicYearApi = {
     try {
       const res: any = await axiosClient.get('/academic-years');
       const rawList = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-      if (rawList && rawList.length > 0) {
-        const mappedList = rawList.map(mapBackendToAcademicYear);
-        saveStoredYears(mappedList);
-        return status && status !== 'ALL' ? mappedList.filter((y: AcademicYear) => y.status === status) : mappedList;
-      }
+      const mappedList = rawList.map(mapBackendToAcademicYear);
+      saveStoredYears(mappedList);
+      return status && status !== 'ALL' ? mappedList.filter((y: AcademicYear) => y.status === status) : mappedList;
     } catch (err) {
-      console.warn('Lỗi gọi GET /api/academic-years, sử dụng dữ liệu lưu trữ:', err);
+      console.warn('Lỗi gọi GET /api/academic-years, kiểm tra bộ nhớ tạm:', err);
+      const currentList = getStoredYears();
+      if (status && status !== 'ALL') {
+        return currentList.filter((y: AcademicYear) => y.status === status);
+      }
+      return currentList;
     }
-
-    const currentList = getStoredYears();
-    if (status && status !== 'ALL') {
-      return currentList.filter((y: AcademicYear) => y.status === status);
-    }
-    return currentList;
   },
 
   // Lấy thông tin niên khóa hiện hành đang kích hoạt (ACTIVE)
   async getActiveAcademicYear(): Promise<AcademicYear | null> {
     try {
       const res: any = await axiosClient.get('/academic-years/active');
-      const item = res?.data || res;
+      const item = res?.data !== undefined ? res.data : res;
+      if (!item || item === null) {
+        return null;
+      }
       if (item && (item.academicYearId || item.id) && item.isActive !== false && item.status !== 'CLOSED') {
         return mapBackendToAcademicYear(item);
       }
+      return null;
     } catch (err) {
-      console.warn('Lỗi gọi GET /api/academic-years/active (chưa có niên khóa hoạt động):', err);
       return null;
     }
-
-    const list = getStoredYears();
-    return list.find((y: AcademicYear) => y.status === 'ACTIVE') || null;
   },
 
   // Lấy chi tiết niên khóa theo ID
   async getAcademicYearById(id: string): Promise<AcademicYear | null> {
     try {
       const res: any = await axiosClient.get(`/academic-years/${id}`);
-      const item = res?.data || res;
+      const item = res?.data !== undefined ? res.data : res;
       if (item && (item.academicYearId || item.id)) {
         return mapBackendToAcademicYear(item);
       }
     } catch (err) {
       console.warn(`Lỗi gọi GET /api/academic-years/${id}:`, err);
     }
-
-    const list = getStoredYears();
-    return list.find((y: AcademicYear) => y.id === id) || null;
+    return null;
   },
 
   // Tạo mới niên khóa học (BR-005)
