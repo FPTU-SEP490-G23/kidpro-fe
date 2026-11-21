@@ -143,6 +143,14 @@ export const classService = {
     return res;
   },
 
+  /**
+   * Giáo vụ xóa kế hoạch mở lớp học (khi ở trạng thái Dự thảo PENDING hoặc Bị từ chối REJECTED)
+   */
+  deleteProposal: async (id: string): Promise<ApiResponse<any>> => {
+    const res: any = await axiosClient.delete(`/classes/proposals/${id}`);
+    return res;
+  },
+
   // =========================================================================
   // Đóng & Lưu trữ Hồ sơ Lớp học
   // =========================================================================

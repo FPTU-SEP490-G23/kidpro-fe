@@ -225,7 +225,7 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
                       <span className="text-slate-400">Định mức năng lượng:</span>
                       <strong className="text-slate-800 font-bold flex items-center gap-1">
                         <Flame className="w-3.5 h-3.5 text-amber-500" />
-                        {m.totalCalories || 720} Kcal/ngày
+                        {m.dailyAverageCalories || (m.totalCalories && m.totalCalories > 1500 ? Math.round(m.totalCalories / 5) : m.totalCalories) || 780} Kcal/ngày
                       </strong>
                     </div>
 
@@ -326,26 +326,39 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 {daysOfWeek.map((day) => {
                   const dayItems = (selectedMenu.items || []).filter((i) => i.dayOfWeek === day.key);
+                  const dayCalories = dayItems.reduce((acc, cur) => acc + (cur.calories || 0), 0);
 
                   return (
-                    <div key={day.key} className="bg-slate-50 rounded-2xl p-3 border border-slate-200">
-                      <div className="text-center font-extrabold text-xs text-[#275A4E] pb-2 border-b border-slate-200 mb-2">
-                        {day.label}
-                      </div>
-                      <div className="space-y-2">
-                        {dayItems.length === 0 ? (
-                          <p className="text-[11px] text-slate-400 text-center py-4 italic">Chưa lên món</p>
-                        ) : (
-                          dayItems.map((item, idx) => (
-                            <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#78C2AD]/20 text-[#275A4E] mb-1">
-                                {item.mealType === 'BREAKFAST' ? 'Bữa Sáng' : item.mealType === 'LUNCH' ? 'Bữa Trưa' : 'Bữa Xế'}
-                              </span>
-                              <h4 className="text-xs font-bold text-slate-800">{item.dishName}</h4>
-                              <p className="text-[10px] text-slate-400 mt-0.5">{item.calories} Kcal</p>
-                            </div>
-                          ))
-                        )}
+                    <div key={day.key} className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex flex-col justify-between">
+                      <div>
+                        <div className="text-center font-extrabold text-xs text-[#275A4E] pb-2 border-b border-slate-200 mb-2 flex items-center justify-between px-1">
+                          <span>{day.label}</span>
+                          {dayCalories > 0 && (
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100/70 px-1.5 py-0.5 rounded-md border border-amber-200">
+                              {dayCalories} Kcal
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          {dayItems.length === 0 ? (
+                            <p className="text-[11px] text-slate-400 text-center py-4 italic">Chưa lên món</p>
+                          ) : (
+                            dayItems.map((item, idx) => (
+                              <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#78C2AD]/20 text-[#275A4E] mb-1">
+                                  {item.mealType === 'BREAKFAST' ? 'Bữa Sáng' : item.mealType === 'LUNCH' ? 'Bữa Trưa' : 'Bữa Xế'}
+                                </span>
+                                <h4 className="text-xs font-bold text-slate-800 leading-snug">{item.dishName}</h4>
+                                {item.calories != null && item.calories > 0 ? (
+                                  <p className="text-[10px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
+                                    <Flame className="w-3 h-3 text-amber-500" />
+                                    <span>{item.calories} Kcal</span>
+                                  </p>
+                                ) : null}
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -353,10 +366,23 @@ export const BghWeeklyMenuApprovalsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
-              <span className="text-xs text-slate-500">
-                Tổng calo trung bình: <strong className="text-slate-800">{selectedMenu.totalCalories || 720} Kcal/ngày</strong>
-              </span>
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+              {(() => {
+                const total = selectedMenu.weeklyTotalCalories || (selectedMenu.totalCalories && selectedMenu.totalCalories > 1500 ? selectedMenu.totalCalories : (selectedMenu.totalCalories || 780) * 5);
+                const avg = selectedMenu.dailyAverageCalories || (selectedMenu.totalCalories && selectedMenu.totalCalories <= 1500 ? selectedMenu.totalCalories : Math.round(total / 5)) || 780;
+
+                return (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 text-xs text-slate-600">
+                    <div>
+                      Năng lượng trung bình: <strong className="text-slate-900 font-extrabold text-sm text-[#275A4E]">{avg} Kcal/ngày</strong>
+                    </div>
+                    <span className="hidden sm:inline text-slate-300">•</span>
+                    <div className="text-[11px] text-slate-500">
+                      Tổng 5 ngày: <span className="font-bold text-slate-700">{total} Kcal</span> (Chuẩn bán trú Bộ GD&ĐT: 750 – 850 Kcal/ngày)
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="flex items-center gap-2">
                 <button

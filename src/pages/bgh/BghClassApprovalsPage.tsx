@@ -39,7 +39,7 @@ export const BghClassApprovalsPage: React.FC = () => {
 
   // Danh sách các lớp đang chờ duyệt trong đợt này
   const pendingClasses = React.useMemo(() => {
-    return classes.filter(c => c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING');
+    return classes.filter(c => c.status === 'PENDING_APPROVAL');
   }, [classes]);
 
   // Phê duyệt toàn bộ các lớp đang chờ duyệt
@@ -60,7 +60,7 @@ export const BghClassApprovalsPage: React.FC = () => {
       classApprovalApi.batchRejectClasses(rejections),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'Đã gửi quyết định từ chối các lớp học được chọn về cho Cán bộ Giáo vụ.');
+      success(res?.message || 'Đã từ chối toàn bộ kế hoạch mở lớp và trả lại cho Cán bộ Giáo vụ.');
       setIsBatchRejectModalOpen(false);
       setSelectedRejectionMap({});
     },
@@ -125,15 +125,15 @@ export const BghClassApprovalsPage: React.FC = () => {
     },
   });
 
-  // Reset to pending mutation
-  const resetMutation = useMutation({
-    mutationFn: (classId: string) => classApprovalApi.resetPendingClass(classId),
-    onSuccess: (res) => {
+  // Reset ALL to pending mutation
+  const resetAllMutation = useMutation({
+    mutationFn: () => classApprovalApi.resetAllPendingClasses(),
+    onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'Đã khôi phục kế hoạch mở lớp về trạng thái Chờ phê duyệt (PENDING) thành công.');
+      success(res?.message || 'Đã thu hồi phê duyệt toàn bộ kế hoạch mở lớp về trạng thái Dự thảo (PENDING) để Giáo vụ chỉnh sửa.');
     },
     onError: (err: any) => {
-      error(err?.response?.data?.message || 'Không thể khôi phục trạng thái lớp');
+      error(err?.response?.data?.message || 'Không thể khôi phục trạng thái đợt kế hoạch');
     },
   });
 
@@ -194,7 +194,7 @@ export const BghClassApprovalsPage: React.FC = () => {
       </div>
 
       {/* Batch Action Bar cho BGH khi có đợt kế hoạch chờ duyệt */}
-      {pendingClasses.length > 0 && (
+      {pendingClasses.length > 0 ? (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs animate-in fade-in">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
@@ -205,7 +205,7 @@ export const BghClassApprovalsPage: React.FC = () => {
                 Đợt Kế Hoạch Mở Lớp Chờ Duyệt Tập Trung ({pendingClasses.length} lớp học)
               </h4>
               <p className="text-xs text-slate-600">
-                Giáo vụ đã tính toán và gửi toàn bộ danh sách lớp. BGH có thể duyệt toàn bộ hoặc từ chối từng lớp cụ thể.
+                Giáo vụ đã tính toán và gửi toàn bộ danh sách lớp. BGH duyệt toàn bộ hoặc từ chối đợt kế hoạch để trả lại cho Giáo vụ điều chỉnh.
               </p>
             </div>
           </div>
@@ -234,7 +234,32 @@ export const BghClassApprovalsPage: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      ) : (statusFilter === 'APPROVED' || statusFilter === 'REJECTED') && classes.length > 0 ? (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-3xl bg-slate-50 border border-slate-200 shadow-2xs animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+              <RotateCcw className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-800">
+                Quản lý đợt lớp {statusFilter === 'APPROVED' ? 'Đã phê duyệt' : 'Bị từ chối'} ({classes.length} lớp học)
+              </h4>
+              <p className="text-xs text-slate-500">
+                Nếu phát hiện sai sót cần thu hồi toàn bộ đợt kế hoạch để Giáo vụ chỉnh sửa lại, BGH có thể nhấn nút khôi phục đợt bên cạnh.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => resetAllMutation.mutate()}
+            disabled={resetAllMutation.isPending}
+            className="px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50 min-h-[40px] shrink-0"
+          >
+            {resetAllMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+            <span>Khôi Phục Cả Đợt Về Chờ Duyệt</span>
+          </button>
+        </div>
+      ) : null}
 
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
@@ -278,7 +303,7 @@ export const BghClassApprovalsPage: React.FC = () => {
           {classes.map((c) => {
             const isApproved = c.status === 'APPROVED';
             const isRejected = c.status === 'REJECTED';
-            const isPending = c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING';
+            const isPending = c.status === 'PENDING_APPROVAL';
 
             return (
               <div
@@ -345,21 +370,7 @@ export const BghClassApprovalsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Nút thao tác trên thẻ lớp học: Toàn bộ phê duyệt và từ chối thực hiện tập trung trên thanh tác vụ, chỉ giữ nút Khôi phục khi đã duyệt hoặc từ chối */}
-                {(isApproved || isRejected) && (
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => resetMutation.mutate(c.classId)}
-                      disabled={resetMutation.isPending}
-                      title="Khôi phục trạng thái về Chờ phê duyệt (PENDING) trong trường hợp duyệt nhầm"
-                      className="px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Khôi phục Chờ duyệt</span>
-                    </button>
-                  </div>
-                )}
+
               </div>
             );
           })}
