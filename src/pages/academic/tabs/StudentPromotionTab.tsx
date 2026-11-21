@@ -214,7 +214,7 @@ export const StudentPromotionTab: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Quy Trình Kết Chuyển Học Sinh Đầu Năm</h2>
               <p className="text-xs text-slate-500">
-                Lũy tiến khối theo niên khóa: Nhà trẻ $\rightarrow$ Mầm $\rightarrow$ Chồi $\rightarrow$ Lá $\rightarrow$ Tốt nghiệp
+                Lũy tiến khối theo niên khóa: Nhà trẻ → Mầm → Chồi → Lá → Tốt nghiệp
               </p>
             </div>
           </div>
@@ -577,9 +577,9 @@ export const StudentPromotionTab: React.FC = () => {
                   Lưu ý nghiệp vụ:
                 </p>
                 <p>
-                  Toàn bộ học sinh được nâng khối sẽ được reset lớp học cũ (<code className="bg-amber-100 px-1 py-0.5 rounded">class_id = null</code>)
-                  và đưa về danh sách <strong>"Chờ xếp lớp (WAITING_PLACEMENT)"</strong> của khối mới trong niên khóa tiếp nhận.
-                  Lịch sử kết chuyển sẽ được ghi nhận vào hệ thống.
+                  Học sinh sau khi kết chuyển thành công sẽ hoàn thành chương trình của năm học trước và được chuyển lên khối lớp mới.
+                  Nhà trường sẽ đưa học sinh vào danh sách <strong>"Chờ phân lớp"</strong> của khối mới trong năm học tiếp nhận để giáo vụ tiến hành xếp lớp.
+                  Toàn bộ quá trình và kết quả kết chuyển được lưu trữ đầy đủ trong hồ sơ học bạ điện tử của học sinh.
                 </p>
               </div>
 

@@ -189,7 +189,11 @@ export const TuitionCalculationTab: React.FC = () => {
     try {
       const res = await tuitionSummaryApi.getTuitionSummary({ month: selectedMonth, year: selectedYear });
       const data = (res as any)?.data || res;
-      setSummaryStatus(data?.status || 'DRAFT');
+      if (!data || data.status === 'NOT_INITIALIZED' || data.status === 'REJECTED' || data.status === 'PENDING_APPROVAL') {
+        setSummaryStatus(data?.status || 'DRAFT');
+      } else {
+        setSummaryStatus(data.status || 'DRAFT');
+      }
     } catch (e) {
       setSummaryStatus('DRAFT');
     }
@@ -200,6 +204,8 @@ export const TuitionCalculationTab: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Reset immediately to DRAFT on period switch to avoid holding obsolete APPROVED state
+    setSummaryStatus('DRAFT');
     fetchInvoices();
     fetchSummaryStatus();
   }, [selectedMonth, selectedYear, selectedClassId, statusFilter]);

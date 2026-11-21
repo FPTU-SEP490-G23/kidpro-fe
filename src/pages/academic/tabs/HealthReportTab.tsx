@@ -125,21 +125,22 @@ export const HealthReportTab: React.FC = () => {
 
     try {
       setExporting(true);
-      const res = await healthReportService.exportPhysicalRegister({
-        classId: selectedClassId === 'ALL' ? '' : selectedClassId,
+      const blob = await healthReportService.downloadPhysicalRegisterFile({
+        classId: selectedClassId === 'ALL' ? undefined : selectedClassId,
         measurementRoundId: selectedRoundId,
         format
       });
 
-      // Tạo tải về từ Base64 hoặc CSV content
-      if (res.contentBase64) {
-        const link = document.createElement('a');
-        link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(res.contentBase64)}`;
-        link.download = res.fileName || 'So_Theo_Doi_The_Luc_TT13.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const ext = format === 'PDF' ? 'pdf' : 'csv';
+      const roundName = activeRound.roundName?.replace(/\s+/g, '_') || selectedRoundId.slice(0, 8);
+      link.download = `So_Theo_Doi_The_Luc_${roundName}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
 
       showToast('success', 'Kết xuất Sổ theo dõi thể lực thành công.');
     } catch (err: any) {
@@ -148,7 +149,7 @@ export const HealthReportTab: React.FC = () => {
       if (msg && msg.includes('MSG-143')) {
         showToast('error', 'Lớp học được chọn chưa có dữ liệu cân đo được khóa sổ để xuất sổ.');
       } else {
-        showToast('error', 'Lỗi hệ thống trong quá trình kết xuất file tài liệu.');
+        showToast('error', msg || 'Lỗi hệ thống trong quá trình kết xuất file tài liệu.');
       }
     } finally {
       setExporting(false);

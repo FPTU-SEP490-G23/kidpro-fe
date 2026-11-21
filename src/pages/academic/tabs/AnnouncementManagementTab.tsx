@@ -453,12 +453,6 @@ export const AnnouncementManagementTab: React.FC = () => {
                         </>
                       )}
                     </span>
-
-                    {/* Views Count */}
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-50 text-slate-600 border border-slate-200">
-                      <Eye className="w-3 h-3 text-slate-400" />
-                      <span>{item.viewsCount} lượt đọc</span>
-                    </span>
                   </div>
 
                   <h3
@@ -906,8 +900,6 @@ export const AnnouncementManagementTab: React.FC = () => {
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pb-3 border-b border-slate-100">
                 <span>Người đăng: <strong>{selectedDetail.authorName}</strong></span>
-                <span>•</span>
-                <span>Lượt tiếp cận: <strong>{selectedDetail.viewsCount} người xem</strong></span>
                 <span>•</span>
                 <span>Ngày đăng: {new Date(selectedDetail.createdAt).toLocaleString('vi-VN')}</span>
               </div>

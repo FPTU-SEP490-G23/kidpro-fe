@@ -150,7 +150,7 @@ export const Navbar: React.FC = () => {
               {canManageAnnouncements && (
                 <div className="p-2.5 border-t border-slate-100 bg-slate-50 text-center">
                   <Link
-                    to="/announcements"
+                    to="/academic/announcements"
                     onClick={() => setIsNotificationOpen(false)}
                     className="text-xs font-bold text-[#275A4E] hover:underline inline-flex items-center gap-1"
                   >

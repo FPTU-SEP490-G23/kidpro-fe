@@ -33,6 +33,7 @@ import { classService } from '../../../services/classService';
 import { assignmentService } from '../../../services/assignmentService';
 import { academicYearApi } from '../../../api/academicYearApi';
 import { facilityClassroomApi, FacilityClassroom } from '../../../api/facilityClassroomApi';
+import schoolSetupApi, { SchoolSetupDto } from '../../../api/schoolSetupApi';
 import { useToast } from '../../../contexts/ToastContext';
 import { formatAcademicYear } from '../../../utils/formatters';
 import { StudentPlacementTab } from './StudentPlacementTab';
@@ -74,11 +75,11 @@ const draftAssignmentSchema = z.object({
 type DraftAssignmentFormValues = z.infer<typeof draftAssignmentSchema>;
 
 const GRADE_LABELS: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
-  PRE_K: 'Khối Lá (5 - 6 tuổi)',
+  INFANT: 'Nhũ Nhi',
+  TODDLER: 'Khối Hạt',
+  NURSERY: 'Khối Mầm',
+  KINDERGARTEN: 'Khối Chồi',
+  PRE_K: 'Khối Lá',
 };
 
 export const ClassManagementTab: React.FC = () => {
@@ -200,6 +201,19 @@ export const ClassManagementTab: React.FC = () => {
     queryFn: () => classService.getArchivedClasses(selectedYearId !== 'ALL' ? selectedYearId : undefined),
   });
 
+  // Filtered classes list
+  const classesToDisplay: ClassSummary[] = classFilterMode === 'ARCHIVED' ? archivedClasses : activeClasses;
+  const filteredClasses: ClassSummary[] = classesToDisplay.filter((c: ClassSummary) => {
+    if (!searchKeyword.trim()) return true;
+    const kw = searchKeyword.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(kw) ||
+      (c.code && c.code.toLowerCase().includes(kw)) ||
+      (c.roomName && c.roomName.toLowerCase().includes(kw)) ||
+      (c.homeroomTeacherName && c.homeroomTeacherName.toLowerCase().includes(kw))
+    );
+  });
+
   // Đóng & Lưu trữ hồ sơ lớp học
   const archiveClassMutation = useMutation({
     mutationFn: (classId: string) => classService.archiveClass(classId),
@@ -310,6 +324,7 @@ export const ClassManagementTab: React.FC = () => {
     formState: { errors: proposalErrors },
     setValue: setProposalValue,
     reset: resetProposal,
+    watch: watchProposal,
   } = useForm<CreateProposalFormValues>({
     resolver: zodResolver(createProposalSchema),
     defaultValues: {
@@ -317,6 +332,91 @@ export const ClassManagementTab: React.FC = () => {
       proposedCapacity: 25,
     },
   });
+
+  const proposalAcademicYearId = watchProposal('academicYearId');
+  const proposalGradeLevel = watchProposal('gradeLevel');
+
+  // Lấy danh sách cấu hình chỉ tiêu các khối từ bảng school_setup theo năm học chọn trong modal đề xuất
+  const { data: proposalYearSetups = [] } = useQuery<SchoolSetupDto[]>({
+    queryKey: ['school-setups-proposal', proposalAcademicYearId],
+    queryFn: () => schoolSetupApi.getSetupsByYear(proposalAcademicYearId),
+    enabled: !!proposalAcademicYearId,
+  });
+
+  const ALL_PROPOSAL_GRADES: { gradeLevel: GradeLevel; label: string }[] = useMemo(
+    () => [
+      { gradeLevel: 'INFANT', label: 'Nhũ Nhi' },
+      { gradeLevel: 'TODDLER', label: 'Khối Hạt' },
+      { gradeLevel: 'NURSERY', label: 'Khối Mầm' },
+      { gradeLevel: 'KINDERGARTEN', label: 'Khối Chồi' },
+      { gradeLevel: 'PRE_K', label: 'Khối Lá' },
+    ],
+    []
+  );
+
+  const proposalGradeOptions = useMemo(() => {
+    if (proposalYearSetups && proposalYearSetups.length > 0) {
+      return ALL_PROPOSAL_GRADES.filter((g) =>
+        proposalYearSetups.some((s) => s.gradeLevel === g.gradeLevel)
+      );
+    }
+    return ALL_PROPOSAL_GRADES;
+  }, [proposalYearSetups, ALL_PROPOSAL_GRADES]);
+
+  // Tự động gán sĩ số dự kiến từ bảng school_setup khi chọn khối hoặc năm học
+  useEffect(() => {
+    if (!isProposalModalOpen || editingProposal) return;
+    if (proposalGradeLevel && proposalYearSetups.length > 0) {
+      const matched = proposalYearSetups.find((s) => s.gradeLevel === proposalGradeLevel);
+      if (matched && matched.studentsPerClass) {
+        setProposalValue('proposedCapacity', matched.studentsPerClass);
+      }
+    }
+  }, [proposalGradeLevel, proposalYearSetups, isProposalModalOpen, editingProposal, setProposalValue]);
+
+  // Tự động chọn khối đầu tiên nếu khối hiện tại không có trong danh sách của năm học
+  useEffect(() => {
+    if (!isProposalModalOpen || editingProposal) return;
+    if (proposalGradeOptions.length > 0) {
+      const exists = proposalGradeOptions.some((g) => g.gradeLevel === proposalGradeLevel);
+      if (!exists) {
+        setProposalValue('gradeLevel', proposalGradeOptions[0].gradeLevel);
+      }
+    }
+  }, [proposalGradeOptions, proposalGradeLevel, isProposalModalOpen, editingProposal, setProposalValue]);
+
+  // Tính tổng số lớp hiện có của khối đang chọn trong modal đề xuất mở lớp
+  const gradeClassQuotaInfo = useMemo(() => {
+    if (!proposalGradeLevel) return null;
+    const targetYearId = proposalAcademicYearId || (selectedYearId !== 'ALL' ? selectedYearId : '');
+    const setup = proposalYearSetups.find((s) => s.gradeLevel === proposalGradeLevel);
+    if (!setup) return null;
+
+    const inClasses = classesToDisplay.filter((c) => {
+      if (editingProposal && c.id === editingProposal.id) return false;
+      const sameGrade = c.gradeLevel === proposalGradeLevel;
+      const sameYear = !c.academicYearId || !targetYearId || targetYearId === 'ALL' || c.academicYearId === targetYearId;
+      return sameGrade && sameYear && c.status !== 'ARCHIVED';
+    }).length;
+
+    const inProposals = proposals.filter((p) => {
+      if (editingProposal && p.id === editingProposal.id) return false;
+      const sameGrade = p.gradeLevel === proposalGradeLevel;
+      const sameYear = !p.academicYearId || !targetYearId || targetYearId === 'ALL' || p.academicYearId === targetYearId;
+      return sameGrade && sameYear && p.status !== 'REJECTED';
+    }).length;
+
+    const currentCount = inClasses + inProposals;
+    const maxClasses = setup.totalClasses || 0;
+    const isFull = currentCount >= maxClasses;
+
+    return {
+      currentCount,
+      maxClasses,
+      isFull,
+      studentsPerClass: setup.studentsPerClass,
+    };
+  }, [proposalGradeLevel, proposalAcademicYearId, selectedYearId, proposalYearSetups, classesToDisplay, proposals, editingProposal]);
 
   // Draft Assignment Form
   const {
@@ -369,7 +469,7 @@ export const ClassManagementTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
       success(
         res?.message ||
-          'Lập kế hoạch mở lớp học mới thành công, đang chờ Ban Giám hiệu phê duyệt.'
+          'Lập kế hoạch mở lớp học mới thành công (Đã lưu dạng Dự thảo).'
       );
       setIsProposalModalOpen(false);
       resetProposal();
@@ -407,6 +507,18 @@ export const ClassManagementTab: React.FC = () => {
       } else {
         error(msg || 'Lỗi cập nhật kế hoạch mở lớp.');
       }
+    },
+  });
+
+  // Gửi đề xuất kế hoạch mở lớp cho Ban Giám hiệu phê duyệt
+  const submitProposalMutation = useMutation({
+    mutationFn: (id: string) => classService.submitProposal(id),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['class-proposals'] });
+      success(res?.message || 'Đã gửi kế hoạch mở lớp cho Ban Giám hiệu phê duyệt thành công.');
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Lỗi gửi kế hoạch mở lớp cho BGH.');
     },
   });
 
@@ -453,6 +565,20 @@ export const ClassManagementTab: React.FC = () => {
 
   const onSaveEditClass = (values: UpdateClassFormValues) => {
     if (!editingClass) return;
+    const targetName = values.name.trim().toLowerCase();
+    const duplicateInClasses = classesToDisplay.some((c) => {
+      if (c.id === editingClass.id) return false;
+      const sameName = c.name.trim().toLowerCase() === targetName;
+      const sameGrade = c.gradeLevel === editingClass.gradeLevel;
+      const sameYear = !c.academicYearId || !editingClass.academicYearId || c.academicYearId === editingClass.academicYearId;
+      return sameName && sameGrade && sameYear;
+    });
+
+    if (duplicateInClasses) {
+      error(`Tên lớp "${values.name}" đã tồn tại trong cùng khối lớp và niên khóa.`);
+      return;
+    }
+
     updateClassMutation.mutate({
       id: editingClass.id,
       payload: {
@@ -465,10 +591,12 @@ export const ClassManagementTab: React.FC = () => {
 
   const onOpenCreateProposal = () => {
     setEditingProposal(null);
+    const activeYear = academicYears.find((y: any) => (y.status || '').toUpperCase() === 'ACTIVE' || y.isActive);
+    const defaultYearId = selectedYearId !== 'ALL' ? selectedYearId : (activeYear?.id || academicYears[0]?.id || '');
     resetProposal({
       className: '',
-      gradeLevel: 'INFANT',
-      academicYearId: selectedYearId !== 'ALL' ? selectedYearId : (academicYears[0]?.id || ''),
+      gradeLevel: 'TODDLER',
+      academicYearId: defaultYearId,
       proposedCapacity: 25,
       proposedRoomId: '',
     });
@@ -486,6 +614,57 @@ export const ClassManagementTab: React.FC = () => {
   };
 
   const onSubmitProposal = (values: CreateProposalFormValues) => {
+    const targetYearId = values.academicYearId || (editingProposal ? editingProposal.academicYearId : selectedYearId);
+    const targetName = values.className.trim().toLowerCase();
+    const targetGrade = values.gradeLevel;
+
+    // Kiểm tra trong danh sách lớp hiện có
+    const duplicateInClasses = classesToDisplay.some((c) => {
+      if (editingProposal && c.id === editingProposal.id) return false;
+      const sameName = c.name.trim().toLowerCase() === targetName;
+      const sameGrade = c.gradeLevel === targetGrade;
+      const sameYear = !c.academicYearId || !targetYearId || targetYearId === 'ALL' || c.academicYearId === targetYearId;
+      return sameName && sameGrade && sameYear;
+    });
+
+    // Kiểm tra trong danh sách kế hoạch mở lớp đang có
+    const duplicateInProposals = proposals.some((p) => {
+      if (editingProposal && p.id === editingProposal.id) return false;
+      const sameName = p.className.trim().toLowerCase() === targetName;
+      const sameGrade = p.gradeLevel === targetGrade;
+      const sameYear = !p.academicYearId || !targetYearId || targetYearId === 'ALL' || p.academicYearId === targetYearId;
+      return sameName && sameGrade && sameYear;
+    });
+
+    if (duplicateInClasses || duplicateInProposals) {
+      error(`Tên lớp "${values.className}" đã tồn tại trong cùng khối lớp và niên khóa.`);
+      return;
+    }
+
+    // Kiểm tra số lượng lớp tối đa của khối theo chỉ tiêu school_setup
+    const matchedSetup = proposalYearSetups.find((s) => s.gradeLevel === targetGrade);
+    if (matchedSetup && matchedSetup.totalClasses) {
+      const classesCount = classesToDisplay.filter((c) => {
+        if (editingProposal && c.id === editingProposal.id) return false;
+        const sameGrade = c.gradeLevel === targetGrade;
+        const sameYear = !c.academicYearId || !targetYearId || targetYearId === 'ALL' || c.academicYearId === targetYearId;
+        return sameGrade && sameYear && c.status !== 'ARCHIVED';
+      }).length;
+
+      const proposalsCount = proposals.filter((p) => {
+        if (editingProposal && p.id === editingProposal.id) return false;
+        const sameGrade = p.gradeLevel === targetGrade;
+        const sameYear = !p.academicYearId || !targetYearId || targetYearId === 'ALL' || p.academicYearId === targetYearId;
+        return sameGrade && sameYear && p.status !== 'REJECTED';
+      }).length;
+
+      const totalCurrent = classesCount + proposalsCount;
+      if (totalCurrent >= matchedSetup.totalClasses) {
+        error(`Khối ${GRADE_LABELS[targetGrade]} đã đạt số lượng lớp tối đa (${totalCurrent}/${matchedSetup.totalClasses} lớp) theo chỉ tiêu của Ban Giám Hiệu. Không thể tạo thêm lớp.`);
+        return;
+      }
+    }
+
     if (editingProposal) {
       updateProposalMutation.mutate({
         id: editingProposal.id,
@@ -511,19 +690,6 @@ export const ClassManagementTab: React.FC = () => {
   const onSubmitAssign = (values: DraftAssignmentFormValues) => {
     draftAssignmentMutation.mutate(values);
   };
-
-  // Filtered classes list
-  const classesToDisplay: ClassSummary[] = classFilterMode === 'ARCHIVED' ? archivedClasses : activeClasses;
-  const filteredClasses: ClassSummary[] = classesToDisplay.filter((c: ClassSummary) => {
-    if (!searchKeyword.trim()) return true;
-    const kw = searchKeyword.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(kw) ||
-      (c.code && c.code.toLowerCase().includes(kw)) ||
-      (c.roomName && c.roomName.toLowerCase().includes(kw)) ||
-      (c.homeroomTeacherName && c.homeroomTeacherName.toLowerCase().includes(kw))
-    );
-  });
 
   return (
     <div className="space-y-6 font-['Plus_Jakarta_Sans'] pb-12">
@@ -683,10 +849,11 @@ export const ClassManagementTab: React.FC = () => {
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
             >
               <option value="ALL">-- Tất cả khối lớp --</option>
-              <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
-              <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-              <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-              <option value="KINDERGARTEN">Khối Chồi & Lá (4 - 6 tuổi)</option>
+              <option value="INFANT">Nhũ Nhi</option>
+              <option value="TODDLER">Khối Hạt</option>
+              <option value="NURSERY">Khối Mầm</option>
+              <option value="KINDERGARTEN">Khối Chồi</option>
+              <option value="PRE_K">Khối Lá</option>
             </select>
           </div>
 
@@ -972,7 +1139,27 @@ export const ClassManagementTab: React.FC = () => {
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          {p.status === 'PENDING_APPROVAL' || p.status === 'REJECTED' ? (
+                          {p.status === 'PENDING' ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => onOpenEditProposal(p)}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-[#1E4D40] hover:text-white text-slate-700 font-bold rounded-xl transition inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                                <span>Sửa kế hoạch</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={submitProposalMutation.isPending}
+                                onClick={() => submitProposalMutation.mutate(p.id)}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition inline-flex items-center gap-1 cursor-pointer shadow-xs disabled:opacity-50"
+                              >
+                                {submitProposalMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                <span>Gửi BGH</span>
+                              </button>
+                            </div>
+                          ) : p.status === 'PENDING_APPROVAL' || p.status === 'REJECTED' ? (
                             <button
                               type="button"
                               onClick={() => onOpenEditProposal(p)}
@@ -1266,16 +1453,18 @@ export const ClassManagementTab: React.FC = () => {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                 >
                   <option value="">-- Chọn năm học --</option>
-                  {academicYears.map((y: any) => {
-                    const yId = y.id || y.academicYearId;
-                    const yName = y.name || y.yearName;
-                    const isActive = y.status === 'ACTIVE' || y.isActive;
-                    return (
-                      <option key={yId} value={yId}>
-                        {yName} {isActive ? '★ (Năm hiện tại)' : ''}
-                      </option>
-                    );
-                  })}
+                  {academicYears
+                    .filter((y: any) => (y.status || '').toUpperCase() === 'ACTIVE' || y.isActive === true)
+                    .map((y: any) => {
+                      const yId = y.id || y.academicYearId;
+                      const yName = y.name || y.yearName;
+                      const startDate = y.startDate ? new Date(y.startDate).toLocaleDateString('vi-VN') : '';
+                      return (
+                        <option key={yId} value={yId}>
+                          {yName} {startDate ? `(Bắt đầu: ${startDate})` : ''} ★ (Năm hiện tại)
+                        </option>
+                      );
+                    })}
                 </select>
                 {proposalErrors.academicYearId?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.academicYearId.message}</p>
@@ -1289,13 +1478,34 @@ export const ClassManagementTab: React.FC = () => {
                 </label>
                 <select
                   {...registerProposal('gradeLevel')}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none cursor-pointer"
                 >
-                  <option value="INFANT">Nhà trẻ nhỏ (3 - 12 tháng)</option>
-                  <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-                  <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-                  <option value="KINDERGARTEN">Khối Chồi & Lá (4 - 6 tuổi)</option>
+                  {proposalGradeOptions.map((opt) => {
+                    const setup = proposalYearSetups.find((s) => s.gradeLevel === opt.gradeLevel);
+                    return (
+                      <option key={opt.gradeLevel} value={opt.gradeLevel}>
+                        {opt.label} {setup?.totalClasses ? `(Chỉ tiêu BGH: ${setup.totalClasses} lớp)` : ''}
+                      </option>
+                    );
+                  })}
                 </select>
+                {gradeClassQuotaInfo && (
+                  <div
+                    className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                      gradeClassQuotaInfo.isFull
+                        ? 'bg-rose-50 border-rose-200 text-rose-700 font-semibold'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <span>Tiến độ mở lớp ({GRADE_LABELS[proposalGradeLevel]}):</span>
+                    <span className={`font-bold ${gradeClassQuotaInfo.isFull ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      {gradeClassQuotaInfo.currentCount} / {gradeClassQuotaInfo.maxClasses} lớp
+                      {gradeClassQuotaInfo.isFull
+                        ? ' ⚠️ (Đã đạt tối đa chỉ tiêu)'
+                        : ` (Còn có thể mở thêm ${gradeClassQuotaInfo.maxClasses - gradeClassQuotaInfo.currentCount} lớp)`}
+                    </span>
+                  </div>
+                )}
                 {proposalErrors.gradeLevel?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.gradeLevel.message}</p>
                 )}
@@ -1330,7 +1540,13 @@ export const ClassManagementTab: React.FC = () => {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Định mức chuẩn: Khối Nhà trẻ 24 - 26 trẻ, Khối Mẫu giáo 30 - 35 trẻ.
+                  {proposalYearSetups.some((s) => s.gradeLevel === proposalGradeLevel) ? (
+                    <span className="text-emerald-600 font-semibold">
+                      ✓ Đã tự động áp dụng định mức {proposalYearSetups.find((s) => s.gradeLevel === proposalGradeLevel)?.studentsPerClass} trẻ/lớp từ cấu hình chỉ tiêu của năm học.
+                    </span>
+                  ) : (
+                    'Định mức chuẩn: Khối Nhà trẻ 24 - 26 trẻ, Khối Mẫu giáo 30 - 35 trẻ.'
+                  )}
                 </p>
                 {proposalErrors.proposedCapacity?.message && (
                   <p className="text-xs text-rose-500 mt-1">{proposalErrors.proposedCapacity.message}</p>
@@ -1366,13 +1582,19 @@ export const ClassManagementTab: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={createProposalMutation.isPending || updateProposalMutation.isPending}
-                  className="flex-1 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex justify-center items-center gap-2 min-h-[44px] cursor-pointer"
+                  disabled={
+                    createProposalMutation.isPending ||
+                    updateProposalMutation.isPending ||
+                    (gradeClassQuotaInfo?.isFull && !editingProposal)
+                  }
+                  className="flex-1 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex justify-center items-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createProposalMutation.isPending || updateProposalMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : gradeClassQuotaInfo?.isFull && !editingProposal ? (
+                    'Khối Đã Đủ Chỉ Tiêu Lớp'
                   ) : (
-                    'Lưu Kế Hoạch'
+                    'Lưu Kế Hoạch (Dự Thảo)'
                   )}
                 </button>
               </div>

@@ -27,8 +27,17 @@ export const InvoiceIssuanceTab: React.FC = () => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
+
+  // Hạn chốt nộp tiền để là ngày 15 tháng sau (so với tháng học phí)
+  const calculateDefaultDueDate = (month: number, year: number) => {
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const padMonth = String(nextMonth).padStart(2, '0');
+    return `${nextYear}-${padMonth}-15`;
+  };
+
   const [dueDate, setDueDate] = useState<string>(
-    new Date(now.getFullYear(), now.getMonth(), 15).toISOString().split('T')[0]
+    calculateDefaultDueDate(now.getMonth() + 1, now.getFullYear())
   );
   const [customMessage, setCustomMessage] = useState<string>(
     'Kính gửi Quý phụ huynh, nhà trường xin gửi thông báo học phí tháng này. Quý phụ huynh vui lòng quét mã VietQR để hoàn tất thanh toán đúng hạn.'
@@ -84,6 +93,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
   };
 
   useEffect(() => {
+    setDueDate(calculateDefaultDueDate(selectedMonth, selectedYear));
     fetchData();
   }, [selectedMonth, selectedYear]);
 

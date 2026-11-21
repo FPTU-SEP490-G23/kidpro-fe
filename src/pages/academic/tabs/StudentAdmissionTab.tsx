@@ -334,9 +334,31 @@ export const StudentAdmissionTab: React.FC = () => {
     }
     const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
     if (!phoneRegex.test(primary.phoneNumber.trim())) {
-      error('Số điện thoại không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
+      error('Số điện thoại người giám hộ chính không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
       return;
     }
+
+    // Kiểm tra người giám hộ phụ (nếu có khai báo)
+    const secondary = createForm.guardians[1];
+    if (secondary && (secondary.fullName?.trim() || secondary.phoneNumber?.trim())) {
+      if (!secondary.fullName?.trim()) {
+        error('Vui lòng nhập họ tên người giám hộ phụ.');
+        return;
+      }
+      if (!secondary.phoneNumber?.trim()) {
+        error('Vui lòng nhập số điện thoại người giám hộ phụ.');
+        return;
+      }
+      if (!phoneRegex.test(secondary.phoneNumber.trim())) {
+        error('Số điện thoại người giám hộ phụ không hợp lệ (yêu cầu 10 chữ số chuẩn định dạng Việt Nam).');
+        return;
+      }
+      if (primary.phoneNumber.trim() === secondary.phoneNumber.trim()) {
+        error('Số điện thoại của người giám hộ 1 và người giám hộ 2 không được trùng nhau.');
+        return;
+      }
+    }
+
     setCreateStep(3);
   };
 

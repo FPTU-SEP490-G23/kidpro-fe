@@ -68,8 +68,11 @@ export const EquipmentManagementTab: React.FC = () => {
 
   useEffect(() => {
     fetchInitialRooms();
-    fetchInventories();
   }, []);
+
+  useEffect(() => {
+    fetchInventories();
+  }, [selectedRoomId, selectedCategory, searchTerm]);
 
   const fetchInitialRooms = async () => {
     try {
@@ -112,28 +115,52 @@ export const EquipmentManagementTab: React.FC = () => {
 
       const data = await equipmentService.getInventories(params);
       const flattened: EquipmentInventoryResponse[] = [];
+      const seenAllocKeys = new Set<string>();
+
       data.forEach((item: any) => {
-        if (Array.isArray(item.allocations) && item.allocations.length > 0) {
-          item.allocations.forEach((alloc: any) => {
+        if (item.allocationId) {
+          const key = String(item.allocationId);
+          if (!seenAllocKeys.has(key)) {
+            seenAllocKeys.add(key);
             flattened.push({
               ...item,
-              allocationId: alloc.allocationId || `${item.equipmentId}-${alloc.roomId}`,
-              roomId: alloc.roomId,
-              roomName: alloc.roomName,
-              quantity: alloc.quantity,
-              status: alloc.status || 'GOOD',
-              statusLabel: alloc.statusLabel || (alloc.status === 'GOOD' ? 'Tốt (Đang dùng)' : alloc.status === 'DAMAGED' ? 'Hỏng hóc' : 'Chờ thanh lý')
+              allocationId: key,
+              roomId: item.roomId,
+              roomName: item.roomName || 'Chưa gán phòng',
+              quantity: item.quantity !== undefined ? item.quantity : (item.totalQuantity || 0),
+              status: item.status || 'GOOD',
+              statusLabel: item.statusLabel || (item.status === 'GOOD' ? 'Tốt (Đang dùng)' : item.status === 'DAMAGED' ? 'Hỏng hóc' : 'Chờ thanh lý')
             });
+          }
+        } else if (Array.isArray(item.allocations) && item.allocations.length > 0) {
+          item.allocations.forEach((alloc: any) => {
+            const key = String(alloc.allocationId || `${item.equipmentId}-${alloc.roomId}`);
+            if (!seenAllocKeys.has(key)) {
+              seenAllocKeys.add(key);
+              flattened.push({
+                ...item,
+                allocationId: key,
+                roomId: alloc.roomId,
+                roomName: alloc.roomName,
+                quantity: alloc.quantity,
+                status: alloc.status || 'GOOD',
+                statusLabel: alloc.statusLabel || (alloc.status === 'GOOD' ? 'Tốt (Đang dùng)' : alloc.status === 'DAMAGED' ? 'Hỏng hóc' : 'Chờ thanh lý')
+              });
+            }
           });
         } else {
-          flattened.push({
-            ...item,
-            allocationId: item.allocationId || item.equipmentId,
-            roomId: item.roomId,
-            roomName: item.roomName || 'Chưa gán phòng',
-            quantity: item.quantity !== undefined ? item.quantity : (item.totalQuantity || 0),
-            status: item.status || 'GOOD'
-          });
+          const key = String(item.equipmentId);
+          if (!seenAllocKeys.has(key)) {
+            seenAllocKeys.add(key);
+            flattened.push({
+              ...item,
+              allocationId: key,
+              roomId: item.roomId,
+              roomName: item.roomName || 'Chưa gán phòng',
+              quantity: item.quantity !== undefined ? item.quantity : (item.totalQuantity || 0),
+              status: item.status || 'GOOD'
+            });
+          }
         }
       });
 
@@ -309,13 +336,13 @@ export const EquipmentManagementTab: React.FC = () => {
 
   // Filter local inventories
   const filteredInventories = inventories.filter((item) => {
-    if (selectedRoomId !== 'ALL' && item.roomId !== selectedRoomId) return false;
-    if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
+    if (selectedRoomId !== 'ALL' && String(item.roomId) !== String(selectedRoomId)) return false;
+    if (selectedCategory !== 'ALL' && String(item.category).toUpperCase() !== String(selectedCategory).toUpperCase()) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
-        item.equipmentCode.toLowerCase().includes(term) ||
-        item.name.toLowerCase().includes(term) ||
+        item.equipmentCode?.toLowerCase().includes(term) ||
+        item.name?.toLowerCase().includes(term) ||
         (item.roomName && item.roomName.toLowerCase().includes(term))
       );
     }

@@ -63,6 +63,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
   const { data: invoices = [], isLoading } = useQuery<TuitionInvoiceItem[]>({
     queryKey: ['tuition-invoices', studentId],
     queryFn: () => parentApi.getTuitionInvoices(studentId),
+    enabled: Boolean(studentId),
   });
 
   const currentInvoice = invoices.find((inv) => inv.status !== 'PAID') || invoices[0];

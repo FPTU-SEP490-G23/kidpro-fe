@@ -128,6 +128,32 @@ export const TimetableManagementTab: React.FC = () => {
     return classes.find(c => c.id === selectedClassId) || null;
   }, [classes, selectedClassId]);
 
+  // Check if selected academic year is active
+  const isCurrentYearActive = useMemo(() => {
+    if (!selectedAcademicYearId || selectedAcademicYearId === 'ALL') return true;
+    const currentYear = academicYears.find((y: any) => (y.id || y.academicYearId) === selectedAcademicYearId);
+    if (!currentYear) return true;
+    return (currentYear.status || '').toUpperCase() === 'ACTIVE' || currentYear.isActive === true;
+  }, [selectedAcademicYearId, academicYears]);
+
+  // Fetch teacher assignments for current class (homeroom and assistant teacher)
+  const { data: classAssignments = [] } = useQuery({
+    queryKey: ['class-assignments-timetable', selectedClassId],
+    queryFn: async () => {
+      if (!selectedClassId) return [];
+      return await assignmentService.getAssignmentsByClass(selectedClassId);
+    },
+    enabled: !!selectedClassId
+  });
+
+  const homeroomTeacher = useMemo(() => {
+    return classAssignments.find((a: any) => a.role === 'HOMEROOM' || a.role === 'GVCN') || null;
+  }, [classAssignments]);
+
+  const assistantTeacher = useMemo(() => {
+    return classAssignments.find((a: any) => a.role === 'ASSISTANT' || a.role === 'PHU_TA') || null;
+  }, [classAssignments]);
+
   // 3. Fetch Teachers
   const { data: availableTeachers = [] } = useQuery({
     queryKey: ['available-teachers-timetable', selectedAcademicYearId],
@@ -320,11 +346,16 @@ export const TimetableManagementTab: React.FC = () => {
 
   // Handlers for Slot Editing
   const onOpenAddSlot = (day: string, slot?: { start: string; end: string; label: string }) => {
+    if (!isCurrentYearActive) {
+      warning('Niên khóa chưa được kích hoạt (ACTIVE), không thể thêm thời khóa biểu.');
+      return;
+    }
     setSlotDay(day);
     setSlotStartTime(slot?.start || '08:45');
     setSlotEndTime(slot?.end || '09:30');
     setSlotActivityName(slot?.label || '');
-    setSlotTeacherId(selectedClass?.homeroomTeacherId || '');
+    const defaultTeacher = homeroomTeacher?.teacherId || selectedClass?.homeroomTeacherId || assistantTeacher?.teacherId || '';
+    setSlotTeacherId(defaultTeacher);
     setSlotRoomId(selectedClass?.roomId || '');
     setEditingSlot(null);
     setIsSlotModalOpen(true);
@@ -550,9 +581,9 @@ export const TimetableManagementTab: React.FC = () => {
 
             <button
               type="button"
-              disabled={saveDraftMutation.isPending || !selectedClassId}
+              disabled={saveDraftMutation.isPending || !selectedClassId || !isCurrentYearActive}
               onClick={() => saveDraftMutation.mutate()}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer disabled:cursor-not-allowed"
             >
               {saveDraftMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               <span>Lưu & Trình BGH Duyệt</span>
@@ -563,6 +594,12 @@ export const TimetableManagementTab: React.FC = () => {
 
       {/* Timetable Grid View (Monday to Friday, 5 Columns) */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {!isCurrentYearActive && (
+          <div className="bg-amber-50 border-b border-amber-200 p-3.5 text-amber-900 text-xs font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>Niên khóa này chưa được kích hoạt (ACTIVE). Hệ thống khóa tính năng thêm hoặc chỉnh sửa thời khóa biểu.</span>
+          </div>
+        )}
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-emerald-700" />
@@ -586,9 +623,20 @@ export const TimetableManagementTab: React.FC = () => {
                   <span className="mx-auto">{d.label}</span>
                   <button
                     type="button"
-                    title="Thêm hoạt động"
-                    onClick={() => onOpenAddSlot(d.key)}
-                    className="w-6 h-6 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 flex items-center justify-center cursor-pointer transition"
+                    disabled={!isCurrentYearActive}
+                    title={!isCurrentYearActive ? 'Niên khóa chưa kích hoạt (ACTIVE), không thể thêm thời khóa biểu' : 'Thêm hoạt động'}
+                    onClick={() => {
+                      if (!isCurrentYearActive) {
+                        warning('Niên khóa chưa kích hoạt (ACTIVE), không thể thêm thời khóa biểu.');
+                        return;
+                      }
+                      onOpenAddSlot(d.key);
+                    }}
+                    className={`w-6 h-6 rounded-lg flex items-center justify-center transition ${
+                      !isCurrentYearActive
+                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                        : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 cursor-pointer'
+                    }`}
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -693,6 +741,32 @@ export const TimetableManagementTab: React.FC = () => {
             </div>
 
             <form onSubmit={onSaveSlot} className="space-y-4 text-xs font-medium">
+              {/* Lớp học áp dụng */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-bold">Lớp học:</span>
+                  <span className="font-extrabold text-[#1E4D40]">{selectedClass?.name} ({selectedClass?.gradeLevel})</span>
+                </div>
+                {(homeroomTeacher || assistantTeacher) ? (
+                  <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200 flex flex-wrap gap-x-3 gap-y-1">
+                    {homeroomTeacher && (
+                      <span className="flex items-center gap-1">
+                        <span className="font-bold text-[#1E4D40]">GVCN:</span> {homeroomTeacher.teacherName}
+                      </span>
+                    )}
+                    {assistantTeacher && (
+                      <span className="flex items-center gap-1">
+                        <span className="font-bold text-amber-700">GV phụ tá:</span> {assistantTeacher.teacherName}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-200">
+                    Lớp chưa có phân công giáo viên chính thức.
+                  </p>
+                )}
+              </div>
+
               {/* Day selection */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Thứ trong tuần</label>
@@ -751,27 +825,48 @@ export const TimetableManagementTab: React.FC = () => {
               {/* Teacher (optional) */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Giáo viên phụ trách
-                  <span className="ml-1 text-[11px] font-normal text-slate-500">(Chỉ hiện giáo viên đúng role và trống lịch dạy)</span>
+                  Giáo viên phụ trách tiết học
+                  <span className="ml-1 text-[11px] font-normal text-slate-500">(Chọn 1 trong các giáo viên phụ trách lớp hoặc GV khác)</span>
                 </label>
                 <select
                   value={slotTeacherId}
                   onChange={(e) => setSlotTeacherId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-800"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-800 text-xs font-semibold"
                 >
-                  <option value="">-- Chọn giáo viên (hoặc GVCN phụ trách) --</option>
-                  {selectableTeachers.map((t: any) => {
-                    const teacherValue = t.id || t.staffId;
-                    return (
-                      <option key={teacherValue} value={teacherValue}>
-                        {t.fullName} ({t.qualification || 'Giáo viên'})
-                      </option>
-                    );
-                  })}
+                  <option value="">-- Mặc định giáo viên của lớp --</option>
+                  {(homeroomTeacher || assistantTeacher) && (
+                    <optgroup label="Giáo viên phụ trách của lớp">
+                      {homeroomTeacher && (
+                        <option value={homeroomTeacher.teacherId}>
+                          ★ {homeroomTeacher.teacherName} (Giáo viên Chủ nhiệm)
+                        </option>
+                      )}
+                      {assistantTeacher && (
+                        <option value={assistantTeacher.teacherId}>
+                          ★ {assistantTeacher.teacherName} (Giáo viên Phụ tá)
+                        </option>
+                      )}
+                    </optgroup>
+                  )}
+                  <optgroup label="Các giáo viên khả dụng khác">
+                    {selectableTeachers
+                      .filter((t: any) => {
+                        const tid = t.id || t.staffId;
+                        return tid !== homeroomTeacher?.teacherId && tid !== assistantTeacher?.teacherId;
+                      })
+                      .map((t: any) => {
+                        const teacherValue = t.id || t.staffId;
+                        return (
+                          <option key={teacherValue} value={teacherValue}>
+                            {t.fullName} ({t.qualification || 'Giáo viên'})
+                          </option>
+                        );
+                      })}
+                  </optgroup>
                 </select>
-                {selectableTeachers.length === 0 && (
+                {selectableTeachers.length === 0 && !homeroomTeacher && !assistantTeacher && (
                   <p className="text-[11px] text-amber-600 mt-1">
-                    ⚠️ Không có giáo viên khả dụng trong khung giờ này (tất cả giáo viên đã có tiết dạy hoặc không thuộc bộ phận giáo viên).
+                    ⚠️ Không có giáo viên khả dụng trong khung giờ này.
                   </p>
                 )}
               </div>
