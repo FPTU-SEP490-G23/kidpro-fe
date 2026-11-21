@@ -344,6 +344,19 @@ export const ClassManagementTab: React.FC = () => {
 
   const proposalAcademicYearId = watchProposal('academicYearId');
   const proposalGradeLevel = watchProposal('gradeLevel');
+  const proposalRoomId = watchProposal('proposedRoomId');
+  const proposalCapacity = watchProposal('proposedCapacity');
+
+  // Kiểm tra giới hạn sức chứa của phòng học dự kiến so với sĩ số đề xuất
+  const selectedProposalRoom = useMemo(() => {
+    if (!proposalRoomId) return null;
+    return classrooms.find((r) => r.classroomId === proposalRoomId) || null;
+  }, [proposalRoomId, classrooms]);
+
+  const isProposalRoomCapacityExceeded = useMemo(() => {
+    if (!selectedProposalRoom || !selectedProposalRoom.capacity || !proposalCapacity) return false;
+    return proposalCapacity > selectedProposalRoom.capacity;
+  }, [selectedProposalRoom, proposalCapacity]);
 
   // Lấy danh sách cấu hình chỉ tiêu các khối từ bảng school_setup theo năm học chọn trong modal đề xuất
   const { data: proposalYearSetups = [] } = useQuery<SchoolSetupDto[]>({
@@ -490,6 +503,8 @@ export const ClassManagementTab: React.FC = () => {
         error('Tên lớp học đã tồn tại trong cùng khối lớp.');
       } else if (code === 'MSG-025' || msg?.includes('MSG-025') || msg?.includes('Phòng học đã được phân bổ')) {
         error('Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
+      } else if (code === 'MSG-035' || msg?.includes('MSG-035') || msg?.includes('sức chứa')) {
+        error(msg || 'Sĩ số dự kiến vượt quá giới hạn sức chứa của phòng học.');
       } else {
         error(msg || 'Lỗi khi lập kế hoạch mở lớp mới.');
       }
@@ -513,6 +528,8 @@ export const ClassManagementTab: React.FC = () => {
         error('Tên lớp học đã tồn tại trong cùng khối lớp.');
       } else if (code === 'MSG-025' || msg?.includes('MSG-025')) {
         error('Phòng học đã được phân bổ cho lớp khác trong cùng năm học.');
+      } else if (code === 'MSG-035' || msg?.includes('MSG-035') || msg?.includes('sức chứa')) {
+        error(msg || 'Sĩ số dự kiến vượt quá giới hạn sức chứa của phòng học.');
       } else {
         error(msg || 'Lỗi cập nhật kế hoạch mở lớp.');
       }
@@ -1623,15 +1640,41 @@ export const ClassManagementTab: React.FC = () => {
                 </label>
                 <select
                   {...registerProposal('proposedRoomId')}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                  className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-sm font-medium focus:ring-2 focus:outline-none cursor-pointer ${
+                    isProposalRoomCapacityExceeded
+                      ? 'border-rose-400 focus:ring-rose-400'
+                      : 'border-slate-200 focus:ring-[#78C2AD]'
+                  }`}
                 >
                   <option value="">-- Chưa chọn phòng học --</option>
-                  {classrooms.map((r) => (
-                    <option key={r.classroomId} value={r.classroomId}>
-                      {r.roomName} {r.building ? `(${r.building})` : ''} - Sức chứa: {r.capacity || 30} trẻ
-                    </option>
-                  ))}
+                  {classrooms.map((r) => {
+                    const roomCap = r.capacity || 30;
+                    const isExceeded = Boolean(proposalCapacity && roomCap < proposalCapacity);
+                    return (
+                      <option key={r.classroomId} value={r.classroomId}>
+                        {r.roomName} {r.building ? `(${r.building})` : ''} - Sức chứa: {roomCap} trẻ
+                        {isExceeded ? ` ⚠️ (Tối đa ${roomCap} trẻ - Không đủ)` : ''}
+                      </option>
+                    );
+                  })}
                 </select>
+
+                {/* Cảnh báo kiểm tra sức chứa phòng học theo BR-011 */}
+                {isProposalRoomCapacityExceeded && selectedProposalRoom ? (
+                  <div className="mt-2 p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-xs flex items-center gap-2 animate-in fade-in">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>
+                      <strong>Không đủ sức chứa:</strong> Phòng <strong>{selectedProposalRoom.roomName}</strong> chỉ có giới hạn tối đa <strong>{selectedProposalRoom.capacity || 30} học sinh</strong>, không đủ cho sĩ số dự kiến <strong>{proposalCapacity} học sinh</strong> của lớp. Vui lòng chọn phòng khác hoặc điều chỉnh sĩ số.
+                    </span>
+                  </div>
+                ) : selectedProposalRoom ? (
+                  <div className="mt-2 text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5 animate-in fade-in">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>
+                      Sức chứa phòng {selectedProposalRoom.roomName}: {selectedProposalRoom.capacity || 30} học sinh (Đạt yêu cầu sĩ số {proposalCapacity || 0} học sinh).
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               {/* Actions */}
@@ -1659,7 +1702,8 @@ export const ClassManagementTab: React.FC = () => {
                   disabled={
                     createProposalMutation.isPending ||
                     updateProposalMutation.isPending ||
-                    (gradeClassQuotaInfo?.isFull && !editingProposal)
+                    (gradeClassQuotaInfo?.isFull && !editingProposal) ||
+                    isProposalRoomCapacityExceeded
                   }
                   className="flex-1 py-2.5 bg-[#1E4D40] text-white font-bold rounded-xl hover:bg-[#16382f] transition text-xs flex justify-center items-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -1667,6 +1711,8 @@ export const ClassManagementTab: React.FC = () => {
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : gradeClassQuotaInfo?.isFull && !editingProposal ? (
                     'Khối Đã Đủ Chỉ Tiêu Lớp'
+                  ) : isProposalRoomCapacityExceeded ? (
+                    'Phòng Học Không Đủ Chỗ'
                   ) : (
                     'Lưu Kế Hoạch (Dự Thảo)'
                   )}
