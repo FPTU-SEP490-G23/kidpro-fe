@@ -17,6 +17,8 @@ export interface WeeklyMenuApprovalDto {
   endDate: string;
   status: 'DRAFT' | 'APPROVED' | 'REJECTED';
   totalCalories: number;
+  dailyAverageCalories?: number;
+  weeklyTotalCalories?: number;
   nutrientRatio: string;
   rejectionReason?: string;
   message?: string;
