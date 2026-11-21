@@ -83,6 +83,17 @@ export const announcementApi = {
     };
   },
 
+  uploadAttachment: async (file: File): Promise<{ fileName: string; fileUrl: string; fileSize: number; fileType: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res: any = await axiosClient.post('/bgh/announcements/upload-attachment', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res?.data || res;
+  },
+
   createAnnouncement: async (payload: AnnouncementCreateRequestDto) => {
     const body = {
       title: payload.title,
@@ -101,7 +112,11 @@ export const announcementApi = {
   },
 
   deleteAnnouncement: async (id: number) => {
-    return axiosClient.delete<{ message: string }>(`/bgh/announcements/${id}`);
+    try {
+      return await axiosClient.delete<{ message: string }>(`/bgh/announcements/${id}`);
+    } catch (err) {
+      return await axiosClient.delete<{ message: string }>(`/announcements/${id}`);
+    }
   },
 };
 

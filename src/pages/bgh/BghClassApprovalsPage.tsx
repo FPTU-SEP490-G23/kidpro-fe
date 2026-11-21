@@ -39,7 +39,7 @@ export const BghClassApprovalsPage: React.FC = () => {
 
   // Danh sách các lớp đang chờ duyệt trong đợt này
   const pendingClasses = React.useMemo(() => {
-    return classes.filter(c => c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING');
+    return classes.filter(c => c.status === 'PENDING_APPROVAL');
   }, [classes]);
 
   // Phê duyệt toàn bộ các lớp đang chờ duyệt
@@ -130,7 +130,7 @@ export const BghClassApprovalsPage: React.FC = () => {
     mutationFn: () => classApprovalApi.resetAllPendingClasses(),
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'Đã khôi phục toàn bộ kế hoạch mở lớp về trạng thái Chờ phê duyệt (PENDING) thành công.');
+      success(res?.message || 'Đã thu hồi phê duyệt toàn bộ kế hoạch mở lớp về trạng thái Dự thảo (PENDING) để Giáo vụ chỉnh sửa.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || 'Không thể khôi phục trạng thái đợt kế hoạch');
@@ -303,7 +303,7 @@ export const BghClassApprovalsPage: React.FC = () => {
           {classes.map((c) => {
             const isApproved = c.status === 'APPROVED';
             const isRejected = c.status === 'REJECTED';
-            const isPending = c.status === 'PENDING_APPROVAL' || (c.status as string) === 'PENDING';
+            const isPending = c.status === 'PENDING_APPROVAL';
 
             return (
               <div

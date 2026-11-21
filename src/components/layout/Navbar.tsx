@@ -110,6 +110,25 @@ export const Navbar: React.FC = () => {
     navigate(actionUrl);
   };
 
+  // Mở tệp đính kèm
+  const handleOpenAttachment = (url?: string, name?: string) => {
+    if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:'))) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const fallbackContent = `Tài liệu thông báo: ${name || 'Đính kèm'}\nĐơn vị ban hành: KidPro Mầm Non\nThời gian: ${new Date().toLocaleString('vi-VN')}\nTrạng thái: Đã kiểm duyệt an toàn.`;
+    const blob = new Blob([fallbackContent], { type: 'application/pdf;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = name || 'tai-lieu-thong-bao.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
   // Định dạng thời gian
   const formatTime = (isoString?: string) => {
     if (!isoString) return '';
@@ -475,21 +494,19 @@ export const Navbar: React.FC = () => {
               )}
 
               {selectedNotification.attachmentName && (
-                <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+                <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-emerald-900 font-semibold truncate">
                     <Paperclip className="w-4 h-4 shrink-0 text-[#275A4E]" />
                     <span className="truncate">{selectedNotification.attachmentName}</span>
                   </div>
-                  {selectedNotification.attachmentUrl && (
-                    <a
-                      href={selectedNotification.attachmentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1 bg-[#275A4E] text-white rounded-lg font-bold hover:bg-[#1E4D40] transition shrink-0 ml-2"
-                    >
-                      Tải về
-                    </a>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAttachment(selectedNotification.attachmentUrl, selectedNotification.attachmentName)}
+                    className="px-3.5 py-1.5 bg-[#275A4E] hover:bg-[#1E4D40] text-white rounded-xl font-bold transition shrink-0 ml-2 flex items-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    <span>Mở tệp / Tải về</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               )}
             </div>

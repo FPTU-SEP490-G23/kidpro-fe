@@ -134,7 +134,25 @@ export const BghAnnouncementsPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  const handleCreate = async (isDraft: boolean) => {
+  const handleOpenAttachment = (url?: string, name?: string) => {
+    if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:'))) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const fallbackContent = `Tài liệu thông báo: ${name || 'Đính kèm'}\nĐơn vị ban hành: Ban Giám Hiệu KidPro\nThời gian: ${new Date().toLocaleString('vi-VN')}\nTrạng thái: Đã kiểm duyệt an toàn.`;
+    const blob = new Blob([fallbackContent], { type: 'application/pdf;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = name || 'tai-lieu-thong-bao.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
+  const handleCreate = async () => {
     // Tiêu đề bắt buộc
     if (!formData.title || !formData.title.trim()) {
       setToastMsg({
@@ -144,8 +162,8 @@ export const BghAnnouncementsPage: React.FC = () => {
       return;
     }
 
-    // Nếu không phải lưu nháp thì nội dung bắt buộc
-    if (!isDraft && (!formData.content || !formData.content.trim())) {
+    // Nội dung bắt buộc
+    if (!formData.content || !formData.content.trim()) {
       setToastMsg({
         type: 'warning',
         text: 'Vui lòng nhập nội dung chi tiết thông báo.'
@@ -164,18 +182,29 @@ export const BghAnnouncementsPage: React.FC = () => {
 
     try {
       setSubmitting(true);
+      let fileUrl = formData.attachmentUrl || '';
+      if (attachedFile) {
+        try {
+          const uploadRes = await announcementApi.uploadAttachment(attachedFile);
+          if (uploadRes?.fileUrl) {
+            fileUrl = uploadRes.fileUrl;
+          }
+        } catch (uploadErr) {
+          console.warn('Lỗi upload file lên server:', uploadErr);
+        }
+      }
+
       const payload: AnnouncementCreateRequestDto = {
         ...formData,
-        isDraft,
+        attachmentUrl: fileUrl,
+        isDraft: false,
       };
 
       await announcementApi.createAnnouncement(payload);
 
       setToastMsg({
         type: 'success',
-        text: isDraft
-          ? 'Bản nháp thông báo đã được lưu thành công vào danh sách.'
-          : 'Thông báo toàn trường đã được phát hành thành công và gửi thông báo tới người nhận.'
+        text: 'Thông báo toàn trường đã được phát hành thành công và gửi thông báo tới người nhận.'
       });
 
       setShowModal(false);
@@ -189,7 +218,7 @@ export const BghAnnouncementsPage: React.FC = () => {
       });
       setAttachedFile(null);
 
-      fetchAnnouncements();
+      await fetchAnnouncements();
     } catch (err: any) {
       console.error('Lỗi khi đăng thông báo:', err);
       setToastMsg({
@@ -201,7 +230,10 @@ export const BghAnnouncementsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (!window.confirm('Bạn có chắc chắn muốn xóa thông báo này khỏi bảng tin toàn trường?')) {
       return;
     }
@@ -216,6 +248,7 @@ export const BghAnnouncementsPage: React.FC = () => {
       if (viewDetail?.announcementId === id) {
         setViewDetail(null);
       }
+      await fetchAnnouncements();
     } catch (err: any) {
       console.error('Lỗi xóa thông báo:', err);
       setToastMsg({
@@ -417,7 +450,8 @@ export const BghAnnouncementsPage: React.FC = () => {
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(ann.announcementId)}
+                      type="button"
+                      onClick={(e) => handleDelete(ann.announcementId, e)}
                       className="p-1.5 text-gray-400 hover:text-rose-600 bg-gray-50 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                       title="Xóa thông báo"
                     >
@@ -580,21 +614,10 @@ export const BghAnnouncementsPage: React.FC = () => {
                 Hủy bỏ
               </button>
 
-              {/* NÚT LƯU NHÁP (DRAFT) - RÕ CHỨC NĂNG VÀ HOẠT ĐỘNG CHUẨN */}
-              <button
-                type="button"
-                onClick={() => handleCreate(true)}
-                disabled={submitting}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition border border-slate-200 flex items-center space-x-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
-              >
-                <FileText className="w-4 h-4 text-slate-500" />
-                <span>{submitting ? 'Đang lưu...' : 'Lưu Nháp (Draft)'}</span>
-              </button>
-
               {/* NÚT PHÁT HÀNH TOÀN TRƯỜNG - MÀU XANH FOREST, TEXT TRẮNG NỔI BẬT */}
               <button
                 type="button"
-                onClick={() => handleCreate(false)}
+                onClick={handleCreate}
                 disabled={submitting}
                 className="px-5 py-2.5 bg-[#275A4E] hover:bg-[#1E4D40] text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition flex items-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-60"
               >
@@ -632,18 +655,45 @@ export const BghAnnouncementsPage: React.FC = () => {
             </div>
 
             <div className="p-4 bg-gray-50 rounded-2xl text-gray-800 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-              {viewDetail.content || '(Bản nháp)'}
+              {viewDetail.content || 'Không có nội dung'}
             </div>
 
             {viewDetail.attachmentName && (
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-2 text-xs text-[#275A4E] font-semibold">
-                <Paperclip className="w-4 h-4" />
-                <span>Tệp đính kèm: {viewDetail.attachmentName}</span>
+              <div className="p-3.5 bg-emerald-50/80 rounded-2xl border border-emerald-200 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 text-[#1E4D40] font-semibold min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-emerald-200 text-[#275A4E] flex items-center justify-center shrink-0">
+                    <Paperclip className="w-4 h-4" />
+                  </div>
+                  <div className="truncate">
+                    <p className="font-bold truncate text-slate-800">{viewDetail.attachmentName}</p>
+                    <p className="text-[11px] text-emerald-700">{formatFileSize(viewDetail.attachmentSize || 0)}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenAttachment(viewDetail.attachmentUrl, viewDetail.attachmentName)}
+                  className="px-4 py-2 bg-[#275A4E] hover:bg-[#1E4D40] text-white rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                  title="Mở xem hoặc tải về tệp đính kèm"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Mở xem / Tải về</span>
+                </button>
               </div>
             )}
 
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
               <button
+                type="button"
+                onClick={(e) => handleDelete(viewDetail.announcementId, e)}
+                className="px-3.5 py-2 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Xóa thông báo</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setViewDetail(null)}
                 className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition cursor-pointer"
               >

@@ -399,6 +399,37 @@ export const notificationApi = {
           actionUrl,
         };
       });
+
+      // Tự động đối soát bổ sung tệp đính kèm từ thông báo bản tin toàn trường nếu có
+      try {
+        const annRes: any = await axiosClient.get('/bgh/announcements');
+        const annList = Array.isArray(annRes)
+          ? annRes
+          : (Array.isArray(annRes?.data?.content) ? annRes.data.content : (Array.isArray(annRes?.data) ? annRes.data : []));
+        const annMap = new Map<string, any>();
+        annList.forEach((a: any) => {
+          if (a.title) {
+            annMap.set(a.title.trim().toLowerCase(), a);
+          }
+        });
+
+        remoteList = remoteList.map((item) => {
+          if (!item.attachmentName) {
+            const cleanTitle = item.title.replace('📢', '').trim().toLowerCase();
+            const matched = annMap.get(cleanTitle);
+            if (matched) {
+              const attName = matched.attachmentName || matched.attachments?.[0]?.fileName;
+              const attUrl = matched.attachmentUrl || matched.attachments?.[0]?.fileUrl;
+              if (attName) {
+                return { ...item, attachmentName: attName, attachmentUrl: attUrl };
+              }
+            }
+          }
+          return item;
+        });
+      } catch {
+        // ignore
+      }
     } catch (err) {
       console.warn('Lỗi kết nối /notifications, chuyển sang nạp thông báo hệ thống:', err);
     }
