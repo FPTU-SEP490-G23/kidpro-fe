@@ -970,15 +970,7 @@ export const ClassManagementTab: React.FC = () => {
                           </h3>
                         </div>
 
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => onOpenEditClass(c)}
-                          className="p-2 text-slate-400 hover:text-[#1E4D40] bg-slate-50 hover:bg-emerald-50 rounded-xl transition border border-slate-100 cursor-pointer"
-                          title={c.status === 'ARCHIVED' ? 'Xem chi tiết lớp (Chỉ đọc)' : 'Cập nhật thông tin lớp'}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
+                        {/* Card Header Tag */}
                       </div>
 
                       {/* Class Details */}
@@ -1040,18 +1032,17 @@ export const ClassManagementTab: React.FC = () => {
                         <>
                           <button
                             type="button"
-                            onClick={() => onOpenAssignModal(c)}
-                            className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40]/10 text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/60 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
+                            onClick={() => {
+                              const newParams = new URLSearchParams(searchParams);
+                              newParams.set('subtab', 'assignments');
+                              setSearchParams(newParams);
+                              setActiveSubTab('ASSIGNMENTS');
+                            }}
+                            className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40] hover:text-white text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/80 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer group"
+                            title="Chuyển sang trang Phân công giáo viên"
                           >
-                            <UserCheck className="w-3.5 h-3.5 text-[#275A4E]" />
+                            <UserCheck className="w-3.5 h-3.5 text-[#275A4E] group-hover:text-white" />
                             <span>Phân công GV</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onOpenEditClass(c)}
-                            className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition min-h-[44px] cursor-pointer"
-                          >
-                            Chỉnh sửa
                           </button>
                           <button
                             type="button"
@@ -1063,17 +1054,10 @@ export const ClassManagementTab: React.FC = () => {
                           </button>
                         </>
                       ) : (
-                        <div className="w-full flex items-center justify-between gap-2">
+                        <div className="w-full flex items-center justify-center">
                           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-800 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200">
                             <Lock className="w-3.5 h-3.5 text-purple-600" /> Đã đóng & Lưu trữ (Chỉ đọc)
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => onOpenEditClass(c)}
-                            className="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition cursor-pointer"
-                          >
-                            Xem hồ sơ
-                          </button>
                         </div>
                       )}
                     </div>
