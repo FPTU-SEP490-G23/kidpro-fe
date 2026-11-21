@@ -11,10 +11,13 @@ export const studentPromotionService = {
    */
   getPreview: async (
     fromYearId: string,
-    toYearId: string,
+    toYearId?: string,
     gradeLevel?: GradeLevel | string
   ): Promise<PromotionPreviewItem[]> => {
-    const params: any = { fromYearId, toYearId };
+    const params: any = { fromYearId };
+    if (toYearId) {
+      params.toYearId = toYearId;
+    }
     if (gradeLevel && gradeLevel !== 'ALL') {
       params.gradeLevel = gradeLevel;
     }

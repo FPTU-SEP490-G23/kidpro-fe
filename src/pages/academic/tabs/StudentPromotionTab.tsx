@@ -95,10 +95,14 @@ export const StudentPromotionTab: React.FC = () => {
   } = useQuery({
     queryKey: ['promotionPreview', fromYearId, toYearId, selectedGrade],
     queryFn: async () => {
-      if (!fromYearId || !toYearId || fromYearId === toYearId) return [];
-      return await studentPromotionService.getPreview(fromYearId, toYearId, selectedGrade !== 'ALL' ? selectedGrade : undefined);
+      if (!fromYearId) return [];
+      return await studentPromotionService.getPreview(
+        fromYearId,
+        toYearId && toYearId !== fromYearId ? toYearId : undefined,
+        selectedGrade !== 'ALL' ? selectedGrade : undefined
+      );
     },
-    enabled: Boolean(fromYearId && toYearId && fromYearId !== toYearId),
+    enabled: Boolean(fromYearId),
   });
 
   // Khởi tạo quyết định mặc định (tất cả là PROMOTE)
@@ -325,7 +329,7 @@ export const StudentPromotionTab: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsConfirmDialogOpen(true)}
-              disabled={filteredList.length === 0 || executeMutation.isPending}
+              disabled={filteredList.length === 0 || !toYearId || fromYearId === toYearId || executeMutation.isPending}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm transition-all"
             >
               {executeMutation.isPending ? (
@@ -343,16 +347,25 @@ export const StudentPromotionTab: React.FC = () => {
           </div>
         </div>
 
+        {fromYearId && (!toYearId || fromYearId === toYearId) && (
+          <div className="m-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-800 font-medium">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>Đang hiển thị toàn bộ học sinh năm hiện tại. Vui lòng chọn <strong>Niên Khóa Tiếp Nhận (Năm Mới)</strong> để thực hiện kết chuyển và tự động tạo lớp mới tương ứng.</span>
+            </div>
+          </div>
+        )}
+
         {isLoadingPreview ? (
           <div className="p-12 text-center text-slate-500">
             <Loader2 className="w-7 h-7 animate-spin mx-auto text-emerald-600 mb-2" />
             <p className="text-sm font-semibold">Đang tải danh sách học sinh đề xuất kết chuyển...</p>
           </div>
-        ) : !fromYearId || !toYearId || fromYearId === toYearId ? (
+        ) : !fromYearId ? (
           <div className="p-12 text-center text-slate-500">
             <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-            <p className="text-sm font-bold text-slate-700">Vui lòng chọn 2 niên khóa khác nhau để lập kế hoạch kết chuyển</p>
-            <p className="text-xs text-slate-400 mt-1">Chọn năm học cũ cần kết chuyển và năm học mới tiếp nhận học sinh.</p>
+            <p className="text-sm font-bold text-slate-700">Vui lòng chọn niên khóa cần kết chuyển (năm cũ)</p>
+            <p className="text-xs text-slate-400 mt-1">Hệ thống sẽ tải toàn bộ danh sách học sinh theo khối của niên khóa đã chọn.</p>
           </div>
         ) : filteredList.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
@@ -370,6 +383,7 @@ export const StudentPromotionTab: React.FC = () => {
                   <th className="py-3 px-4">Ngày Sinh</th>
                   <th className="py-3 px-4">Khối Lớp Hiện Tại</th>
                   <th className="py-3 px-4">Lớp Học Hiện Tại</th>
+                  <th className="py-3 px-4">Lớp Mới (Dự Kiến)</th>
                   <th className="py-3 px-4 text-center">Đề Xuất Kết Chuyển</th>
                   <th className="py-3 px-4 text-center">Quyết Định</th>
                   <th className="py-3 px-4 text-right">Thao Tác</th>
@@ -394,6 +408,23 @@ export const StudentPromotionTab: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-600 font-semibold">{st.currentClassName}</td>
+                      
+                      {/* Lớp mới dự kiến */}
+                      <td className="py-3 px-4">
+                        {st.graduating ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold border border-purple-200">
+                            <GraduationCap className="w-3.5 h-3.5" /> Tốt Nghiệp / Ra Trường
+                          </span>
+                        ) : isRetain ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-200">
+                            <RotateCcw className="w-3.5 h-3.5" /> {st.retainedClassName || st.currentClassName || 'Lớp tương ứng'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                            <Layers className="w-3.5 h-3.5" /> {st.targetClassName || 'Tự động tạo lớp mới'}
+                          </span>
+                        )}
+                      </td>
                       
                       {/* Đề xuất kết chuyển */}
                       <td className="py-3 px-4 text-center">
@@ -558,7 +589,7 @@ export const StudentPromotionTab: React.FC = () => {
                   <span className="text-emerald-700 font-mono text-sm">{totalStudents}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
-                  <span>- Tự động nâng khối (sang Chờ xếp lớp):</span>
+                  <span>- Lên khối & chuyển vào lớp mới (Ví dụ: Mầm 1 → Chồi 1):</span>
                   <span className="font-bold text-emerald-600">{promotingCount}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
@@ -566,7 +597,7 @@ export const StudentPromotionTab: React.FC = () => {
                   <span className="font-bold text-purple-600">{graduatingCount}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
-                  <span>- Giữ lại khối cũ (có lý do hợp lệ):</span>
+                  <span>- Giữ lại học lớp tương ứng ở năm mới (Ví dụ: Mầm 1 → Mầm 1):</span>
                   <span className="font-bold text-amber-600">{retainedCount}</span>
                 </div>
               </div>
@@ -577,9 +608,7 @@ export const StudentPromotionTab: React.FC = () => {
                   Lưu ý nghiệp vụ:
                 </p>
                 <p>
-                  Học sinh sau khi kết chuyển thành công sẽ hoàn thành chương trình của năm học trước và được chuyển lên khối lớp mới.
-                  Nhà trường sẽ đưa học sinh vào danh sách <strong>"Chờ phân lớp"</strong> của khối mới trong năm học tiếp nhận để giáo vụ tiến hành xếp lớp.
-                  Toàn bộ quá trình và kết quả kết chuyển được lưu trữ đầy đủ trong hồ sơ học bạ điện tử của học sinh.
+                  Học sinh sau khi kết chuyển thành công sẽ được tự động đưa vào lớp mới tương ứng của niên khóa tiếp nhận. Nếu lớp mới tương ứng ở năm học mới chưa tồn tại, hệ thống sẽ tự động tạo lớp mới với trạng thái đã duyệt. Trường hợp học sinh khối Lá sẽ được công nhận Tốt nghiệp.
                 </p>
               </div>
 
