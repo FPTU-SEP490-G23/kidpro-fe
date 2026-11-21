@@ -1669,8 +1669,17 @@ export const StudentAdmissionTab: React.FC = () => {
       )}
       {/* MODAL CHỌN PHỤ HUYNH CÓ SẴN */}
       {isSelectParentModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4"
+          style={{ zIndex: 9999 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsSelectParentModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150 relative"
+            style={{ zIndex: 10000 }}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100 text-[#1E4D40] flex items-center justify-center font-bold">
