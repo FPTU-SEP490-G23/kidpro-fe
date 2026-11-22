@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Bus, X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { BusCreateRequest, DriverAccountCheckResponse } from '../../../types/bus.types';
+import { BusCreateRequest, DriverAccountCheckResponse, BusItem } from '../../../types/bus.types';
 import { busManagementApi } from '../../../api/busManagementApi';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: BusCreateRequest) => Promise<void>;
+  existingBuses?: BusItem[];
 }
 
-export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
+export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, existingBuses = [] }) => {
   const [formData, setFormData] = useState<BusCreateRequest>({
     busNumber: '',
     driverName: '',
@@ -42,6 +43,20 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
       return;
     }
 
+    const normalize = (p: string) => p.replace(/[^0-9]/g, '').replace(/^84/, '0');
+    if (existingBuses && existingBuses.length > 0) {
+      const duplicateBus = existingBuses.find(
+        (b) => normalize(b.driverPhone || '') === normalize(rawPhone)
+      );
+      if (duplicateBus) {
+        setAccountCheckResult({
+          valid: false,
+          message: `Số điện thoại này đã được sử dụng cho tuyến xe buýt khác (Biển số: ${duplicateBus.busNumber}) trong cơ sở dữ liệu.`,
+        });
+        return;
+      }
+    }
+
     const timer = setTimeout(async () => {
       try {
         setCheckingAccount(true);
@@ -61,7 +76,7 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [formData.driverPhone]);
+  }, [formData.driverPhone, existingBuses]);
 
   if (!isOpen) return null;
 
@@ -78,6 +93,24 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
     if (!formData.driverPhone.trim()) {
       setErrorMsg('Vui lòng nhập số điện thoại tài xế.');
       return;
+    }
+    const cleanPhone = formData.driverPhone.trim();
+    const normalize = (p: string) => p.replace(/[^0-9]/g, '').replace(/^84/, '0');
+    if (existingBuses && existingBuses.length > 0) {
+      const duplicatePhone = existingBuses.find(
+        (b) => normalize(b.driverPhone || '') === normalize(cleanPhone)
+      );
+      if (duplicatePhone) {
+        setErrorMsg(`Số điện thoại '${cleanPhone}' đã được gán cho tuyến xe buýt (Biển số: ${duplicatePhone.busNumber}) trong cơ sở dữ liệu. Mỗi tài xế chỉ phụ trách một tuyến.`);
+        return;
+      }
+      const duplicatePlate = existingBuses.find(
+        (b) => b.busNumber.toUpperCase().trim() === formData.busNumber.toUpperCase().trim()
+      );
+      if (duplicatePlate) {
+        setErrorMsg(`Biển số xe '${formData.busNumber.trim()}' đã tồn tại trong hệ thống.`);
+        return;
+      }
     }
     if (accountCheckResult && !accountCheckResult.valid) {
       setErrorMsg(accountCheckResult.message || 'Số điện thoại tài xế phải khớp với tài khoản người dùng trong hệ thống.');

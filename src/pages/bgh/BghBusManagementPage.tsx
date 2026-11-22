@@ -810,6 +810,7 @@ export const BghBusManagementPage: React.FC = () => {
         isOpen={isCreateBusOpen}
         onClose={() => setIsCreateBusOpen(false)}
         onSubmit={handleCreateBus}
+        existingBuses={buses}
       />
 
       <EditBusModal
@@ -817,6 +818,7 @@ export const BghBusManagementPage: React.FC = () => {
         bus={editingBus}
         onClose={() => setEditingBus(null)}
         onSubmit={handleUpdateBus}
+        existingBuses={buses}
       />
 
       <CreateBusStopModal

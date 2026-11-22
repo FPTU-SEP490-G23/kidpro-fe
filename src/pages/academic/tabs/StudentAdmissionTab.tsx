@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users,
@@ -171,6 +171,14 @@ export const StudentAdmissionTab: React.FC = () => {
     queryFn: () => academicYearApi.getAcademicYears(),
   });
 
+  // Niên khóa hiện hành đang áp dụng (ACTIVE)
+  const activeAcademicYear = useMemo(() => {
+    return (
+      academicYears.find((y: any) => y.status === 'ACTIVE' || y.isActive === true) ||
+      academicYears[0]
+    );
+  }, [academicYears]);
+
   // Danh mục tất cả lớp học
   const { data: allClasses = [] } = useQuery<ClassSummary[]>({
     queryKey: ['academic-classes', selectedYearId],
@@ -337,15 +345,27 @@ export const StudentAdmissionTab: React.FC = () => {
 
   // Handler mở modal thêm mới
   const handleOpenCreateModal = () => {
-    const activeYear = academicYears.find((y: any) => y.status === 'ACTIVE' || y.isActive === true) || academicYears[0];
+    const activeYearId = activeAcademicYear
+      ? activeAcademicYear.id || (activeAcademicYear as any).academicYearId || ''
+      : '';
     setCreateForm({
       ...defaultCreateForm,
-      academicYearId: activeYear ? (activeYear.id || (activeYear as any).academicYearId || '') : '',
+      academicYearId: activeYearId,
       admissionDate: new Date().toISOString().split('T')[0],
     });
     setCreateStep(1);
     setIsCreateModalOpen(true);
   };
+
+  useEffect(() => {
+    if (activeAcademicYear && isCreateModalOpen && !createForm.academicYearId) {
+      const activeYearId =
+        activeAcademicYear.id || (activeAcademicYear as any).academicYearId || '';
+      if (activeYearId) {
+        setCreateForm((prev) => ({ ...prev, academicYearId: activeYearId }));
+      }
+    }
+  }, [activeAcademicYear, isCreateModalOpen, createForm.academicYearId]);
 
   // Validate Step 1
   const handleNextStep1 = () => {
@@ -1015,23 +1035,22 @@ export const StudentAdmissionTab: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
-                        Niên khóa tiếp nhận <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        value={createForm.academicYearId}
-                        onChange={(e) =>
-                          setCreateForm({ ...createForm, academicYearId: e.target.value })
-                        }
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
-                      >
-                        <option value="">-- Chọn năm học --</option>
-                        {academicYears.map((y: any) => (
-                          <option key={y.id} value={y.id}>
-                            {y.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block font-bold text-slate-700">
+                          Niên khóa tiếp nhận <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[10px] font-bold text-[#1E4D40] bg-emerald-100 px-2 py-0.5 rounded-full">
+                          Cố định niên khóa hiện hành
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        value={activeAcademicYear ? `${activeAcademicYear.name} (Đang áp dụng)` : 'Năm học hiện hành'}
+                        className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 cursor-not-allowed select-none"
+                      />
+                      <input type="hidden" value={createForm.academicYearId || (activeAcademicYear?.id || '')} />
                     </div>
                   </div>
 

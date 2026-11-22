@@ -8,9 +8,10 @@ interface Props {
   bus: BusItem | null;
   onClose: () => void;
   onSubmit: (busId: string, data: BusUpdateRequest) => Promise<void>;
+  existingBuses?: BusItem[];
 }
 
-export const EditBusModal: React.FC<Props> = ({ isOpen, bus, onClose, onSubmit }) => {
+export const EditBusModal: React.FC<Props> = ({ isOpen, bus, onClose, onSubmit, existingBuses = [] }) => {
   const [formData, setFormData] = useState<BusUpdateRequest>({
     busNumber: '',
     driverName: '',
@@ -51,10 +52,24 @@ export const EditBusModal: React.FC<Props> = ({ isOpen, bus, onClose, onSubmit }
       return;
     }
 
+    const normalize = (p: string) => p.replace(/[^0-9]/g, '').replace(/^84/, '0');
+    if (existingBuses && bus) {
+      const duplicateBus = existingBuses.find(
+        (b) => b.busId !== bus.busId && normalize(b.driverPhone || '') === normalize(rawPhone)
+      );
+      if (duplicateBus) {
+        setAccountCheckResult({
+          valid: false,
+          message: `Số điện thoại này đã được sử dụng cho tuyến xe buýt khác (Biển số: ${duplicateBus.busNumber}) trong cơ sở dữ liệu.`,
+        });
+        return;
+      }
+    }
+
     const timer = setTimeout(async () => {
       try {
         setCheckingAccount(true);
-        const res = await busManagementApi.checkDriverAccount(rawPhone);
+        const res = await busManagementApi.checkDriverAccount(rawPhone, bus?.busId);
         setAccountCheckResult(res);
         if (res.valid && res.fullName && !formData.driverName) {
           setFormData((prev) => ({ ...prev, driverName: res.fullName || '' }));
@@ -70,7 +85,7 @@ export const EditBusModal: React.FC<Props> = ({ isOpen, bus, onClose, onSubmit }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [formData.driverPhone]);
+  }, [formData.driverPhone, existingBuses, bus]);
 
   if (!isOpen || !bus) return null;
 
@@ -87,6 +102,24 @@ export const EditBusModal: React.FC<Props> = ({ isOpen, bus, onClose, onSubmit }
     if (!formData.driverPhone.trim()) {
       setErrorMsg('Vui lòng nhập số điện thoại tài xế.');
       return;
+    }
+    const cleanPhone = formData.driverPhone.trim();
+    const normalize = (p: string) => p.replace(/[^0-9]/g, '').replace(/^84/, '0');
+    if (existingBuses && bus) {
+      const duplicatePhone = existingBuses.find(
+        (b) => b.busId !== bus.busId && normalize(b.driverPhone || '') === normalize(cleanPhone)
+      );
+      if (duplicatePhone) {
+        setErrorMsg(`Số điện thoại '${cleanPhone}' đã được gán cho tuyến xe buýt (Biển số: ${duplicatePhone.busNumber}).`);
+        return;
+      }
+      const duplicatePlate = existingBuses.find(
+        (b) => b.busId !== bus.busId && b.busNumber.toUpperCase().trim() === formData.busNumber.toUpperCase().trim()
+      );
+      if (duplicatePlate) {
+        setErrorMsg(`Biển số xe '${formData.busNumber.trim()}' đã được sử dụng bởi xe khác.`);
+        return;
+      }
     }
     if (accountCheckResult && !accountCheckResult.valid) {
       setErrorMsg(accountCheckResult.message || 'Số điện thoại tài xế phải khớp với tài khoản người dùng trong hệ thống.');

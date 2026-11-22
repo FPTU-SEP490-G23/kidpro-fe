@@ -18,8 +18,13 @@ export const busManagementApi = {
     return Array.isArray(res) ? res : (res?.data ?? res ?? []);
   },
 
-  checkDriverAccount: async (phone: string): Promise<DriverAccountCheckResponse> => {
-    const res: any = await axiosClient.get('/bgh/buses/check-driver', { params: { phone } });
+  checkDriverAccount: async (phone: string, excludeBusId?: string): Promise<DriverAccountCheckResponse> => {
+    const res: any = await axiosClient.get('/bgh/buses/check-driver', {
+      params: {
+        phone,
+        ...(excludeBusId ? { excludeBusId } : {}),
+      },
+    });
     return res?.data ?? res;
   },
 
