@@ -54,9 +54,8 @@ const TAB_META: Record<KitchenTabKey, TabMeta> = {
 export const KitchenPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const [selectedDate] = useState<string>(todayDateStr);
   
   const resolveTab = (param: string | null): KitchenTabKey => {
     if (param && param in TAB_META) {
@@ -104,14 +103,16 @@ export const KitchenPage: React.FC = () => {
           </p>
         </div>
 
-        {/* BỘ CHỌN NGÀY LÀM VIỆC CỦA BẾP */}
+        {/* HIỂN THỊ NGÀY LÀM VIỆC CỦA BẾP (CỐ ĐỊNH NGÀY HÔM NAY) */}
         <div className="flex items-center gap-3 self-start sm:self-auto">
           <div className="relative">
             <input
               type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="rounded-2xl border border-white/20 bg-white/15 text-white placeholder-emerald-200 px-4 py-2.5 text-xs sm:text-sm font-bold shadow-xs focus:border-[#78C2AD] focus:outline-hidden min-h-[44px] cursor-pointer"
+              value={todayDateStr}
+              readOnly
+              disabled
+              className="rounded-2xl border border-white/20 bg-white/10 text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-xs min-h-[44px] cursor-not-allowed select-none opacity-90"
+              title="Cố định ngày hôm nay"
             />
             <CalendarDays className="pointer-events-none absolute right-3.5 top-3 h-4 w-4 text-emerald-200" />
           </div>
