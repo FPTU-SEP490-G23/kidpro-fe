@@ -1327,7 +1327,7 @@ export const ClassManagementTab: React.FC = () => {
               <p>
                 - Tài khoản giáo viên bắt buộc ở trạng thái <strong>ACTIVE</strong> (Không bị tạm đình chỉ/khóa).
                 <br />- Mỗi lớp học chỉ có duy nhất <strong>01 Giáo viên Chủ nhiệm (GVCN)</strong>.
-                <br />- Một giáo viên không được phân công làm Chủ nhiệm 2 lớp trong cùng một năm học.
+                <br />- Mỗi giáo viên chỉ được phụ trách duy nhất 01 lớp (hoặc GVCN, hoặc Phụ tá) trong cùng một năm học. Không được kiêm nhiệm nhiều lớp hoặc vừa làm GVCN vừa làm Phụ tá.
               </p>
             </div>
           </div>
@@ -1866,25 +1866,33 @@ export const ClassManagementTab: React.FC = () => {
                   <option value="">-- Chọn giáo viên --</option>
                   {availableTeachers.map((t) => {
                     const isLocked = t.status !== 'ACTIVE';
-                    const hasConflict = t.isAssignedHomeroom;
                     const isAlreadyInThisClass = assigningClassAssignments.some(
                       (a: any) => (a.teacherId === t.id || a.staffId === t.id) && a.status !== 'REJECTED'
                     );
+                    const isAssignedOtherClass = Boolean(
+                      (t.isAssigned || t.assigned || t.isAssignedHomeroom || t.assignedHomeroom) &&
+                      (t.assignedClassName || t.currentHomeroomClassName) &&
+                      (t.assignedClassName !== assigningClass?.name && t.currentHomeroomClassName !== assigningClass?.name)
+                    );
+                    const assignedRoleName = t.assignedRole || ((t.isAssignedHomeroom || t.assignedHomeroom) ? 'GVCN' : 'Phụ tá');
+                    const assignedClassTarget = t.assignedClassName || t.currentHomeroomClassName;
+                    const isDisabled = isLocked || isAlreadyInThisClass || isAssignedOtherClass;
+
                     return (
                       <option
                         key={t.id}
                         value={t.id}
-                        disabled={isLocked || isAlreadyInThisClass}
+                        disabled={isDisabled}
                       >
                         {t.fullName} ({t.staffCode || 'GV'}) - Trạng thái: {t.status}
-                        {hasConflict ? ` [Đã làm GVCN: ${t.currentHomeroomClassName}]` : ''}
                         {isAlreadyInThisClass ? ' [⚠️ Đã được phân công trong lớp này]' : ''}
+                        {!isAlreadyInThisClass && isAssignedOtherClass ? ` [⚠️ Đã phân công ${assignedRoleName} lớp ${assignedClassTarget}]` : ''}
                       </option>
                     );
                   })}
                 </select>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Tài khoản bị tạm khóa hoặc đã làm GVCN lớp khác sẽ bị hệ thống cảnh báo và từ chối.
+                  Tài khoản bị tạm khóa hoặc giáo viên đã được phân công (GVCN/Phụ tá) ở lớp khác trong năm học này sẽ bị hệ thống từ chối.
                 </p>
                 {assignErrors.teacherId?.message && (
                   <p className="text-xs text-rose-500 mt-1">{assignErrors.teacherId.message}</p>

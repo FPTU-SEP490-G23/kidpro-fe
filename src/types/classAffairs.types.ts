@@ -118,8 +118,13 @@ export interface AvailableTeacher {
   fullName: string;
   status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'SUSPENDED';
   qualification?: string;
-  isAssignedHomeroom: boolean;
+  isAssignedHomeroom?: boolean;
+  assignedHomeroom?: boolean;
   currentHomeroomClassName?: string;
+  isAssigned?: boolean;
+  assigned?: boolean;
+  assignedClassName?: string;
+  assignedRole?: string;
 }
 
 export interface ApiResponse<T> {

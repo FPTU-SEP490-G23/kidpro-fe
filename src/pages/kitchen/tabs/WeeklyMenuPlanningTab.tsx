@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Edit2,
-  Flame,
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
@@ -337,14 +336,18 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   }, [rawAllergyStudents]);
 
   // Calculate Friday deadline check
+  // Quy tắc: Hạn để làm thực đơn tuần sau là 17:00 Thứ 6 tuần này (Thứ 6 của tuần trước tuần áp dụng)
+  const deadlineFriday = useMemo(() => {
+    const deadline = new Date(currentMonday);
+    deadline.setDate(currentMonday.getDate() - 3);
+    deadline.setHours(17, 0, 0, 0);
+    return deadline;
+  }, [currentMonday]);
+
   const isAfterFridayDeadline = useMemo(() => {
     const now = new Date();
-    // Friday deadline at 17:00 of the previous week
-    const currentWeekFriday = new Date(currentMonday);
-    currentWeekFriday.setDate(currentMonday.getDate() + 4);
-    currentWeekFriday.setHours(17, 0, 0, 0);
-    return now > currentWeekFriday;
-  }, [currentMonday]);
+    return now > deadlineFriday;
+  }, [deadlineFriday]);
 
   // Check Duplicate Main Proteins across the 5 days
   const duplicateProteins = useMemo(() => {
@@ -619,7 +622,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-slate-400">
-                Hạn duyệt: 17:00 Thứ Sáu
+                Hạn duyệt: 17:00 Thứ Sáu ({formatDayVn(deadlineFriday)})
               </span>
               {isAfterFridayDeadline ? (
                 <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
@@ -664,17 +667,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       </div>
 
       {/* Menu variety and allergy controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-            <Flame className="h-4 w-4 text-amber-500" />
-            Thông tin năng lượng
-          </div>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Kcal được lưu cùng món trưa để tham khảo; Hệ thống không chặn gửi duyệt theo ngưỡng kcal hoặc tỷ lệ P:L:C.
-          </p>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Protein Diversity Check */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500">
@@ -752,16 +745,6 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
-                      </div>
-
-                      {/* Calorie Gauge Badge */}
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <span
-                          className="text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 bg-slate-100 text-slate-700"
-                        >
-                          <Flame className="h-3 w-3" />
-                          {day.calories} kcal
-                        </span>
                       </div>
                     </th>
                   );
@@ -980,7 +963,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                   lunchSoup: formData.get('lunchSoup') as string,
                   lunchDessert: formData.get('lunchDessert') as string,
                   snack: formData.get('snack') as string,
-                  calories: Number(formData.get('calories')) || editingDay.calories,
+                  calories: editingDay.calories || 0,
                   nutritionNotes: formData.get('nutritionNotes') as string
                 };
                 handleUpdateDay(updated);
@@ -1083,31 +1066,17 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Kcal (tham khảo):
-                  </label>
-                  <input
-                    type="number"
-                    name="calories"
-                    defaultValue={editingDay.calories}
-                    min="0"
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Ghi chú dinh dưỡng:
-                  </label>
-                  <input
-                    type="text"
-                    name="nutritionNotes"
-                    defaultValue={editingDay.nutritionNotes}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Ghi chú dinh dưỡng:
+                </label>
+                <input
+                  type="text"
+                  name="nutritionNotes"
+                  defaultValue={editingDay.nutritionNotes}
+                  placeholder="Ghi chú thêm về dinh dưỡng hoặc chế biến..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#275A4E]"
+                />
               </div>
 
               {/* Multi-select Allergens with Red tags */}
