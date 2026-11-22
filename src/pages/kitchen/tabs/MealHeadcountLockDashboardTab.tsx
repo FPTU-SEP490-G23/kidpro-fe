@@ -246,14 +246,20 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
 
           {/* Cụm Phải: Nút Thao tác Bếp & Ban Giám Hiệu */}
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
-            {/* Nút Khóa Thủ Công Ngay */}
-            {isKitchenOrBgh && !isActuallyLocked && !isLoading && !isError && (
+            {/* Nút Khóa Thủ Công Ngay / Cập Nhật Ghi Đè */}
+            {isKitchenOrBgh && !isLoading && !isError && (
               <button
                 onClick={() => setIsLockConfirmModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#E5A93C] px-5 py-3 text-sm font-bold text-[#1E4D40] shadow-lg shadow-amber-900/20 hover:bg-[#d99d30] active:scale-95 transition-all min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#E5A93C] px-5 py-3 text-sm font-bold text-[#1E4D40] shadow-lg shadow-amber-900/20 hover:bg-[#d99d30] active:scale-95 transition-all min-h-[44px] cursor-pointer"
               >
                 <Lock className="h-4 w-4" />
-                <span>{pendingClasses.length > 0 ? 'Khóa Suất Ăn (Tạm tính)' : 'Khóa Suất Ăn Thủ Công Ngay'}</span>
+                <span>
+                  {isActuallyLocked
+                    ? 'Khóa Lại / Cập Nhật Số Suất Ăn'
+                    : pendingClasses.length > 0
+                    ? 'Khóa Suất Ăn (Tạm tính)'
+                    : 'Khóa Suất Ăn Thủ Công Ngay'}
+                </span>
               </button>
             )}
 
@@ -601,12 +607,18 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                 <Lock className="h-6 w-6 text-rose-600" />
               </div>
               <h3 className="text-base font-bold text-slate-800">
-                {pendingClasses.length > 0 ? 'Khóa Tạm Tính Suất Ăn' : 'Xác Nhận Khóa Suất Ăn'}
+                {isActuallyLocked
+                  ? 'Cập Nhật / Ghi Đè Khóa Suất Ăn'
+                  : pendingClasses.length > 0
+                  ? 'Khóa Tạm Tính Suất Ăn'
+                  : 'Xác Nhận Khóa Suất Ăn'}
               </h3>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Hệ thống sẽ lưu số lượng học sinh có mặt và đơn xin nghỉ phép hợp lệ hiện tại vào cơ sở dữ liệu để phục vụ bộ phận Bếp xuất kho chuẩn bị món.
+              {isActuallyLocked
+                ? 'Hệ thống sẽ ghi đè và cập nhật lại toàn bộ số lượng học sinh có mặt và khẩu phần suất ăn thực tế của ngày hôm nay vào snapshot cơ sở dữ liệu.'
+                : 'Hệ thống sẽ lưu số lượng học sinh có mặt và đơn xin nghỉ phép hợp lệ hiện tại vào cơ sở dữ liệu để phục vụ bộ phận Bếp xuất kho chuẩn bị món.'}
             </p>
 
             {pendingClasses.length > 0 && (

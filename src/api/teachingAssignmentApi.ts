@@ -39,6 +39,24 @@ export const teachingAssignmentApi = {
     const res: any = await axiosClient.post(`/bgh/teaching-assignments/${id}/reset-pending`);
     return res?.data || res;
   },
+
+  // Phê duyệt phân công cho cả lớp học (duyệt đồng thời GVCN và Phụ tá)
+  approveClassAssignments: async (classId: string): Promise<{ message: string; data: TeachingAssignmentItem[] }> => {
+    const res: any = await axiosClient.post(`/bgh/teaching-assignments/classes/${classId}/approve`);
+    return res?.data || res;
+  },
+
+  // Từ chối phân công cho cả lớp học kèm lý do
+  rejectClassAssignments: async (classId: string, reason: string): Promise<{ message: string; data: TeachingAssignmentItem[] }> => {
+    const res: any = await axiosClient.post(`/bgh/teaching-assignments/classes/${classId}/reject`, { reason });
+    return res?.data || res;
+  },
+
+  // Khôi phục phân công của cả lớp về Chờ phê duyệt (PENDING)
+  resetPendingClassAssignments: async (classId: string): Promise<{ message: string; data: TeachingAssignmentItem[] }> => {
+    const res: any = await axiosClient.post(`/bgh/teaching-assignments/classes/${classId}/reset-pending`);
+    return res?.data || res;
+  },
 };
 
 export default teachingAssignmentApi;
