@@ -50,9 +50,10 @@ export const kitchenApi = {
   // ==========================================
   // THỰC ĐƠN TUẦN BÁN TRÚ
   // ==========================================
-  getWeeklyMenus: (weekStartDate?: string, dayOfWeek?: number) => {
+  getWeeklyMenus: (weekStartDate?: string, menuType?: string, dayOfWeek?: number) => {
     const params: Record<string, string | number> = {};
     if (weekStartDate) params.weekStartDate = weekStartDate;
+    if (menuType) params.menuType = menuType;
     if (dayOfWeek) params.dayOfWeek = dayOfWeek;
     return axiosClient.get<WeeklyMenu[]>('/kitchen/menus', { params });
   },

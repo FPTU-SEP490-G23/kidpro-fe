@@ -141,8 +141,8 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
     });
   }, [classBreakdowns, filterAgeGroup, searchKeyword]);
 
-  // Kiểm tra xem có lớp nào chưa chốt lúc 08:30 không
-  const pendingClasses = classBreakdowns.filter((c) => !c.attendanceFinalized);
+  // Kiểm tra xem có lớp nào chưa chốt lúc 08:30 không (chỉ xét các lớp có học sinh sĩ số > 0)
+  const pendingClasses = classBreakdowns.filter((c) => !c.attendanceFinalized && (c.totalEnrolled || 0) > 0);
 
   const isActuallyLocked = Boolean(snapshotData?.isLocked);
 

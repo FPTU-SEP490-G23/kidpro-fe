@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   UserCheck,
   CheckCircle2,
+  CheckCheck,
   XCircle,
   AlertCircle,
   Clock,
@@ -231,6 +232,39 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
     rejectClassMutation.mutate({ group: rejectingClass, reason: rejectionReason.trim() });
   };
 
+  // Số lượng lớp đang chờ duyệt và đủ điều kiện (có đủ GVCN và Phụ tá)
+  const pendingEligibleCount = useMemo(() => {
+    return classGroups.filter((g) => g.status === 'PENDING' && g.homeroom && g.assistant).length;
+  }, [classGroups]);
+
+  // Mutation: Phê duyệt tất cả các lớp đủ điều kiện
+  const approveAllMutation = useMutation({
+    mutationFn: async () => {
+      try {
+        return await teachingAssignmentApi.approveAllAssignments();
+      } catch {
+        // Fallback duyệt từng lớp
+        const eligiblePending = classGroups.filter(
+          (g) => g.status === 'PENDING' && g.homeroom && g.assistant
+        );
+        let count = 0;
+        for (const g of eligiblePending) {
+          await teachingAssignmentApi.approveClassAssignments(g.classId);
+          count++;
+        }
+        return { message: 'Đã phê duyệt thành công', approvedCount: count };
+      }
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['teaching-assignment-approvals-bgh'] });
+      const count = data?.approvedCount ?? pendingEligibleCount;
+      success(`Đã phê duyệt thành công tất cả các lớp học đủ điều kiện (${count} lớp).`);
+    },
+    onError: (err: any) => {
+      error(err?.response?.data?.message || err?.message || 'Không thể phê duyệt tất cả các lớp.');
+    },
+  });
+
   return (
     <div className="space-y-6 p-6">
       {/* Header Banner */}
@@ -245,14 +279,26 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
             Thẩm định và ký duyệt danh sách nhân sự giảng dạy theo từng nhóm lớp. Lớp học bắt buộc phải phân công đủ cả Giáo viên Chủ nhiệm (GVCN) và Giáo viên Phụ tá thì BGH mới phê duyệt.
           </p>
         </div>
-        <button
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="self-start sm:self-center inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Làm mới</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3 self-start sm:self-center">
+          <button
+            onClick={() => approveAllMutation.mutate()}
+            disabled={approveAllMutation.isPending || pendingEligibleCount === 0}
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#E5A93C] hover:bg-[#d6982b] text-slate-900 font-bold px-4 py-2.5 text-sm backdrop-blur-md transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            title={pendingEligibleCount === 0 ? "Hiện không có lớp nào chờ duyệt đủ điều kiện (cần đủ cả GVCN và Phụ tá)" : "Phê duyệt tất cả các lớp học đang chờ duyệt đủ điều kiện"}
+          >
+            <CheckCheck className={`w-4 h-4 ${approveAllMutation.isPending ? 'animate-spin' : ''}`} />
+            <span>Phê duyệt tất cả ({pendingEligibleCount})</span>
+          </button>
+
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="inline-flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-medium backdrop-blur-md transition cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+        </div>
       </div>
 
       {/* Bộ lọc trạng thái */}

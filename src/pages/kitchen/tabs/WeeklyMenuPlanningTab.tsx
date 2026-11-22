@@ -47,28 +47,173 @@ const ALLERGEN_OPTIONS = [
 ];
 
 const WEEKDAY_NAMES = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu'];
-const EMPTY_WEEK_MENU: DayMenuPlan[] = WEEKDAY_NAMES.map((dayName, index) => ({
-  dayOfWeek: index + 1,
-  dayName,
-  breakfast: '',
-  morningSnack: '',
-  lunchMainProtein: '',
-  lunchVegetable: '',
-  lunchSoup: '',
-  lunchRice: '',
-  lunchDessert: '',
-  snack: '',
-  calories: 0,
-  nutritionNotes: '',
-  allergyTags: []
-}));
+
+const DEFAULT_RICE_MENU: DayMenuPlan[] = [
+  {
+    dayOfWeek: 1,
+    dayName: 'Thứ Hai',
+    breakfast: 'Bánh mì + Sữa tươi',
+    morningSnack: 'Sữa tươi TH 110ml',
+    lunchMainProtein: 'Cá hồi sốt cam',
+    lunchVegetable: 'Bông cải xào',
+    lunchSoup: 'Canh bí đỏ',
+    lunchRice: 'Cơm trắng',
+    lunchDessert: 'Chuối tiêu',
+    snack: 'Sữa chua',
+    calories: 780,
+    nutritionNotes: 'Đầy đủ dưỡng chất thiết yếu cho trẻ',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 2,
+    dayName: 'Thứ Ba',
+    breakfast: 'Bánh mì + Sữa tươi',
+    morningSnack: 'Sữa tươi TH 110ml',
+    lunchMainProtein: 'Tôm luộc',
+    lunchVegetable: 'Thịt bò xào súp lơ',
+    lunchSoup: 'Canh bí đỏ',
+    lunchRice: 'Cơm trắng',
+    lunchDessert: 'Chuối tiêu',
+    snack: 'Sữa chua',
+    calories: 851,
+    nutritionNotes: 'Đầy đủ dưỡng chất thiết yếu cho trẻ',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 3,
+    dayName: 'Thứ Tư',
+    breakfast: 'Bánh mì + Sữa tươi',
+    morningSnack: 'Sữa tươi TH 110ml',
+    lunchMainProtein: 'Bò xào',
+    lunchVegetable: 'Bông cải xào',
+    lunchSoup: 'Canh bí đỏ',
+    lunchRice: 'Cơm trắng',
+    lunchDessert: 'Chuối tiêu',
+    snack: 'Sữa chua',
+    calories: 780,
+    nutritionNotes: 'Đầy đủ dưỡng chất thiết yếu cho trẻ',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 4,
+    dayName: 'Thứ Năm',
+    breakfast: 'Cháo sườn',
+    morningSnack: 'Sữa dê',
+    lunchMainProtein: 'Sườn xào chua ngọt',
+    lunchVegetable: 'Rau bí xào',
+    lunchSoup: 'Canh bí đỏ',
+    lunchRice: 'Cơm trắng',
+    lunchDessert: 'Táo',
+    snack: 'Bánh mì ngọt',
+    calories: 850,
+    nutritionNotes: 'Đầy đủ dưỡng chất thiết yếu cho trẻ',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 5,
+    dayName: 'Thứ Sáu',
+    breakfast: 'Phở gà',
+    morningSnack: 'Nước ép táo',
+    lunchMainProtein: 'Cá hồi sốt cam',
+    lunchVegetable: 'Thịt bò xào súp lơ',
+    lunchSoup: 'Canh bí đỏ',
+    lunchRice: 'Cơm trắng',
+    lunchDessert: 'Chuối tiêu',
+    snack: 'Sữa chua',
+    calories: 800,
+    nutritionNotes: 'Đầy đủ dưỡng chất thiết yếu cho trẻ',
+    allergyTags: []
+  }
+];
+
+const DEFAULT_PORRIDGE_MENU: DayMenuPlan[] = [
+  {
+    dayOfWeek: 1,
+    dayName: 'Thứ Hai',
+    breakfast: 'Cháo sườn non hạt sen',
+    morningSnack: 'Sữa công thức 150ml',
+    lunchMainProtein: 'Cháo cá hồi bông cải',
+    lunchVegetable: 'Bí đỏ hấp nghiền mềm',
+    lunchSoup: 'Súp gà ngô ngọt xay',
+    lunchRice: 'Cháo dinh dưỡng',
+    lunchDessert: 'Chuối tiêu nạo',
+    snack: 'Váng sữa dinh dưỡng',
+    calories: 620,
+    nutritionNotes: 'Dinh dưỡng dễ tiêu hóa dành cho nhóm trẻ Nhũ nhi, Hạt',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 2,
+    dayName: 'Thứ Ba',
+    breakfast: 'Cháo thịt bò cà rốt',
+    morningSnack: 'Nước ép đu đủ tươi',
+    lunchMainProtein: 'Cháo tôm tươi bí ngô',
+    lunchVegetable: 'Khoai tây nghiền sữa',
+    lunchSoup: 'Súp thịt bằm rau củ',
+    lunchRice: 'Cháo dinh dưỡng',
+    lunchDessert: 'Đu đủ chín mềm',
+    snack: 'Sữa chua men sống',
+    calories: 640,
+    nutritionNotes: 'Dinh dưỡng dễ tiêu hóa dành cho nhóm trẻ Nhũ nhi, Hạt',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 3,
+    dayName: 'Thứ Tư',
+    breakfast: 'Cháo gà đậu xanh',
+    morningSnack: 'Sữa công thức 150ml',
+    lunchMainProtein: 'Cháo bò bằm súp lơ xanh',
+    lunchVegetable: 'Cà rốt hấp mềm xay',
+    lunchSoup: 'Súp lươn đồng hạt sen',
+    lunchRice: 'Cháo dinh dưỡng',
+    lunchDessert: 'Thanh long đỏ dầm',
+    snack: 'Bánh flan mềm',
+    calories: 630,
+    nutritionNotes: 'Dinh dưỡng dễ tiêu hóa dành cho nhóm trẻ Nhũ nhi, Hạt',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 4,
+    dayName: 'Thứ Năm',
+    breakfast: 'Cháo yến mạch chuối tiêu',
+    morningSnack: 'Nước cam tươi pha loãng',
+    lunchMainProtein: 'Cháo sườn heo củ dền',
+    lunchVegetable: 'Đậu hà lan nghiền nhuyễn',
+    lunchSoup: 'Súp cua biển ngô ngọt',
+    lunchRice: 'Cháo dinh dưỡng',
+    lunchDessert: 'Xoài chín ngọt nạo',
+    snack: 'Sữa hạt sen mè đen',
+    calories: 650,
+    nutritionNotes: 'Dinh dưỡng dễ tiêu hóa dành cho nhóm trẻ Nhũ nhi, Hạt',
+    allergyTags: []
+  },
+  {
+    dayOfWeek: 5,
+    dayName: 'Thứ Sáu',
+    breakfast: 'Cháo cá lóc rau mồng tơi',
+    morningSnack: 'Sữa công thức 150ml',
+    lunchMainProtein: 'Cháo gà ác hầm hạt sen',
+    lunchVegetable: 'Khoai lang vàng nghiền',
+    lunchSoup: 'Súp bí đỏ kem tươi',
+    lunchRice: 'Cháo dinh dưỡng',
+    lunchDessert: 'Bơ sáp dầm sữa',
+    snack: 'Sữa chua phô mai',
+    calories: 640,
+    nutritionNotes: 'Dinh dưỡng dễ tiêu hóa dành cho nhóm trẻ Nhũ nhi, Hạt',
+    allergyTags: []
+  }
+];
+
+const EMPTY_WEEK_MENU: DayMenuPlan[] = DEFAULT_RICE_MENU;
 
 export const WeeklyMenuPlanningTab: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Current Monday anchor
   const [currentMonday, setCurrentMonday] = useState<Date>(() => getMonday(new Date()));
-  const [menuDays, setMenuDays] = useState<DayMenuPlan[]>(EMPTY_WEEK_MENU);
+  // 2 menu riêng biệt: Thực đơn Cơm (RICE) và Thực đơn Cháo (PORRIDGE)
+  const [menuType, setMenuType] = useState<'RICE' | 'PORRIDGE'>('RICE');
+  const [menuDays, setMenuDays] = useState<DayMenuPlan[]>(DEFAULT_RICE_MENU);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
   // Edit Day Modal
@@ -81,12 +226,12 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     setTimeout(() => setToastMessage(null), 5000);
   };
 
-  // 1. Fetch weekly menu from backend (GET /api/kitchen/menus?weekStartDate=...)
+  // 1. Fetch weekly menu from backend (GET /api/kitchen/menus?weekStartDate=...&menuType=...)
   const { data: serverMenus, isLoading: isMenuLoading, isError: isMenuError, error: menuError } = useQuery({
-    queryKey: ['weekly-menu', mondayStr],
+    queryKey: ['weekly-menu', mondayStr, menuType],
     queryFn: async () => {
       try {
-        const res: any = await kitchenApi.getWeeklyMenus(mondayStr);
+        const res: any = await kitchenApi.getWeeklyMenus(mondayStr, menuType);
         const data = res?.data ?? res;
         return Array.isArray(data) ? data : [];
       } catch (err: any) {
@@ -98,9 +243,9 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
 
   // Map server dishes to 5-day matrix if available
   useEffect(() => {
-    if (!serverMenus) return;
-    if (Array.isArray(serverMenus) && serverMenus.length > 0) {
-      const mapped = EMPTY_WEEK_MENU.map((defaultDay) => {
+    const defaultMenu = menuType === 'PORRIDGE' ? DEFAULT_PORRIDGE_MENU : DEFAULT_RICE_MENU;
+    if (serverMenus && Array.isArray(serverMenus) && serverMenus.length > 0) {
+      const mapped = defaultMenu.map((defaultDay) => {
         const dishes = serverMenus.filter((dish: WeeklyMenu) => {
           const dayNumber = typeof dish.dayOfWeek === 'number'
             ? dish.dayOfWeek
@@ -115,7 +260,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
         const snackDish = dishes.find((d: WeeklyMenu) =>
           d.mealType === 'SNACK' || d.mealType === 'AFTERNOON_SNACK');
 
-        const totalCalo = lunchDish?.calories || 0;
+        const totalCalo = lunchDish?.calories || defaultDay.calories;
         const lunchParts = (lunchDish?.dishName || '').split('|').map((part: string) => part.trim());
         const allAllergies = Array.from(
           new Set(
@@ -143,9 +288,9 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       });
       setMenuDays(mapped);
     } else {
-      setMenuDays(EMPTY_WEEK_MENU);
+      setMenuDays(defaultMenu);
     }
-  }, [serverMenus]);
+  }, [serverMenus, menuType]);
 
   // 2. Fetch students with allergies to cross-reference
   const { data: rawAllergyStudents, isError: allergyQueryError } = useQuery({
@@ -238,7 +383,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weekly-menu'] });
-      showToast('success', 'Đã gửi thực đơn tuần để Ban Giám hiệu phê duyệt.');
+      showToast('success', `Đã gửi ${menuType === 'PORRIDGE' ? 'Thực đơn Cháo (Nhà trẻ)' : 'Thực đơn Cơm (Mẫu giáo)'} tuần để Ban Giám hiệu phê duyệt.`);
     },
     onError: (err: any) => {
       if (err.message === 'DUPLICATE_PROTEIN') {
@@ -275,15 +420,16 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
       prevMonday.setDate(prevMonday.getDate() - 7);
       const prevMondayStr = formatDateISO(prevMonday);
 
-      const res: any = await kitchenApi.getWeeklyMenus(prevMondayStr);
+      const res: any = await kitchenApi.getWeeklyMenus(prevMondayStr, menuType);
       const prevDishes: WeeklyMenu[] = (res?.data ?? res) || [];
 
       if (!Array.isArray(prevDishes) || prevDishes.length === 0) {
-        showToast('warning', `Tuần trước (${formatDayVn(prevMonday)}) chưa có dữ liệu thực đơn để sao chép.`);
+        showToast('warning', `Tuần trước (${formatDayVn(prevMonday)}) chưa có dữ liệu thực đơn ${menuType === 'PORRIDGE' ? 'cháo' : 'cơm'} để sao chép.`);
         return;
       }
 
-      const cloned = EMPTY_WEEK_MENU.map((defaultDay) => {
+      const defaultMenu = menuType === 'PORRIDGE' ? DEFAULT_PORRIDGE_MENU : DEFAULT_RICE_MENU;
+      const cloned = defaultMenu.map((defaultDay) => {
         const dishes = prevDishes.filter((dish: WeeklyMenu) => {
           const dayNumber = typeof dish.dayOfWeek === 'number'
             ? dish.dayOfWeek
@@ -337,6 +483,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
   const handlePublishMenu = () => {
     const payload: WeeklyMenuPayload = {
       weekStartDate: mondayStr,
+      menuType: menuType,
       days: menuDays.map((d) => ({
         dayOfWeek: d.dayOfWeek,
         breakfast: d.breakfast,
@@ -487,6 +634,33 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
           </div>
         </div>
 
+        {/* Chuyển đổi giữa 2 Menu: Menu Cơm và Menu Cháo */}
+        <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-slate-100 border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setMenuType('RICE')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              menuType === 'RICE'
+                ? 'bg-[#275A4E] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+            }`}
+          >
+            <span>🍚</span>
+            <span>Thực Đơn Cơm (Mẫu Giáo: Mầm, Chồi, Lá)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMenuType('PORRIDGE')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              menuType === 'PORRIDGE'
+                ? 'bg-[#E5A93C] text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+            }`}
+          >
+            <span>🥣</span>
+            <span>Thực Đơn Cháo (Nhà Trẻ: Nhũ Nhi, Hạt)</span>
+          </button>
+        </div>
       </div>
 
       {/* Menu variety and allergy controls */}
@@ -634,25 +808,25 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                     <span>Bữa Trưa (~11:00)</span>
                   </div>
                   <span className="text-[10px] text-slate-400 font-normal block mt-0.5">
-                    Đạm, Xào, Canh, Cơm, Tráng miệng
+                    {menuType === 'PORRIDGE' ? 'Cháo dinh dưỡng, Rau củ nghiền, Súp, Tráng miệng' : 'Đạm, Xào, Canh, Cơm, Tráng miệng'}
                   </span>
                 </td>
                 {menuDays.map((day) => (
                   <td key={day.dayOfWeek} className="p-4 border-l border-slate-100 align-top space-y-1.5">
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Món đạm chính:</span>
+                      <span className="text-[10px] text-slate-400 block">{menuType === 'PORRIDGE' ? 'Cháo đạm chính:' : 'Món đạm chính:'}</span>
                       <p className="font-bold text-[#1E4D40]">{day.lunchMainProtein}</p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Món xào / luộc:</span>
+                      <span className="text-[10px] text-slate-400 block">{menuType === 'PORRIDGE' ? 'Rau củ mềm / nghiền:' : 'Món xào / luộc:'}</span>
                       <p className="text-slate-700 font-medium">{day.lunchVegetable}</p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block">Canh bổ dưỡng:</span>
+                      <span className="text-[10px] text-slate-400 block">{menuType === 'PORRIDGE' ? 'Súp bổ dưỡng:' : 'Canh bổ dưỡng:'}</span>
                       <p className="text-slate-700 font-medium">{day.lunchSoup}</p>
                     </div>
                     <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                      <span>Cơm: {day.lunchRice}</span>
+                      <span>{menuType === 'PORRIDGE' ? 'Cháo' : 'Cơm'}: {day.lunchRice || (menuType === 'PORRIDGE' ? 'Cháo dinh dưỡng' : 'Cơm trắng')}</span>
                       <span className="text-amber-700 font-semibold">{day.lunchDessert}</span>
                     </div>
                   </td>
@@ -844,7 +1018,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món đạm chính (Thịt/Cá/Tôm): <span className="text-rose-500">*</span>
+                      {menuType === 'PORRIDGE' ? 'Món cháo đạm chính:' : 'Món đạm chính (Thịt/Cá/Tôm):'} <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -856,7 +1030,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món xào / rau củ:
+                      {menuType === 'PORRIDGE' ? 'Rau củ nghiền / mềm:' : 'Món xào / rau củ:'}
                     </label>
                     <input
                       type="text"
@@ -871,7 +1045,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Món canh bổ dưỡng:
+                      {menuType === 'PORRIDGE' ? 'Món súp bổ dưỡng:' : 'Món canh bổ dưỡng:'}
                     </label>
                     <input
                       type="text"
@@ -883,7 +1057,7 @@ export const WeeklyMenuPlanningTab: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                      Tráng miệng:
+                      {menuType === 'PORRIDGE' ? 'Trái cây mềm / Váng sữa:' : 'Tráng miệng:'}
                     </label>
                     <input
                       type="text"

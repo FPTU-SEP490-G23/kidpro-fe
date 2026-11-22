@@ -33,6 +33,7 @@ export interface WeeklyMenu {
   id?: string;
   itemId?: number;
   menuStatus?: 'DRAFT' | 'APPROVED' | 'REJECTED';
+  menuType?: 'RICE' | 'PORRIDGE';
   weekStartDate?: string;
   dayOfWeek: number; // 1 = Thứ 2 ... 7 = Chủ Nhật
   mealType: 'BREAKFAST' | 'MORNING_SNACK' | 'LUNCH' | 'AFTERNOON_SNACK' | 'SNACK';
@@ -60,6 +61,7 @@ export interface DayMenuPlan {
 
 export interface WeeklyMenuPayload {
   weekStartDate: string;
+  menuType?: 'RICE' | 'PORRIDGE';
   days: {
     dayOfWeek: number;
     breakfast: string;
