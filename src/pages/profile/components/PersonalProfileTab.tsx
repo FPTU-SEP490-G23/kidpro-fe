@@ -245,24 +245,6 @@ export const PersonalProfileTab: React.FC<PersonalProfileTabProps> = ({
               <p className="text-[11px] text-slate-400">Mã cơ sở: {profile.schoolCode}</p>
             </div>
 
-            {/* Mã định danh người dùng (Read-only) */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Mã định danh người dùng
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={profile.userCode}
-                  readOnly
-                  disabled
-                  className="w-full rounded-xl border border-slate-200 bg-slate-100/80 pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-700 cursor-not-allowed select-none font-mono"
-                />
-                <FileBadge className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              </div>
-              <p className="text-[11px] text-slate-400">Định danh duy nhất trên toàn hệ sinh thái</p>
-            </div>
-
             {/* Số điện thoại (Cho phép sửa) */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700">

@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { HeartHandshake, UtensilsCrossed, ClipboardCheck, Award } from 'lucide-react';
+import { HeartHandshake, UtensilsCrossed, Award } from 'lucide-react';
 import BghWeeklyMenuApprovalsPage from '../BghWeeklyMenuApprovalsPage';
-import BghEvaluationApprovalsPage from '../BghEvaluationApprovalsPage';
 import BghDevelopmentQualityReportPage from '../BghDevelopmentQualityReportPage';
 
-export type ChildcareTabKey = 'menu' | 'evaluations' | 'quality-report';
+export type ChildcareTabKey = 'menu' | 'quality-report';
 
 interface TabItem {
   key: ChildcareTabKey;
@@ -20,12 +19,6 @@ const TABS: TabItem[] = [
     label: 'Thực Đơn Tuần',
     description: 'Thẩm định khẩu phần dinh dưỡng và phê duyệt thực đơn tuần của bộ phận cấp dưỡng.',
     icon: UtensilsCrossed,
-  },
-  {
-    key: 'evaluations',
-    label: 'Đánh Giá Trẻ Định Kỳ',
-    description: 'Kiểm duyệt phiếu đánh giá sự phát triển 5 lĩnh vực của trẻ theo chuẩn Bộ GD&ĐT.',
-    icon: ClipboardCheck,
   },
   {
     key: 'quality-report',
@@ -44,7 +37,7 @@ export const BghChildcareHubPage: React.FC<Props> = ({ initialTab = 'menu' }) =>
 
   const activeTab: ChildcareTabKey = useMemo(() => {
     const param = searchParams.get('tab');
-    if (param === 'menu' || param === 'evaluations' || param === 'quality-report') {
+    if (param === 'menu' || param === 'quality-report') {
       return param;
     }
     return initialTab;
@@ -94,7 +87,6 @@ export const BghChildcareHubPage: React.FC<Props> = ({ initialTab = 'menu' }) =>
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#78C2AD]' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
-                  
                 </button>
               );
             })}
@@ -105,7 +97,6 @@ export const BghChildcareHubPage: React.FC<Props> = ({ initialTab = 'menu' }) =>
       {/* Tab Content Renderer */}
       <div>
         {activeTab === 'menu' && <BghWeeklyMenuApprovalsPage />}
-        {activeTab === 'evaluations' && <BghEvaluationApprovalsPage />}
         {activeTab === 'quality-report' && <BghDevelopmentQualityReportPage />}
       </div>
     </div>

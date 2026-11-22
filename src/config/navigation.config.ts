@@ -131,14 +131,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         useCases: [],
       },
       {
-        id: 'bgh-user-accounts',
-        title: 'Cấp Tài Khoản Người Dùng',
-        path: '/admin/users-rbac',
-        icon: 'ShieldCheck',
-        roles: ['BGH'],
-        useCases: [],
-      },
-      {
         id: 'bgh-communications',
         title: 'Truyền Thông & Cảnh Báo',
         path: '/bgh/communications',

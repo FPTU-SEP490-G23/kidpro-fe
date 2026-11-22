@@ -313,7 +313,6 @@ export const BghStaffManagementPage: React.FC = () => {
               <option value="ACADEMIC">Học vụ / Giáo viên (ACADEMIC)</option>
               <option value="ACCOUNTING">Tài chính / Kế toán (ACCOUNTING)</option>
               <option value="KITCHEN">Bếp ăn dinh dưỡng (KITCHEN)</option>
-              <option value="MEDICAL">Y tế học đường (MEDICAL)</option>
               <option value="MANAGEMENT">Ban Giám Hiệu (MANAGEMENT)</option>
             </select>
           </div>
@@ -567,7 +566,6 @@ export const BghStaffManagementPage: React.FC = () => {
                     <option value="ACADEMIC">Giáo viên / Học vụ</option>
                     <option value="ACCOUNTING">Kế toán & Tài chính</option>
                     <option value="KITCHEN">Bếp ăn bán trú</option>
-                    <option value="MEDICAL">Y tế học đường</option>
                     <option value="MANAGEMENT">Ban Giám Hiệu</option>
                   </select>
                 </div>
@@ -705,7 +703,6 @@ export const BghStaffManagementPage: React.FC = () => {
                   <option value="ACADEMIC">Giáo viên / Học vụ</option>
                   <option value="ACCOUNTING">Kế toán & Tài chính</option>
                   <option value="KITCHEN">Bếp ăn bán trú</option>
-                  <option value="MEDICAL">Y tế học đường</option>
                   <option value="MANAGEMENT">Ban Giám Hiệu</option>
                 </select>
               </div>
