@@ -30,9 +30,21 @@ import { ClassSummary, GradeLevel } from '../../../types/classAffairs.types';
 import { formatAcademicYear } from '../../../utils/formatters';
 
 const GRADE_LEVEL_LABELS: Record<string, string> = {
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
-  NURSERY: 'Khối Mầm (3 - 4 tuổi)',
-  KINDERGARTEN: 'Khối Chồi/Lá (4 - 6 tuổi)',
+  INFANT: 'Nhũ',
+  TODDLER: 'Hạt',
+  NURSERY: 'Mầm',
+  KINDERGARTEN: 'Chồi',
+  PRE_K: 'Lá',
+  nhu: 'Nhũ',
+  hat: 'Hạt',
+  mam: 'Mầm',
+  choi: 'Chồi',
+  la: 'Lá',
+  NHU: 'Nhũ',
+  HAT: 'Hạt',
+  MAM: 'Mầm',
+  CHOI: 'Chồi',
+  LA: 'Lá',
 };
 
 export const StudentPlacementTab: React.FC = () => {
@@ -254,9 +266,11 @@ export const StudentPlacementTab: React.FC = () => {
             className="text-sm font-semibold border border-slate-200 rounded-xl px-3 py-1.5 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="ALL">Tất cả các khối độ tuổi</option>
-            <option value="TODDLER">Nhà trẻ (12 - 36 tháng)</option>
-            <option value="NURSERY">Khối Mầm (3 - 4 tuổi)</option>
-            <option value="KINDERGARTEN">Khối Chồi/Lá (4 - 6 tuổi)</option>
+            <option value="INFANT">Khối Nhũ</option>
+            <option value="TODDLER">Khối Hạt</option>
+            <option value="NURSERY">Khối Mầm</option>
+            <option value="KINDERGARTEN">Khối Chồi</option>
+            <option value="PRE_K">Khối Lá</option>
           </select>
         </div>
 

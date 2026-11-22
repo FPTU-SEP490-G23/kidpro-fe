@@ -37,7 +37,7 @@ export const AcademicYearsPage: React.FC = () => {
     queryFn: () => academicYearApi.getAcademicYears(statusFilter),
   });
 
-  const activeYear = years.find((y) => y.status === 'ACTIVE');
+  const activeYears = years.filter((y) => y.status === 'ACTIVE');
 
   // Mutation Tạo/Sửa
   const saveMutation = useMutation({
@@ -162,52 +162,56 @@ export const AcademicYearsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Thẻ Niên Khóa Active Hiện Hành */}
-      {/* {activeYear && (
-        <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#275A4E]/10 text-[#275A4E] flex items-center justify-center">
-                <GraduationCap className="w-7 h-7" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Niên khóa vận hành hiện hành:
-                  </span>
-                  <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-[#78C2AD] text-[#1E4D40] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#1E4D40] animate-pulse"></span>
-                    ACTIVE
-                  </span>
+      {/* Thẻ Niên Khóa Active Hiện Hành (Hỗ trợ tối đa 2 năm học song song không trùng thời gian) */}
+      {activeYears.length > 0 && (
+        <div className="space-y-3">
+          {activeYears.map((yearItem) => (
+            <div key={yearItem.id} className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#275A4E]/10 text-[#275A4E] flex items-center justify-center">
+                    <GraduationCap className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Niên khóa vận hành hiện hành:
+                      </span>
+                      <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-[#78C2AD] text-[#1E4D40] flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#1E4D40] animate-pulse"></span>
+                        ACTIVE
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">
+                      Năm Học {yearItem.name}
+                    </h2>
+                    <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
+                      <span>
+                        <strong>Khung thời gian:</strong> {formatDate(yearItem.startDate)} đến {formatDate(yearItem.endDate)}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        <strong>Số tuần thực học:</strong> {calculateWeeksBetween(yearItem.startDate, yearItem.endDate)} tuần
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">
-                  Năm Học {activeYear.name}
-                </h2>
-                <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
-                  <span>
-                    <strong>Khung thời gian:</strong> {formatDate(activeYear.startDate)} đến {formatDate(activeYear.endDate)}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    <strong>Số tuần thực học:</strong> {calculateWeeksBetween(activeYear.startDate, activeYear.endDate)} tuần (Chuẩn Bộ GD&ĐT)
-                  </span>
-                </p>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(yearItem)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>Chỉnh sửa</span>
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleOpenEdit(activeYear)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>Chỉnh sửa</span>
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      )} */}
+      )}
 
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">

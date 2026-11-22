@@ -85,10 +85,18 @@ export const classService = {
   },
 
   /**
-   * Chỉnh sửa kế hoạch mở lớp khi ở trạng thái PENDING_APPROVAL
+   * Chỉnh sửa kế hoạch mở lớp khi ở trạng thái PENDING_APPROVAL hoặc PENDING
    */
   updateProposal: async (id: string, payload: UpdateClassProposalPayload): Promise<ApiResponse<ClassProposalResponse>> => {
     const res: any = await axiosClient.put(`/classes/proposals/${id}`, payload);
+    return res;
+  },
+
+  /**
+   * Gửi 1 kế hoạch mở lớp cụ thể cho Ban Giám hiệu phê duyệt
+   */
+  submitProposal: async (id: string): Promise<ApiResponse<ClassProposalResponse>> => {
+    const res: any = await axiosClient.post(`/classes/proposals/${id}/submit`);
     return res;
   },
 

@@ -367,21 +367,18 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
                   onChange={(e) => setSelectedBusId(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-800 bg-white"
                 >
-                  {buses.length === 0 ? (
-                    <option value="">Đang tải tuyến xe buýt...</option>
-                  ) : (
-                    buses.map((b: any) => {
-                      const bId = b.busId || b.id;
-                      const bName = b.busName || b.routeName || b.routeDescription || `Tuyến buýt ${b.busNumber || ''}`;
-                      const bPlate = b.busNumber || b.licensePlate || 'Xe trường';
-                      const bFee = formatCurrency(b.fee || 1200000);
-                      return (
-                        <option key={bId} value={bId}>
-                          {bName} — Biển số: {bPlate} ({bFee}/tháng)
-                        </option>
-                      );
-                    })
-                  )}
+                  <option value="">-- Chọn tuyến xe buýt đưa đón --</option>
+                  {buses.map((b: any) => {
+                    const bId = b.busId || b.id;
+                    const bName = b.busName || b.routeName || b.routeDescription || `Tuyến buýt ${b.busNumber || ''}`;
+                    const bPlate = b.busNumber || b.licensePlate || 'Xe trường';
+                    const bFee = formatCurrency(b.fee || 1200000);
+                    return (
+                      <option key={bId} value={bId}>
+                        {bName} — Biển số: {bPlate} ({bFee}/tháng)
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

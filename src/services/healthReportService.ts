@@ -27,5 +27,24 @@ export const healthReportService = {
   exportPhysicalRegister: async (params: PhysicalRegisterExportParams): Promise<PhysicalRegisterResponse> => {
     const res: any = await axiosClient.get('/health-reports/physical-register/data', { params });
     return res?.data !== undefined ? res.data : res;
+  },
+
+  downloadPhysicalRegisterFile: async (params: {
+    classId?: string;
+    measurementRoundId: string;
+    format: 'PDF' | 'EXCEL';
+  }): Promise<Blob> => {
+    const cleanParams: any = {
+      measurementRoundId: params.measurementRoundId,
+      format: params.format
+    };
+    if (params.classId && params.classId !== 'ALL') {
+      cleanParams.classId = params.classId;
+    }
+    const response = await axiosClient.get('/health-reports/physical-register/export', {
+      params: cleanParams,
+      responseType: 'blob'
+    });
+    return response as unknown as Blob;
   }
 };

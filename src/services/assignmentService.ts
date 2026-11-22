@@ -1,4 +1,4 @@
-﻿import axiosClient from '../api/axiosClient';
+import axiosClient from '../api/axiosClient';
 import {
   TeacherAssignmentRequest,
   TeacherAssignmentDetail,
@@ -35,6 +35,14 @@ export const assignmentService = {
     if (academicYearId && academicYearId !== 'ALL') params.academicYearId = academicYearId;
     const res: any = await axiosClient.get('/teacher-assignments/available-teachers', { params });
     return Array.isArray(res) ? res : (res?.data || []);
+  },
+
+  /**
+   * Xóa bản phân công giáo viên (chỉ được xóa khi phân công ở trạng thái PENDING_APPROVAL)
+   */
+  deleteAssignment: async (assignmentId: number | string): Promise<ApiResponse<void>> => {
+    const res: any = await axiosClient.delete(`/teacher-assignments/${assignmentId}`);
+    return res;
   },
 };
 

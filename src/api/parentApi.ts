@@ -265,6 +265,7 @@ export const parentApi = {
           let latePickupFee = Number(item.latePickupFee ?? 0);
           let siblingDiscount = Number(item.discountAmount ?? item.siblingDiscount ?? 0);
 
+          let itemsSum = 0;
           if (Array.isArray(item.items) && item.items.length > 0) {
             item.items.forEach((it: any) => {
               const desc = (it.itemDescription || '').toLowerCase();
@@ -278,6 +279,9 @@ export const parentApi = {
               } else if (desc.includes('giảm') || desc.includes('ưu đãi')) {
                 siblingDiscount = Math.abs(amt);
               }
+              if (!desc.includes('giảm') && !desc.includes('ưu đãi')) {
+                itemsSum += amt;
+              }
             });
           }
 
@@ -285,12 +289,17 @@ export const parentApi = {
             baseTuition = Number(item.totalAmount);
           }
 
-          const calcTotal = Number(item.finalAmount ?? item.totalAmount ?? (baseTuition + mealFee + latePickupFee - siblingDiscount));
+          const calcTotal = Number(
+            item.finalAmount ??
+            item.totalAmount ??
+            (itemsSum > 0 ? Math.max(0, itemsSum - siblingDiscount) : (baseTuition + mealFee + latePickupFee - siblingDiscount))
+          );
+          const resolvedInvoiceId = String(item.invoiceId || item.id || (item.items && item.items[0]?.invoiceId) || `INV-${Date.now()}`);
 
           return {
-            id: String(item.invoiceId || item.id || `INV-${Date.now()}`),
-            invoiceNumber: item.invoiceCode || item.invoiceNumber || `INV-${String(item.invoiceId || '').substring(0, 8)}`,
-            referenceCode: item.invoiceCode || item.referenceCode || `KIDPRO${String(item.invoiceId || '').substring(0, 8)}`,
+            id: resolvedInvoiceId,
+            invoiceNumber: item.invoiceCode || item.invoiceNumber || `INV-${resolvedInvoiceId.substring(0, 8)}`,
+            referenceCode: item.invoiceCode || item.referenceCode || `KIDPRO${resolvedInvoiceId.substring(0, 8)}`,
             studentId: item.studentId || studentId,
             studentName: item.studentName || '',
             className: item.className || '',

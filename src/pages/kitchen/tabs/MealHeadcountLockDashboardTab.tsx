@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Filter,
   Search,
-  Check
+  Check,
+  Clock
 } from 'lucide-react';
 import { kitchenApi } from '../../../api/kitchenApi';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -37,9 +38,8 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
   const isBgh = role === 'BGH' || role === 'SYSTEM_ADMIN';
   const isKitchenOrBgh = isBgh || role === 'BEP';
 
-  const [date, setDate] = useState<string>(
-    propDate || new Date().toISOString().split('T')[0]
-  );
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const date = propDate || todayDateStr;
   const [filterAgeGroup, setFilterAgeGroup] = useState<string>('ALL');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
@@ -246,14 +246,20 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
 
           {/* Cụm Phải: Nút Thao tác Bếp & Ban Giám Hiệu */}
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
-            {/* Nút Khóa Thủ Công Ngay */}
-            {isKitchenOrBgh && !isActuallyLocked && !isLoading && !isError && (
+            {/* Nút Khóa Thủ Công Ngay / Cập Nhật Ghi Đè */}
+            {isKitchenOrBgh && !isLoading && !isError && (
               <button
                 onClick={() => setIsLockConfirmModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#E5A93C] px-5 py-3 text-sm font-bold text-[#1E4D40] shadow-lg shadow-amber-900/20 hover:bg-[#d99d30] active:scale-95 transition-all min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#E5A93C] px-5 py-3 text-sm font-bold text-[#1E4D40] shadow-lg shadow-amber-900/20 hover:bg-[#d99d30] active:scale-95 transition-all min-h-[44px] cursor-pointer"
               >
                 <Lock className="h-4 w-4" />
-                <span>{pendingClasses.length > 0 ? 'Khóa Suất Ăn (Tạm tính)' : 'Khóa Suất Ăn Thủ Công Ngay'}</span>
+                <span>
+                  {isActuallyLocked
+                    ? 'Khóa Lại / Cập Nhật Số Suất Ăn'
+                    : pendingClasses.length > 0
+                    ? 'Khóa Suất Ăn (Tạm tính)'
+                    : 'Khóa Suất Ăn Thủ Công Ngay'}
+                </span>
               </button>
             )}
 
@@ -339,7 +345,7 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
             <span className="text-xs font-medium text-slate-500">suất cháo</span>
           </div>
           <p className="mt-2 text-xs text-teal-700 font-medium flex items-center gap-1.5">
-            <span>Tự động bóc tách từ các lớp Nhà trẻ</span>
+            <span>Tự động bóc tách từ các khối Nhũ nhi, Hạt</span>
           </p>
         </div>
 
@@ -375,9 +381,10 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
           {[
             { id: 'ALL', label: 'Tất cả khối' },
             { id: 'INFANT', label: 'Nhũ nhi' },
-            { id: 'TODDLER', label: 'Nhà trẻ nhỏ' },
-            { id: 'NURSERY', label: 'Nhà trẻ' },
-            { id: 'KINDERGARTEN', label: 'Mẫu giáo' }
+            { id: 'TODDLER', label: 'Hạt' },
+            { id: 'NURSERY', label: 'Mầm' },
+            { id: 'KINDERGARTEN', label: 'Chồi' },
+            { id: 'PRE_K', label: 'Lá' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -409,8 +416,10 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
             <input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="px-3 py-2 text-xs rounded-xl border border-slate-200 text-slate-700 font-semibold focus:border-[#275A4E] focus:outline-hidden"
+              disabled
+              readOnly
+              className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold cursor-not-allowed select-none opacity-90"
+              title="Cố định ngày hôm nay"
             />
             <Calendar className="pointer-events-none absolute right-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
           </div>
@@ -457,11 +466,12 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                 </tr>
               ) : (
                 filteredClasses.map((cls) => {
-                  const ageBadgeMap: Record<AgeGroupType, { label: string; color: string }> = {
+                  const ageBadgeMap: Record<string, { label: string; color: string }> = {
                     INFANT: { label: 'Nhũ nhi', color: 'bg-purple-100 text-purple-800' },
-                    TODDLER: { label: 'Nhà trẻ nhỏ', color: 'bg-teal-100 text-teal-800' },
-                    NURSERY: { label: 'Nhà trẻ', color: 'bg-amber-100 text-amber-800' },
-                    KINDERGARTEN: { label: 'Mẫu giáo', color: 'bg-blue-100 text-blue-800' }
+                    TODDLER: { label: 'Hạt', color: 'bg-teal-100 text-teal-800' },
+                    NURSERY: { label: 'Mầm', color: 'bg-amber-100 text-amber-800' },
+                    KINDERGARTEN: { label: 'Chồi', color: 'bg-blue-100 text-blue-800' },
+                    PRE_K: { label: 'Lá', color: 'bg-rose-100 text-rose-800' }
                   };
                   const ageBadge = ageBadgeMap[cls.ageGroup] || {
                     label: cls.ageGroup,
@@ -528,15 +538,15 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                       </td>
 
                       <td className="py-3.5 px-4 text-center">
-                        {cls.attendanceFinalized ? (
+                        {isPast0830 || isActuallyLocked ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
                             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                             <span>Đã chốt sổ</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold animate-pulse" title="Lớp chưa hoàn tất chốt lúc 08:30">
-                            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                            <span>Chưa chốt điểm danh</span>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold animate-pulse" title="Đang trong khung giờ nhận điểm danh trước 08:30">
+                            <Clock className="h-3.5 w-3.5 text-blue-600" />
+                            <span>Đang điểm danh</span>
                           </span>
                         )}
                       </td>
@@ -597,12 +607,18 @@ export const MealHeadcountLockDashboardTab: React.FC<MealHeadcountLockDashboardT
                 <Lock className="h-6 w-6 text-rose-600" />
               </div>
               <h3 className="text-base font-bold text-slate-800">
-                {pendingClasses.length > 0 ? 'Khóa Tạm Tính Suất Ăn' : 'Xác Nhận Khóa Suất Ăn'}
+                {isActuallyLocked
+                  ? 'Cập Nhật / Ghi Đè Khóa Suất Ăn'
+                  : pendingClasses.length > 0
+                  ? 'Khóa Tạm Tính Suất Ăn'
+                  : 'Xác Nhận Khóa Suất Ăn'}
               </h3>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Hệ thống sẽ lưu số lượng học sinh có mặt và đơn xin nghỉ phép hợp lệ hiện tại vào cơ sở dữ liệu để phục vụ bộ phận Bếp xuất kho chuẩn bị món.
+              {isActuallyLocked
+                ? 'Hệ thống sẽ ghi đè và cập nhật lại toàn bộ số lượng học sinh có mặt và khẩu phần suất ăn thực tế của ngày hôm nay vào snapshot cơ sở dữ liệu.'
+                : 'Hệ thống sẽ lưu số lượng học sinh có mặt và đơn xin nghỉ phép hợp lệ hiện tại vào cơ sở dữ liệu để phục vụ bộ phận Bếp xuất kho chuẩn bị món.'}
             </p>
 
             {pendingClasses.length > 0 && (

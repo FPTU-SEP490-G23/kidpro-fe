@@ -20,7 +20,10 @@ import {
   ArrowRight,
   FileCheck2,
   Receipt,
-  UserX
+  UserX,
+  Upload,
+  Paperclip,
+  X
 } from 'lucide-react';
 import { withdrawalService } from '../../../services/withdrawalService';
 import { studentService } from '../../../services/studentService';
@@ -42,6 +45,9 @@ export const StudentWithdrawalTab: React.FC = () => {
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedStudentForWithdrawal, setSelectedStudentForWithdrawal] = useState<string>('');
+  const [studentSearchQuery, setStudentSearchQuery] = useState<string>('');
+  const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState<boolean>(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [destinationSchoolInput, setDestinationSchoolInput] = useState<string>('');
   const [reasonInput, setReasonInput] = useState<string>('');
   const [expectedDateInput, setExpectedDateInput] = useState<string>('');
@@ -69,6 +75,15 @@ export const StudentWithdrawalTab: React.FC = () => {
     enabled: isCreateModalOpen,
   });
   const studentList = studentsData?.content || [];
+
+  const filteredSearchStudents = studentList.filter((s: any) => {
+    if (!studentSearchQuery.trim()) return true;
+    const q = studentSearchQuery.toLowerCase();
+    const name = (s.fullName || s.name || '').toLowerCase();
+    const code = (s.studentCode || s.code || '').toLowerCase();
+    const cls = (s.className || '').toLowerCase();
+    return name.includes(q) || code.includes(q) || cls.includes(q);
+  });
 
   // Financial check query for target modal
   const { data: financialData, isLoading: isLoadingFinancial } = useQuery<FinancialCheckResult>({
@@ -112,6 +127,9 @@ export const StudentWithdrawalTab: React.FC = () => {
 
   const resetCreateForm = () => {
     setSelectedStudentForWithdrawal('');
+    setStudentSearchQuery('');
+    setIsStudentDropdownOpen(false);
+    setAttachedFile(null);
     setDestinationSchoolInput('');
     setReasonInput('');
     setExpectedDateInput('');
@@ -133,12 +151,17 @@ export const StudentWithdrawalTab: React.FC = () => {
       return;
     }
 
+    let finalNotes = notesInput.trim();
+    if (attachedFile) {
+      finalNotes = finalNotes ? `${finalNotes} (Tệp đính kèm: ${attachedFile.name})` : `Tệp đính kèm: ${attachedFile.name}`;
+    }
+
     createMutation.mutate({
       studentId: selectedStudentForWithdrawal,
       destinationSchool: destinationSchoolInput.trim(),
       reason: reasonInput.trim(),
       expectedDate: expectedDateInput || undefined,
-      notes: notesInput.trim() || undefined,
+      notes: finalNotes || undefined,
     });
   };
 
@@ -421,23 +444,78 @@ export const StudentWithdrawalTab: React.FC = () => {
             </div>
 
             <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
-              <div>
+              <div className="relative">
                 <label className="block text-slate-600 font-bold mb-1">
                   Chọn học sinh xin chuyển trường <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  value={selectedStudentForWithdrawal}
-                  onChange={(e) => setSelectedStudentForWithdrawal(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
-                  required
-                >
-                  <option value="">-- Chọn học sinh từ danh sách --</option>
-                  {studentList.map((s: any) => (
-                    <option key={s.id || s.studentId} value={s.id || s.studentId}>
-                      {s.fullName || s.name} ({s.studentCode || s.code}) - Lớp: {s.className || 'Chưa phân lớp'}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Nhập tên hoặc mã học sinh để tìm kiếm nhanh..."
+                    value={studentSearchQuery}
+                    onChange={(e) => {
+                      setStudentSearchQuery(e.target.value);
+                      setIsStudentDropdownOpen(true);
+                      if (!e.target.value) {
+                        setSelectedStudentForWithdrawal('');
+                      }
+                    }}
+                    onFocus={() => setIsStudentDropdownOpen(true)}
+                    className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                    required={!selectedStudentForWithdrawal}
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  {selectedStudentForWithdrawal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedStudentForWithdrawal('');
+                        setStudentSearchQuery('');
+                      }}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-rose-500 cursor-pointer"
+                      title="Chọn lại học sinh"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Suggestions Dropdown */}
+                {isStudentDropdownOpen && (
+                  <div className="absolute z-20 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg divide-y divide-slate-100">
+                    {filteredSearchStudents.length === 0 ? (
+                      <div className="p-3 text-center text-slate-400 text-xs">
+                        Không tìm thấy học sinh nào phù hợp
+                      </div>
+                    ) : (
+                      filteredSearchStudents.slice(0, 30).map((s: any) => {
+                        const sId = s.id || s.studentId;
+                        const sName = s.fullName || s.name;
+                        const sCode = s.studentCode || s.code;
+                        const sClass = s.className || 'Chưa phân lớp';
+                        return (
+                          <div
+                            key={sId}
+                            onMouseDown={() => {
+                              setSelectedStudentForWithdrawal(sId);
+                              setStudentSearchQuery(`${sName} (${sCode}) - Lớp: ${sClass}`);
+                              setIsStudentDropdownOpen(false);
+                            }}
+                            className="p-2.5 hover:bg-emerald-50 cursor-pointer flex items-center justify-between transition-colors"
+                          >
+                            <div>
+                              <p className="font-bold text-slate-800">{sName}</p>
+                              <p className="text-[10px] text-slate-500 font-mono">Mã: {sCode}</p>
+                            </div>
+                            <span className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg font-medium">
+                              {sClass}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -479,14 +557,44 @@ export const StudentWithdrawalTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 font-bold mb-1">Ghi chú thêm</label>
+                  <label className="block text-slate-600 font-bold mb-1">Ghi chú thêm & Đính kèm</label>
                   <input
                     type="text"
-                    placeholder="Giấy tờ kèm theo..."
+                    placeholder="Ghi chú giấy tờ tiếp nhận..."
                     value={notesInput}
                     onChange={(e) => setNotesInput(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#78C2AD] focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#78C2AD] focus:outline-none mb-1.5"
                   />
+                  {attachedFile ? (
+                    <div className="flex items-center justify-between p-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px]">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Paperclip className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                        <span className="font-bold text-emerald-900 truncate">{attachedFile.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedFile(null)}
+                        className="text-slate-400 hover:text-rose-500 ml-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center gap-1.5 px-2.5 py-1 border border-dashed border-slate-300 hover:border-emerald-500 rounded-xl cursor-pointer text-slate-600 hover:text-emerald-700 text-[11px] transition-colors w-fit">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Đính kèm tệp văn bản</span>
+                      <input
+                        type="file"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setAttachedFile(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
 

@@ -13,6 +13,8 @@ export interface PromotionPreviewItem {
   suggestedGradeLevel?: GradeLevel | null;
   suggestedAction: 'PROMOTE' | 'GRADUATED';
   graduating: boolean;
+  targetClassName?: string;
+  retainedClassName?: string;
 }
 
 export interface PromotionItemPayload {
