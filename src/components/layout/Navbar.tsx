@@ -457,27 +457,6 @@ export const Navbar: React.FC = () => {
                 {selectedNotification.body}
               </div>
 
-              {selectedNotification.actionUrl && (
-                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-bold text-[#1E4D40] flex items-center gap-1.5">
-                      <span>Nghiệp vụ liên kết trực tiếp</span>
-                    </p>
-                    <p className="text-[11px] text-emerald-800 mt-0.5">
-                      Bạn có thể chuyển hướng nhanh tới trang để xem chi tiết và phê duyệt / xử lý.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleNavigateToAction(selectedNotification.actionUrl)}
-                    className="px-3.5 py-1.5 bg-[#275A4E] hover:bg-[#1E4D40] text-white rounded-xl font-bold transition shrink-0 ml-2 flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <span>Đi tới trang</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
               {selectedNotification.attachmentName && (
                 <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-emerald-900 font-semibold truncate">

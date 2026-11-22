@@ -22,11 +22,14 @@ import extracurricularApi, {
 } from '../../api/extracurricularApi';
 import { facilityClassroomApi, FacilityClassroom } from '../../api/facilityClassroomApi';
 import academicYearApi from '../../api/academicYearApi';
+import { busManagementApi } from '../../api/busManagementApi';
+import { TeacherOption } from '../../types/bus.types';
 
 export const BghExtracurricularClassesPage: React.FC = () => {
   const [classes, setClasses] = useState<ExtracurricularClassDto[]>([]);
   const [classrooms, setClassrooms] = useState<FacilityClassroom[]>([]);
   const [academicYears, setAcademicYears] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Modal Create
@@ -60,15 +63,17 @@ export const BghExtracurricularClassesPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [clsRes, roomRes, yearRes] = await Promise.all([
+      const [clsRes, roomRes, yearRes, teachersRes] = await Promise.all([
         extracurricularApi.getClasses(),
         facilityClassroomApi.getAllClassrooms(),
         academicYearApi.getAcademicYears(),
+        busManagementApi.getTeacherOptions(),
       ]);
       setClasses(Array.isArray(clsRes) ? clsRes : ((clsRes as any)?.data || []));
       setClassrooms(roomRes || []);
       const years = Array.isArray(yearRes) ? yearRes : ((yearRes as any)?.data || []);
       setAcademicYears(years);
+      setTeachers(Array.isArray(teachersRes) ? teachersRes : []);
       if (years.length > 0 && !formData.academicYearId) {
         setFormData((prev) => ({ ...prev, academicYearId: years[0].academicYearId || years[0].id }));
       }
@@ -473,15 +478,24 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Giáo viên / Huấn luyện viên phụ trách
+                  Giáo viên / Huấn luyện viên phụ trách <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: Thầy Trần Anh Tuấn (HLV Võ thuật Đai đen)"
-                  value={formData.externalInstructorName}
+                <select
+                  value={formData.externalInstructorName || ''}
                   onChange={(e) => setFormData({ ...formData, externalInstructorName: e.target.value })}
-                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-                />
+                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E] bg-white font-medium"
+                  required
+                >
+                  <option value="">-- Chọn giáo viên phụ trách CLB --</option>
+                  {teachers.map((t) => (
+                    <option key={t.staffId || t.fullName} value={t.fullName}>
+                      {t.fullName} {t.phoneNumber ? `(${t.phoneNumber})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-[11px] text-slate-400 mt-0.5 block">
+                  Mỗi giáo viên chỉ được phụ trách tối đa 01 lớp (lớp chính khóa hoặc CLB) trong cùng năm học.
+                </span>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -601,14 +615,24 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Giáo viên / Huấn luyện viên phụ trách
+                  Giáo viên / Huấn luyện viên phụ trách <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={editFormData.externalInstructorName}
+                <select
+                  value={editFormData.externalInstructorName || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, externalInstructorName: e.target.value })}
-                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-                />
+                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E] bg-white font-medium"
+                  required
+                >
+                  <option value="">-- Chọn giáo viên phụ trách CLB --</option>
+                  {teachers.map((t) => (
+                    <option key={t.staffId || t.fullName} value={t.fullName}>
+                      {t.fullName} {t.phoneNumber ? `(${t.phoneNumber})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-[11px] text-slate-400 mt-0.5 block">
+                  Mỗi giáo viên chỉ được phụ trách tối đa 01 lớp (lớp chính khóa hoặc CLB) trong cùng năm học.
+                </span>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

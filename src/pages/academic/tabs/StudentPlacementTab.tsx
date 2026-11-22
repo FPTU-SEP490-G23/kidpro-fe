@@ -133,6 +133,11 @@ export const StudentPlacementTab: React.FC = () => {
   // Filtered Unassigned Students by search
   const filteredUnassigned = useMemo(() => {
     return unassignedStudents.filter(s => {
+      // BR: Chỉ hiện học sinh đang trong trạng thái học (không hiện tốt nghiệp hoặc chuyển trường)
+      const st = (s as any).status;
+      if (st === 'GRADUATED' || st === 'WITHDRAWN' || st === 'TRANSFERRED') {
+        return false;
+      }
       if (searchStudent.trim()) {
         const kw = searchStudent.toLowerCase();
         const matchName = s.fullName.toLowerCase().includes(kw);

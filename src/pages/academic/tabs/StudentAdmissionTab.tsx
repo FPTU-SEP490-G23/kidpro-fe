@@ -53,6 +53,23 @@ const GRADE_LABELS: Record<GradeLevel, string> = {
   PRE_K: 'Khối Lá (5 - 6 tuổi)',
 };
 
+const getGradeShortName = (grade: any) => {
+  if (!grade) return '';
+  const map: Record<string, string> = {
+    INFANT: 'Nhũ',
+    TODDLER: 'Hạt',
+    NURSERY: 'Mầm',
+    KINDERGARTEN: 'Chồi',
+    PRE_K: 'Lá',
+    nhu: 'Nhũ',
+    hat: 'Hạt',
+    mam: 'Mầm',
+    choi: 'Chồi',
+    la: 'Lá',
+  };
+  return map[grade] || grade;
+};
+
 const STATUS_LABELS: Record<StudentStatus, { text: string; bg: string; textCol: string }> = {
   WAITING_PLACEMENT: {
     text: 'Chờ xếp lớp',
@@ -320,10 +337,10 @@ export const StudentAdmissionTab: React.FC = () => {
 
   // Handler mở modal thêm mới
   const handleOpenCreateModal = () => {
-    const activeYear = academicYears.find((y: any) => y.isActive) || academicYears[0];
+    const activeYear = academicYears.find((y: any) => y.status === 'ACTIVE' || y.isActive === true) || academicYears[0];
     setCreateForm({
       ...defaultCreateForm,
-      academicYearId: activeYear ? activeYear.id : '',
+      academicYearId: activeYear ? (activeYear.id || (activeYear as any).academicYearId || '') : '',
       admissionDate: new Date().toISOString().split('T')[0],
     });
     setCreateStep(1);
@@ -1262,11 +1279,15 @@ export const StudentAdmissionTab: React.FC = () => {
                             (c) =>
                               (!createForm.academicYearId || c.academicYearId === createForm.academicYearId)
                           )
-                          .map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name} ({GRADE_LABELS[c.gradeLevel]?.split(' ')[0] || c.gradeLevel}) (Sĩ số hiện tại: {c.currentEnrollment}/{c.maxCapacity})
-                            </option>
-                          ))}
+                          .map((c) => {
+                            const curCount = (c as any).currentEnrollment ?? (c as any).currentCount ?? 0;
+                            const maxCap = c.maxCapacity ?? 30;
+                            return (
+                              <option key={c.id} value={c.id}>
+                                {c.name} (Khối {getGradeShortName(c.gradeLevel)} - Sĩ số hiện tại: {curCount}/{maxCap})
+                              </option>
+                            );
+                          })}
                       </select>
                       <p className="text-[11px] text-slate-500 mt-1">
                         Nếu để trống, học sinh sẽ nhận trạng thái <strong>WAITING_PLACEMENT</strong> để Cán bộ Giáo vụ phân bổ lớp tập trung trong tính năng Xếp Trẻ Vào Lớp.

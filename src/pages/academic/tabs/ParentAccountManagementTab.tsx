@@ -314,22 +314,6 @@ export const ParentAccountManagementTab: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedStudent(null);
-              setProvisionStudentId('');
-              setProvisionFullName('');
-              setProvisionPhone('');
-              setProvisionEmail('');
-              setProvisionRelationship('FATHER');
-              setIsProvisionModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>+ Cấp Tài Khoản Phụ Huynh Mới</span>
-          </button>
         </div>
       </div>
 
@@ -629,7 +613,7 @@ export const ParentAccountManagementTab: React.FC = () => {
               <Users className="w-12 h-12 text-slate-300 mx-auto" />
               <h3 className="text-sm font-bold text-slate-700">Không tìm thấy tài khoản phụ huynh phù hợp</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Chưa có tài khoản nào phù hợp tiêu chí tìm kiếm. Hãy bấm "+ Cấp Tài Khoản Phụ Huynh Mới".
+                Chưa có tài khoản phụ huynh nào phù hợp tiêu chí tìm kiếm.
               </p>
             </div>
           ) : (

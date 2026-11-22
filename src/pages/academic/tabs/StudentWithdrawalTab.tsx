@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText,
@@ -76,7 +76,23 @@ export const StudentWithdrawalTab: React.FC = () => {
   });
   const studentList = studentsData?.content || [];
 
+  // Danh sách ID học sinh đã có đơn đang chờ xử lý (Chỉ 1 đơn PENDING tại 1 thời điểm)
+  const pendingStudentIds = useMemo(() => {
+    return new Set(
+      (requests || [])
+        .filter((r) => r.status === 'PENDING')
+        .map((r) => r.studentId)
+    );
+  }, [requests]);
+
   const filteredSearchStudents = studentList.filter((s: any) => {
+    const sId = s.id || s.studentId;
+    if (pendingStudentIds.has(sId)) {
+      return false; // Không cho phép chọn học sinh đã có đơn chờ duyệt
+    }
+    if (s.status === 'WITHDRAWN' || s.status === 'GRADUATED') {
+      return false;
+    }
     if (!studentSearchQuery.trim()) return true;
     const q = studentSearchQuery.toLowerCase();
     const name = (s.fullName || s.name || '').toLowerCase();
@@ -111,7 +127,10 @@ export const StudentWithdrawalTab: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-withdrawals'] });
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
-      success('Xử lý hồ sơ rút học bạ và chuyển trường thành công.');
+      queryClient.invalidateQueries({ queryKey: ['students-list'] });
+      queryClient.invalidateQueries({ queryKey: ['unassigned-students'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-accounts-students'] });
+      success('Xử lý hồ sơ rút học bạ và hoàn tất chuyển trường thành công. Đã dọn dẹp dữ liệu học sinh khỏi hệ thống.');
       setCompletingTarget(null);
     },
     onError: (err: any) => {

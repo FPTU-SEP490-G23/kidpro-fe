@@ -79,7 +79,8 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
 
     try {
       setBroadcasting(true);
-      const res: any = await emergencyBroadcastApi.broadcastEmergency(formData);
+      const { authCode, ...payload } = formData;
+      const res: any = await emergencyBroadcastApi.broadcastEmergency(payload as any);
       const data: EmergencyBroadcastResponseDto = res?.data || res;
 
       setLatest(data);
@@ -87,8 +88,6 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
         type: 'success',
         text: 'Lệnh phát thông báo khẩn cấp toàn trường đã được kích hoạt và truyền tải thành công.'
       });
-
-      setFormData(prev => ({ ...prev, authCode: '' }));
     } catch (err: any) {
       console.error('Lỗi phát tin khẩn cấp:', err);
       setToastMsg({
