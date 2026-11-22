@@ -114,13 +114,12 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
       {/* Toast Alert */}
       {toastMsg && (
         <div
-          className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-            toastMsg.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : toastMsg.type === 'warning'
+          className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${toastMsg.type === 'success'
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            : toastMsg.type === 'warning'
               ? 'bg-amber-50 border-amber-200 text-amber-800'
               : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}
+            }`}
         >
           <div className="flex items-center space-x-3">
             {toastMsg.type === 'success' ? (
@@ -194,11 +193,10 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
                     key={type.value}
                     type="button"
                     onClick={() => setFormData({ ...formData, incidentType: type.value })}
-                    className={`p-3 rounded-xl border text-left text-sm font-medium transition flex items-center space-x-3 ${
-                      formData.incidentType === type.value
-                        ? 'border-rose-500 bg-rose-50/50 text-rose-900 ring-2 ring-rose-500/20'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                    }`}
+                    className={`p-3 rounded-xl border text-left text-sm font-medium transition flex items-center space-x-3 ${formData.incidentType === type.value
+                      ? 'border-rose-500 bg-rose-50/50 text-rose-900 ring-2 ring-rose-500/20'
+                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}
                   >
                     <span className="text-xl">{type.icon}</span>
                     <span className="text-xs font-bold leading-tight">{type.label}</span>
@@ -338,10 +336,10 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
               <span>Quy Chuẩn Điều Hành An Toàn Mầm Non</span>
             </h4>
             <p className="leading-relaxed">
-              <strong>BR-122:</strong> Chỉ Ban Giám Hiệu có mã ủy quyền mới được phép kích hoạt phát tin khẩn.
+              Chỉ Ban Giám Hiệu có mã ủy quyền mới được phép kích hoạt phát tin khẩn.
             </p>
             <p className="leading-relaxed">
-              <strong>BR-123:</strong> Hệ thống tự động khóa phát tin liên tiếp trong vòng 10 phút để tránh tình trạng spam gây nhiễu loạn thông tin.
+              Hệ thống tự động khóa phát tin liên tiếp trong vòng 10 phút để tránh tình trạng spam gây nhiễu loạn thông tin.
             </p>
           </div>
         </div>
