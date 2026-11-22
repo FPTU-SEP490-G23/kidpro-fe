@@ -130,7 +130,7 @@ export const StudentWithdrawalTab: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
       queryClient.invalidateQueries({ queryKey: ['unassigned-students'] });
       queryClient.invalidateQueries({ queryKey: ['parent-accounts-students'] });
-      success('Xử lý hồ sơ rút học bạ và hoàn tất chuyển trường thành công. Đã dọn dẹp dữ liệu học sinh khỏi hệ thống.');
+      success('Xử lý hồ sơ rút học bạ và hoàn tất chuyển trường thành công. Đã cập nhật trạng thái học sinh sang WITHDRAWN.');
       setCompletingTarget(null);
     },
     onError: (err: any) => {
