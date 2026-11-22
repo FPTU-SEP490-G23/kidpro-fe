@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Send,
   Loader2,
-  Info
+  Info,
+  AlertCircle
 } from 'lucide-react';
 import parentApi from '../../../api/parentApi';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -353,9 +354,25 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
               <h3 className="font-extrabold text-slate-800 text-base">Đăng Ký Xe Buýt Đưa Đón Mới</h3>
             </div>
 
+            {busRegisters.some((r: any) => r.status === 'PENDING' || r.status === 'APPROVED') && (
+              <div className="rounded-2xl bg-amber-50 p-3.5 border border-amber-200 text-amber-800 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Học sinh đã có 01 đơn đăng ký xe buýt</span>
+                </div>
+                <p className="text-amber-700 leading-relaxed">
+                  Quy định nhà trường: Mỗi học sinh chỉ được phép có 01 đơn đăng ký xe buýt đang chờ duyệt hoặc đang hoạt động.
+                </p>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (busRegisters.some((r: any) => r.status === 'PENDING' || r.status === 'APPROVED')) {
+                  showToast('error', 'Mỗi học sinh chỉ được phép có 01 đơn đăng ký xe buýt đang chờ duyệt hoặc đang hoạt động.');
+                  return;
+                }
                 busMutation.mutate();
               }}
               className="space-y-4 text-xs sm:text-sm"
@@ -457,11 +474,19 @@ export const ServiceRegistrationTab: React.FC<ServiceRegistrationTabProps> = ({
 
               <button
                 type="submit"
-                disabled={busMutation.isPending || (buses.length === 0 && !selectedBusId)}
+                disabled={
+                  busMutation.isPending ||
+                  busRegisters.some((r: any) => r.status === 'PENDING' || r.status === 'APPROVED') ||
+                  (buses.length === 0 && !selectedBusId)
+                }
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm transition"
               >
                 {busMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                <span>Gửi Đơn Đăng Ký Xe Buýt</span>
+                <span>
+                  {busRegisters.some((r: any) => r.status === 'PENDING' || r.status === 'APPROVED')
+                    ? 'Đã Có Đơn Đăng Ký Xe Buýt (Tối đa 1 đơn)'
+                    : 'Gửi Đơn Đăng Ký Xe Buýt'}
+                </span>
               </button>
             </form>
           </div>

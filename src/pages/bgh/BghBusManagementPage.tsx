@@ -824,6 +824,7 @@ export const BghBusManagementPage: React.FC = () => {
         busNumber={selectedBus?.busNumber || ''}
         defaultOrder={stops.length + 1}
         editingStop={editingStop}
+        existingStops={stops}
         onClose={() => {
           setIsCreateStopOpen(false);
           setEditingStop(null);

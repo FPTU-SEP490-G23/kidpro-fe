@@ -7,6 +7,7 @@ interface Props {
   busNumber: string;
   defaultOrder: number;
   editingStop?: BusStopItem | null;
+  existingStops?: BusStopItem[];
   onClose: () => void;
   onSubmit: (data: BusStopCreateRequest) => Promise<void>;
 }
@@ -16,6 +17,7 @@ export const CreateBusStopModal: React.FC<Props> = ({
   busNumber,
   defaultOrder,
   editingStop,
+  existingStops = [],
   onClose,
   onSubmit,
 }) => {
@@ -61,6 +63,45 @@ export const CreateBusStopModal: React.FC<Props> = ({
     if (!formData.stopOrder || formData.stopOrder < 1) {
       setErrorMsg('Thứ tự điểm dừng phải từ 1 trở lên.');
       return;
+    }
+
+    // 1. Kiểm tra trùng lặp địa điểm (Tên điểm dừng hoặc Địa chỉ điểm dừng)
+    const normName = formData.stopName.trim().toLowerCase();
+    const dupNameStop = existingStops.find(
+      (s) => s.stopId !== editingStop?.stopId && s.stopName.trim().toLowerCase() === normName
+    );
+    if (dupNameStop) {
+      setErrorMsg(`Tên điểm dừng "${formData.stopName.trim()}" đã tồn tại trên tuyến xe này. Vui lòng đặt tên khác.`);
+      return;
+    }
+
+    if (formData.stopAddress && formData.stopAddress.trim()) {
+      const normAddress = formData.stopAddress.trim().toLowerCase();
+      const dupAddressStop = existingStops.find(
+        (s) =>
+          s.stopId !== editingStop?.stopId &&
+          s.stopAddress &&
+          s.stopAddress.trim().toLowerCase() === normAddress
+      );
+      if (dupAddressStop) {
+        setErrorMsg(`Địa chỉ điểm dừng "${formData.stopAddress.trim()}" bị trùng lặp với điểm dừng "${dupAddressStop.stopName}".`);
+        return;
+      }
+    }
+
+    // 2. Kiểm tra trùng lặp thời gian đón
+    if (formData.estimatedTime) {
+      const normTime = formData.estimatedTime.substring(0, 5);
+      const dupTimeStop = existingStops.find(
+        (s) =>
+          s.stopId !== editingStop?.stopId &&
+          s.estimatedTime &&
+          s.estimatedTime.substring(0, 5) === normTime
+      );
+      if (dupTimeStop) {
+        setErrorMsg(`Thời gian đón (${normTime}) bị trùng lặp với điểm dừng "${dupTimeStop.stopName}". Mỗi điểm dừng phải có khung thời gian riêng biệt.`);
+        return;
+      }
     }
 
     try {

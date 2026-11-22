@@ -1,3 +1,13 @@
+export interface DriverAccountCheckResponse {
+  valid: boolean;
+  message?: string;
+  accountId?: string;
+  username?: string;
+  fullName?: string;
+  role?: string;
+  status?: string;
+}
+
 export interface BusItem {
   busId: string;
   busNumber: string;

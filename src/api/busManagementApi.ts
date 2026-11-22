@@ -8,6 +8,7 @@ import {
   TeacherOption,
   TeacherBusAssignmentItem,
   TeacherBusAssignmentRequest,
+  DriverAccountCheckResponse,
 } from '../types/bus.types';
 
 export const busManagementApi = {
@@ -15,6 +16,11 @@ export const busManagementApi = {
   getAllBuses: async (): Promise<BusItem[]> => {
     const res: any = await axiosClient.get('/bgh/buses');
     return Array.isArray(res) ? res : (res?.data ?? res ?? []);
+  },
+
+  checkDriverAccount: async (phone: string): Promise<DriverAccountCheckResponse> => {
+    const res: any = await axiosClient.get('/bgh/buses/check-driver', { params: { phone } });
+    return res?.data ?? res;
   },
 
   getBusById: async (busId: string): Promise<BusItem> => {

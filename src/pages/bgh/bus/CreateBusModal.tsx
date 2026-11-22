@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Bus, X, Loader2 } from 'lucide-react';
-import { BusCreateRequest } from '../../../types/bus.types';
+import React, { useState, useEffect } from 'react';
+import { Bus, X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { BusCreateRequest, DriverAccountCheckResponse } from '../../../types/bus.types';
+import { busManagementApi } from '../../../api/busManagementApi';
 
 interface Props {
   isOpen: boolean;
@@ -21,6 +22,47 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Trạng thái kiểm tra tài khoản tài xế
+  const [checkingAccount, setCheckingAccount] = useState(false);
+  const [accountCheckResult, setAccountCheckResult] = useState<DriverAccountCheckResponse | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setAccountCheckResult(null);
+      setErrorMsg('');
+      return;
+    }
+  }, [isOpen]);
+
+  // Debounced check khi số điện thoại thay đổi
+  useEffect(() => {
+    const rawPhone = formData.driverPhone.trim();
+    if (!rawPhone || rawPhone.length < 9) {
+      setAccountCheckResult(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setCheckingAccount(true);
+        const res = await busManagementApi.checkDriverAccount(rawPhone);
+        setAccountCheckResult(res);
+        if (res.valid && res.fullName && !formData.driverName) {
+          setFormData((prev) => ({ ...prev, driverName: res.fullName || '' }));
+        }
+      } catch (err: any) {
+        setAccountCheckResult({
+          valid: false,
+          message: err?.response?.data?.message || 'Không tìm thấy tài khoản với số điện thoại này.',
+        });
+      } finally {
+        setCheckingAccount(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.driverPhone]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +77,10 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
     }
     if (!formData.driverPhone.trim()) {
       setErrorMsg('Vui lòng nhập số điện thoại tài xế.');
+      return;
+    }
+    if (accountCheckResult && !accountCheckResult.valid) {
+      setErrorMsg(accountCheckResult.message || 'Số điện thoại tài xế phải khớp với tài khoản người dùng trong hệ thống.');
       return;
     }
     if (!formData.startLocation.trim()) {
@@ -133,17 +179,45 @@ export const CreateBusModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) =
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                SĐT tài xế *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  SĐT tài xế (Kiểm tra Account) *
+                </label>
+                {checkingAccount && (
+                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                    <Loader2 className="h-3 w-3 animate-spin text-[#275A4E]" />
+                    Đang tra cứu...
+                  </span>
+                )}
+              </div>
               <input
                 type="tel"
                 required
                 value={formData.driverPhone}
                 onChange={(e) => setFormData({ ...formData, driverPhone: e.target.value })}
-                placeholder="0912345678"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-800 transition focus:border-[#275A4E] focus:bg-white focus:outline-none"
+                placeholder="0908111222"
+                className={`w-full rounded-xl border px-3.5 py-2 text-sm font-medium transition focus:outline-none ${
+                  accountCheckResult && !accountCheckResult.valid
+                    ? 'border-rose-400 bg-rose-50/50 text-rose-900 focus:border-rose-500'
+                    : accountCheckResult && accountCheckResult.valid
+                    ? 'border-emerald-400 bg-emerald-50/50 text-emerald-900 focus:border-emerald-500'
+                    : 'border-slate-200 bg-slate-50 text-slate-800 focus:border-[#275A4E] focus:bg-white'
+                }`}
               />
+              {accountCheckResult && accountCheckResult.valid && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    Khớp tài khoản: <strong>{accountCheckResult.fullName}</strong> (@{accountCheckResult.username})
+                  </span>
+                </div>
+              )}
+              {accountCheckResult && !accountCheckResult.valid && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-medium bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
+                  <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                  <span>{accountCheckResult.message || 'Không tìm thấy tài khoản với SĐT này.'}</span>
+                </div>
+              )}
             </div>
           </div>
 
