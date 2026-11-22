@@ -142,9 +142,6 @@ export const AcademicYearsPage: React.FC = () => {
             <span>Ban Giám Hiệu</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Quản Lý Năm Học</h1>
-          <p className="mt-2 text-white/80 max-w-2xl text-sm leading-relaxed">
-            Thiết lập niên khóa học đường, kiểm soát khung thời gian chuẩn 35 tuần của Bộ GD&ĐT.
-          </p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -214,7 +211,7 @@ export const AcademicYearsPage: React.FC = () => {
             </div>
           ))}
         </div>
-      )}
+      )}}
 
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
@@ -234,11 +231,10 @@ export const AcademicYearsPage: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                statusFilter === tab.id
-                  ? 'bg-[#275A4E] text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${statusFilter === tab.id
+                ? 'bg-[#275A4E] text-white shadow-2xs'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }`}
             >
               {tab.label}
             </button>
@@ -277,9 +273,8 @@ export const AcademicYearsPage: React.FC = () => {
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-slate-50/80 transition-colors ${
-                        isCurrentActive ? 'bg-[#78C2AD]/5 font-medium' : ''
-                      }`}
+                      className={`hover:bg-slate-50/80 transition-colors ${isCurrentActive ? 'bg-[#78C2AD]/5 font-medium' : ''
+                        }`}
                     >
                       {/* Tên niên khóa */}
                       <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
@@ -300,11 +295,10 @@ export const AcademicYearsPage: React.FC = () => {
                       {/* Số tuần học */}
                       <td className="py-3.5 px-4 text-center">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                            weeks >= 35
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${weeks >= 35
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
                         >
                           <Clock className="w-3 h-3" />
                           <span>{weeks} tuần</span>

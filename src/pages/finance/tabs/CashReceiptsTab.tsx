@@ -159,8 +159,8 @@ export const CashReceiptsTab: React.FC = () => {
       receiptData.paymentMethod === 'CASH'
         ? 'Tiền mặt tại quỹ'
         : receiptData.paymentMethod === 'VIETQR_PAYOS'
-        ? 'Chuyển khoản VietQR / PayOS 24/7'
-        : 'Chuyển khoản trực tuyến';
+          ? 'Chuyển khoản VietQR / PayOS 24/7'
+          : 'Chuyển khoản trực tuyến';
 
     const stampText =
       receiptData.paymentMethod === 'CASH' ? 'ĐÃ THU TIỀN MẶT' : 'ĐÃ THANH TOÁN ONLINE';
@@ -446,9 +446,8 @@ export const CashReceiptsTab: React.FC = () => {
     <div className="space-y-6">
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-white transition-all transform animate-bounce ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-white transition-all transform animate-bounce ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span className="text-sm font-medium">{toast.message}</span>
@@ -458,11 +457,10 @@ export const CashReceiptsTab: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
           onClick={() => setStatusFilter(statusFilter === 'UNPAID' ? 'ALL' : 'UNPAID')}
-          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${
-            statusFilter === 'UNPAID'
+          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${statusFilter === 'UNPAID'
               ? 'bg-amber-50/60 border-amber-300 ring-2 ring-amber-400'
               : 'bg-white border-slate-200/80 hover:border-amber-200 hover:shadow-md'
-          }`}
+            }`}
           title="Nhấn để lọc các phiếu chờ thu tiền"
         >
           <div>
@@ -479,11 +477,10 @@ export const CashReceiptsTab: React.FC = () => {
 
         <div
           onClick={() => setStatusFilter(statusFilter === 'PAID' ? 'ALL' : 'PAID')}
-          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${
-            statusFilter === 'PAID'
+          className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between cursor-pointer transition-all ${statusFilter === 'PAID'
               ? 'bg-emerald-50/60 border-emerald-300 ring-2 ring-emerald-400'
               : 'bg-white border-slate-200/80 hover:border-emerald-200 hover:shadow-md'
-          }`}
+            }`}
           title="Nhấn để lọc các phiếu đã thanh toán và sẵn sàng in biên lai"
         >
           <div>
@@ -502,7 +499,7 @@ export const CashReceiptsTab: React.FC = () => {
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quy chuẩn chứng từ</p>
             <p className="text-sm font-semibold text-indigo-600 mt-2 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" /> Chuẩn BR-041 & BR-042: Hóa đơn VAT / Biên lai
+              <ShieldCheck className="w-4 h-4" />Hóa đơn VAT / Biên lai
             </p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
@@ -803,8 +800,8 @@ export const CashReceiptsTab: React.FC = () => {
                     {receiptData.paymentMethod === 'CASH'
                       ? 'Tiền mặt tại quỹ'
                       : receiptData.paymentMethod === 'VIETQR_PAYOS'
-                      ? 'Chuyển khoản VietQR / PayOS 24/7'
-                      : 'Chuyển khoản trực tuyến'}
+                        ? 'Chuyển khoản VietQR / PayOS 24/7'
+                        : 'Chuyển khoản trực tuyến'}
                   </span>
                 </div>
                 <div className="flex justify-between">
