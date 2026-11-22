@@ -37,7 +37,25 @@ export const AcademicYearsPage: React.FC = () => {
     queryFn: () => academicYearApi.getAcademicYears(statusFilter),
   });
 
-  const activeYears = years.filter((y) => y.status === 'ACTIVE');
+  const activeYear = years.find((y) => y.status === 'ACTIVE');
+  const readyYear = years.find((y) => y.status === 'READY');
+
+  // Mutation Cập nhật trạng thái linh hoạt (READY / PLANNING / CLOSED)
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: AcademicYearStatus }) => {
+      return await academicYearApi.updateStatus(id, status);
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['academic-years-list'] });
+      queryClient.invalidateQueries({ queryKey: ['active-academic-year'] });
+      queryClient.invalidateQueries({ queryKey: ['academicYears'] });
+      success(data?.statusMessage || data?.notes || 'Cập nhật trạng thái niên khóa thành công.');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể cập nhật trạng thái niên khóa.';
+      error(msg);
+    },
+  });
 
   // Mutation Tạo/Sửa
   const saveMutation = useMutation({
@@ -162,46 +180,40 @@ export const AcademicYearsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Thẻ Niên Khóa Active Hiện Hành (Hỗ trợ tối đa 2 năm học song song không trùng thời gian) */}
-      {activeYears.length > 0 && (
-        <div className="space-y-3">
-          {activeYears.map((yearItem) => (
-            <div key={yearItem.id} className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#275A4E]/10 text-[#275A4E] flex items-center justify-center">
-                    <GraduationCap className="w-7 h-7" />
+      {/* Thẻ Niên Khóa Vận Hành Hiện Hành (ACTIVE) & Sẵn Sàng Tiếp Nhận (READY) */}
+      {(activeYear || readyYear) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeYear && (
+            <div className="rounded-3xl bg-white border-2 border-emerald-500/40 p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+              <div className="flex flex-col justify-between h-full gap-4">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Niên khóa vận hành hiện hành
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-[#78C2AD] text-[#1E4D40] flex items-center gap-1.5 shadow-2xs">
+                      <span className="w-2 h-2 rounded-full bg-[#1E4D40] animate-pulse"></span>
+                      ACTIVE
+                    </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Niên khóa vận hành hiện hành:
-                      </span>
-                      <span className="px-3 py-0.5 rounded-full text-xs font-extrabold bg-[#78C2AD] text-[#1E4D40] flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#1E4D40] animate-pulse"></span>
-                        ACTIVE
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">
-                      Năm Học {yearItem.name}
-                    </h2>
-                    <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
-                      <span>
-                        <strong>Khung thời gian:</strong> {formatDate(yearItem.startDate)} đến {formatDate(yearItem.endDate)}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        <strong>Số tuần thực học:</strong> {calculateWeeksBetween(yearItem.startDate, yearItem.endDate)} tuần (Chuẩn Bộ GD&ĐT)
-                      </span>
-                    </p>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    Năm Học {activeYear.name}
+                  </h2>
+                  <div className="text-xs text-slate-600 mt-2 space-y-1">
+                    <p><strong>Khung thời gian:</strong> {formatDate(activeYear.startDate)} đến {formatDate(activeYear.endDate)}</p>
+                    <p><strong>Thời lượng:</strong> {calculateWeeksBetween(activeYear.startDate, activeYear.endDate)} tuần thực học (Chuẩn Bộ GD&ĐT)</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                    ✓ Đang vận hành chính thức & phân công giảng dạy
+                  </span>
                   <button
                     type="button"
-                    onClick={() => handleOpenEdit(yearItem)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    onClick={() => handleOpenEdit(activeYear)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     <span>Chỉnh sửa</span>
@@ -209,9 +221,61 @@ export const AcademicYearsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
+          )}
+
+          {readyYear && (
+            <div className="rounded-3xl bg-white border-2 border-cyan-500/40 p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+              <div className="flex flex-col justify-between h-full gap-4">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Niên khóa sẵn sàng tiếp nhận
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-cyan-100 text-cyan-800 border border-cyan-300 flex items-center gap-1.5 shadow-2xs">
+                      <span className="w-2 h-2 rounded-full bg-cyan-600"></span>
+                      READY (SẴN SÀNG)
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    Năm Học {readyYear.name}
+                  </h2>
+                  <div className="text-xs text-slate-600 mt-2 space-y-1">
+                    <p><strong>Khung thời gian:</strong> {formatDate(readyYear.startDate)} đến {formatDate(readyYear.endDate)}</p>
+                    <p><strong>Thời lượng:</strong> {calculateWeeksBetween(readyYear.startDate, readyYear.endDate)} tuần thực học (Chuẩn Bộ GD&ĐT)</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <span className="text-[11px] font-semibold text-cyan-900 bg-cyan-50 px-2.5 py-1 rounded-lg">
+                    ⚡ Tiếp nhận mở lớp, xếp trẻ, kết chuyển (chưa phân công GV)
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => activateMutation.mutate(readyYear.id)}
+                      disabled={activateMutation.isPending}
+                      title="Kích hoạt chính thức đưa vào vận hành ACTIVE"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{activateMutation.isPending ? 'Đang duyệt...' : 'Kích hoạt'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEdit(readyYear)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>Chỉnh sửa</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}}
+      )}
 
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
@@ -224,6 +288,7 @@ export const AcademicYearsPage: React.FC = () => {
           {[
             { id: 'ALL' as const, label: 'Tất cả niên khóa' },
             { id: 'ACTIVE' as const, label: 'Đang áp dụng (ACTIVE)' },
+            { id: 'READY' as const, label: 'Sẵn sàng tiếp nhận (READY)' },
             { id: 'PLANNING' as const, label: 'Đang chuẩn bị (PLANNING)' },
             { id: 'CLOSED' as const, label: 'Đã lưu trữ (CLOSED)' },
           ].map((tab) => (
@@ -312,6 +377,11 @@ export const AcademicYearsPage: React.FC = () => {
                             <span className="w-1.5 h-1.5 rounded-full bg-[#1E4D40] animate-pulse"></span>
                             ACTIVE
                           </span>
+                        ) : item.status === 'READY' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-cyan-100 text-cyan-800 border border-cyan-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-600"></span>
+                            READY
+                          </span>
                         ) : item.status === 'PLANNING' ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                             PLANNING
@@ -326,18 +396,55 @@ export const AcademicYearsPage: React.FC = () => {
                       {/* Thao tác */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          {/* Nút Kích hoạt niên khóa nếu đang PLANNING */}
+                          {/* Nút chuyển Sẵn sàng (READY) hoặc Kích hoạt (ACTIVE) nếu đang PLANNING */}
                           {item.status === 'PLANNING' && (
-                            <button
-                              type="button"
-                              onClick={() => activateMutation.mutate(item.id)}
-                              disabled={activateMutation.isPending}
-                              title="Kích hoạt áp dụng niên khóa này"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>{activateMutation.isPending ? 'Đang duyệt...' : 'Kích hoạt'}</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'READY' })}
+                                disabled={updateStatusMutation.isPending}
+                                title="Chuyển sang trạng thái Sẵn sàng (READY) để giáo vụ mở lớp và kết chuyển"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Sẵn sàng</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => activateMutation.mutate(item.id)}
+                                disabled={activateMutation.isPending}
+                                title="Kích hoạt áp dụng chính thức niên khóa này (ACTIVE)"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Kích hoạt</span>
+                              </button>
+                            </>
+                          )}
+
+                          {/* Nút Kích hoạt (ACTIVE) hoặc Về chuẩn bị nếu đang READY */}
+                          {item.status === 'READY' && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => activateMutation.mutate(item.id)}
+                                disabled={activateMutation.isPending}
+                                title="Kích hoạt chính thức đưa vào vận hành ACTIVE"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Kích hoạt</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'PLANNING' })}
+                                disabled={updateStatusMutation.isPending}
+                                title="Chuyển về trạng thái Đang chuẩn bị (PLANNING)"
+                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition cursor-pointer active:scale-95 disabled:opacity-50 mr-1"
+                              >
+                                <span>Về chuẩn bị</span>
+                              </button>
+                            </>
                           )}
 
                           {/* Nút Sửa */}
@@ -363,7 +470,7 @@ export const AcademicYearsPage: React.FC = () => {
                           )}
 
                           {/* Nút Xóa (Chỉ cho phép xóa khi chưa CLOSED hoặc đang PLANNING) */}
-                          {item.status !== 'ACTIVE' && (
+                          {item.status !== 'ACTIVE' && item.status !== 'READY' && (
                             <button
                               type="button"
                               onClick={() => handleDelete(item.id)}

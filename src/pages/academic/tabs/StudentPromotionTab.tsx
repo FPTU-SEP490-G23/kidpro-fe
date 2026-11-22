@@ -71,21 +71,23 @@ export const StudentPromotionTab: React.FC = () => {
     },
   });
 
-  // Tự động set niên khóa mặc định (năm cũ là năm hiện tại, năm mới là năm tiếp theo)
-  useEffect(() => {
-    if (academicYears.length > 0 && !fromYearId) {
-      const sorted = [...academicYears].sort((a: any, b: any) => (a.startDate > b.startDate ? 1 : -1));
-      const active = sorted.find((y: any) => y.status === 'ACTIVE') || sorted[0];
-      setFromYearId(active.id);
+  const activeYears = academicYears.filter((y: any) => y.status === 'ACTIVE');
+  const readyYears = academicYears.filter((y: any) => y.status === 'READY');
 
-      const nextYear = sorted.find((y: any) => y.id !== active.id && y.startDate > active.startDate) || sorted[sorted.length - 1];
-      if (nextYear && nextYear.id !== active.id) {
-        setToYearId(nextYear.id);
-      } else if (sorted.length > 1) {
-        setToYearId(sorted[1].id);
+  // Tự động set niên khóa mặc định: năm cũ là ACTIVE, năm mới tiếp nhận là READY
+  useEffect(() => {
+    if (academicYears.length > 0) {
+      const active = academicYears.find((y: any) => y.status === 'ACTIVE');
+      if (active && (!fromYearId || !academicYears.some((y: any) => y.id === fromYearId && y.status === 'ACTIVE'))) {
+        setFromYearId(active.id);
+      }
+
+      const ready = academicYears.find((y: any) => y.status === 'READY');
+      if (ready && (!toYearId || !academicYears.some((y: any) => y.id === toYearId && y.status === 'READY'))) {
+        setToYearId(ready.id);
       }
     }
-  }, [academicYears, fromYearId]);
+  }, [academicYears]);
 
   // 2. Lấy danh sách preview kết chuyển
   const {
@@ -252,32 +254,40 @@ export const StudentPromotionTab: React.FC = () => {
               onChange={(e) => setFromYearId(e.target.value)}
               className="w-full text-sm font-semibold rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:border-emerald-500 focus:bg-white focus:outline-hidden transition-colors"
             >
-              <option value="">-- Chọn năm học cũ --</option>
-              {academicYears.map((y: any) => (
-                <option key={y.id} value={y.id}>
-                  {y.name} {y.status === 'ACTIVE' ? '(Đang hoạt động)' : ''}
-                </option>
-              ))}
+              {activeYears.length === 0 ? (
+                <option value="">-- Không có niên khóa ACTIVE nào --</option>
+              ) : (
+                activeYears.map((y: any) => (
+                  <option key={y.id} value={y.id}>
+                    {y.name} (Đang vận hành - ACTIVE)
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+              <Calendar className="w-3.5 h-3.5 text-cyan-600" />
               2. Niên Khóa Tiếp Nhận (Năm Mới) <span className="text-rose-500">*</span>
             </label>
             <select
               value={toYearId}
               onChange={(e) => setToYearId(e.target.value)}
-              className="w-full text-sm font-semibold rounded-xl border border-emerald-300 bg-emerald-50/30 p-2.5 text-emerald-950 focus:border-emerald-600 focus:bg-white focus:outline-hidden transition-colors"
+              className="w-full text-sm font-semibold rounded-xl border border-cyan-300 bg-cyan-50/30 p-2.5 text-cyan-950 focus:border-cyan-600 focus:bg-white focus:outline-hidden transition-colors"
             >
-              <option value="">-- Chọn năm học mới tiếp nhận --</option>
-              {academicYears.map((y: any) => (
-                <option key={y.id} value={y.id} disabled={y.id === fromYearId}>
-                  {y.name} {y.id === fromYearId ? '(Trùng năm cũ)' : ''}
+              <option value="">-- Chọn năm học mới tiếp nhận (READY) --</option>
+              {readyYears.map((y: any) => (
+                <option key={y.id} value={y.id}>
+                  {y.name} (Sẵn sàng tiếp nhận - READY)
                 </option>
               ))}
             </select>
+            {readyYears.length === 0 && (
+              <p className="text-[11px] text-amber-700 mt-1 font-medium">
+                ⚠️ Chưa có niên khóa READY. Ban Giám Hiệu cần chuyển niên khóa mới sang READY trước.
+              </p>
+            )}
           </div>
 
           <div>

@@ -91,6 +91,23 @@ export const academicYearApi = {
     }
   },
 
+  // Lấy thông tin niên khóa đang ở trạng thái sẵn sàng tiếp nhận (READY)
+  async getReadyAcademicYear(): Promise<AcademicYear | null> {
+    try {
+      const res: any = await axiosClient.get('/academic-years/ready');
+      const item = res?.data !== undefined ? res.data : res;
+      if (!item || item === null) {
+        return null;
+      }
+      if (item && (item.academicYearId || item.id)) {
+        return mapBackendToAcademicYear(item);
+      }
+      return null;
+    } catch (err) {
+      return null;
+    }
+  },
+
   // Lấy chi tiết niên khóa theo ID
   async getAcademicYearById(id: string): Promise<AcademicYear | null> {
     try {

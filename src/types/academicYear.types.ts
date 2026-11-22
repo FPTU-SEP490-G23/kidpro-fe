@@ -1,4 +1,4 @@
-export type AcademicYearStatus = 'PLANNING' | 'ACTIVE' | 'CLOSED';
+export type AcademicYearStatus = 'PLANNING' | 'ACTIVE' | 'CLOSED' | 'READY';
 
 export interface AcademicYear {
   id: string;
