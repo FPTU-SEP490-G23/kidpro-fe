@@ -17,7 +17,11 @@ import {
   ShieldAlert,
   ChevronRight,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  Plus,
+  Pencil,
+  X,
+  Calendar
 } from 'lucide-react';
 import { healthReportService } from '../../../services/healthReportService';
 import {
@@ -43,6 +47,17 @@ export const HealthReportTab: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // Round Modal state (Thêm/Sửa đợt khám sức khỏe)
+  const [isRoundModalOpen, setIsRoundModalOpen] = useState<boolean>(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [submittingRound, setSubmittingRound] = useState<boolean>(false);
+  const [lockingRound, setLockingRound] = useState<boolean>(false);
+  const [roundForm, setRoundForm] = useState({
+    roundName: '',
+    startDate: '',
+    endDate: ''
+  });
 
   // Load initial rounds and classes
   useEffect(() => {
@@ -107,6 +122,103 @@ export const HealthReportTab: React.FC = () => {
   const showToast = (type: 'success' | 'error', text: string) => {
     setToastMsg({ type, text });
     setTimeout(() => setToastMsg(null), 5000);
+  };
+
+  const handleOpenCreateRound = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const twoWeeksLater = new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString().split('T')[0];
+    setRoundForm({
+      roundName: '',
+      startDate: today,
+      endDate: twoWeeksLater
+    });
+    setModalMode('create');
+    setIsRoundModalOpen(true);
+  };
+
+  const handleOpenEditRound = () => {
+    const current = rounds.find(r => r.id === selectedRoundId);
+    if (!current) return;
+    if (current.status === 'LOCKED') {
+      showToast('error', 'Đợt khám sức khỏe đã bị khóa sổ, không thể chỉnh sửa.');
+      return;
+    }
+    setRoundForm({
+      roundName: current.roundName || '',
+      startDate: current.startDate || '',
+      endDate: current.endDate || ''
+    });
+    setModalMode('edit');
+    setIsRoundModalOpen(true);
+  };
+
+  const handleSubmitRound = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!roundForm.roundName.trim()) {
+      showToast('error', 'Vui lòng nhập tên đợt khám/cân đo sức khỏe');
+      return;
+    }
+    if (!roundForm.startDate || !roundForm.endDate) {
+      showToast('error', 'Vui lòng chọn ngày bắt đầu và kết thúc');
+      return;
+    }
+
+    try {
+      setSubmittingRound(true);
+      if (modalMode === 'create') {
+        const created = await healthReportService.createMeasurementRound({
+          roundName: roundForm.roundName.trim(),
+          startDate: roundForm.startDate,
+          endDate: roundForm.endDate
+        });
+        showToast('success', 'Thêm mới đợt khám sức khỏe thành công');
+        setIsRoundModalOpen(false);
+        const updatedRounds = await healthReportService.getMeasurementRounds();
+        setRounds(updatedRounds);
+        if (created?.id) setSelectedRoundId(created.id);
+      } else {
+        await healthReportService.updateMeasurementRound(selectedRoundId, {
+          roundName: roundForm.roundName.trim(),
+          startDate: roundForm.startDate,
+          endDate: roundForm.endDate
+        });
+        showToast('success', 'Cập nhật đợt khám sức khỏe thành công');
+        setIsRoundModalOpen(false);
+        const updatedRounds = await healthReportService.getMeasurementRounds();
+        setRounds(updatedRounds);
+      }
+    } catch (err: any) {
+      console.error('Lỗi lưu đợt khám:', err);
+      showToast('error', err.response?.data?.message || 'Có lỗi xảy ra khi lưu đợt khám.');
+    } finally {
+      setSubmittingRound(false);
+    }
+  };
+
+  const handleLockRound = async () => {
+    const current = rounds.find(r => r.id === selectedRoundId);
+    if (!current) return;
+    if (current.status === 'LOCKED') {
+      showToast('error', 'Đợt này đã được khóa sổ trước đó.');
+      return;
+    }
+
+    if (!window.confirm(`Khóa sổ đợt "${current.roundName}"? Sau khi khóa sổ, giáo viên không thể chỉnh sửa số đo và bạn có thể xuất Sổ theo dõi thể lực chuẩn TTLT 13.`)) {
+      return;
+    }
+
+    try {
+      setLockingRound(true);
+      await healthReportService.lockMeasurementRound(selectedRoundId);
+      showToast('success', 'Đã khóa sổ đợt khám sức khỏe thành công.');
+      const updatedRounds = await healthReportService.getMeasurementRounds();
+      setRounds(updatedRounds);
+    } catch (err: any) {
+      console.error('Lỗi khóa đợt:', err);
+      showToast('error', err.response?.data?.message || 'Có lỗi xảy ra khi khóa sổ đợt khám.');
+    } finally {
+      setLockingRound(false);
+    }
   };
 
   // Handle Export Sổ theo dõi thể lực (Thông tư 13/2016)
@@ -250,11 +362,18 @@ export const HealthReportTab: React.FC = () => {
         {/* Action Export Buttons */}
         <div className="flex items-center gap-2.5">
           <button
+            onClick={handleOpenCreateRound}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Thêm Đợt Khám Mới
+          </button>
+          <button
             onClick={() => handleExport('PDF')}
             disabled={exporting || !selectedRound}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-xs disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs sm:text-sm shadow-xs disabled:opacity-50 transition-all cursor-pointer"
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 text-emerald-600" />
             {exporting ? 'Đang kết xuất...' : 'Xuất Sổ Thể Lực (PDF)'}
           </button>
           <button
@@ -273,9 +392,20 @@ export const HealthReportTab: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
           {/* Round Selector */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-              Đợt Cân Đo / Khám Thể Lực
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Đợt Cân Đo / Khám Thể Lực
+              </label>
+              {selectedRound && selectedRound.status !== 'LOCKED' && (
+                <button
+                  type="button"
+                  onClick={handleOpenEditRound}
+                  className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" /> Sửa
+                </button>
+              )}
+            </div>
             <select
               value={selectedRoundId}
               onChange={(e) => setSelectedRoundId(e.target.value)}
@@ -303,9 +433,11 @@ export const HealthReportTab: React.FC = () => {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
             >
               <option value="ALL">Toàn trường (Tất cả các khối)</option>
-              <option value="MAM">Khối Mầm (3-4 tuổi)</option>
-              <option value="CHOI">Khối Chồi (4-5 tuổi)</option>
-              <option value="LA">Khối Lá (5-6 tuổi)</option>
+              <option value="NHA_TRE">Khối Nhũ nhi (3 - 18 tháng)</option>
+              <option value="NHA_TRE_LON">Khối Hạt (18 - 36 tháng)</option>
+              <option value="MAM">Khối Mầm (3 - 4 tuổi)</option>
+              <option value="CHOI">Khối Chồi (4 - 5 tuổi)</option>
+              <option value="LA">Khối Lá (5 - 6 tuổi)</option>
             </select>
           </div>
 
@@ -330,30 +462,45 @@ export const HealthReportTab: React.FC = () => {
             </select>
           </div>
 
-          {/* Round Status Info */}
+          {/* Round Status Info & Lock button */}
           <div className="flex flex-col justify-end pt-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-              Trạng thái dữ liệu chuyên môn
+              Trạng thái & Khóa Sổ
             </span>
-            <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border ${
+            <div className={`flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl border ${
               selectedRound?.status === 'LOCKED'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 : 'bg-amber-50 border-amber-200 text-amber-800'
             }`}>
-              {selectedRound?.status === 'LOCKED' ? (
-                <>
-                  <Lock className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-semibold text-emerald-800">
-                    Đã khóa sổ dữ liệu (Hợp lệ để xuất sổ)
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Unlock className="w-4 h-4 text-amber-600" />
-                  <span className="text-xs font-semibold text-amber-800">
-                    Bản nháp (Cần khóa sổ trước khi xuất tài liệu)
-                  </span>
-                </>
+              <div className="flex items-center gap-1.5 min-w-0">
+                {selectedRound?.status === 'LOCKED' ? (
+                  <>
+                    <Lock className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-semibold text-emerald-800 truncate">
+                      Đã khóa sổ (Hợp lệ xuất sổ)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Unlock className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span className="text-xs font-semibold text-amber-800 truncate">
+                      Đang nhập (Bản nháp)
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {selectedRound && selectedRound.status !== 'LOCKED' && (
+                <button
+                  type="button"
+                  onClick={handleLockRound}
+                  disabled={lockingRound}
+                  className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer disabled:opacity-50"
+                  title="Khóa đợt khám sau khi giáo viên đo xong"
+                >
+                  <Lock className="w-3 h-3 inline mr-1" />
+                  {lockingRound ? 'Đang khóa...' : 'Khóa đợt'}
+                </button>
               )}
             </div>
           </div>
@@ -706,6 +853,95 @@ export const HealthReportTab: React.FC = () => {
           </table>
         </div>
       </div>
+      {/* Modal Thêm / Chỉnh sửa Đợt Khám Sức Khỏe */}
+      {isRoundModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {modalMode === 'create' ? 'Tạo Đợt Cân Đo / Khám Thể Lực Mới' : 'Chỉnh Sửa Đợt Khám Thể Lực'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRoundModalOpen(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitRound} className="mt-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Tên đợt khám / cân đo <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Cân đo thể chất Học kỳ 1 2026-2027"
+                  value={roundForm.roundName}
+                  onChange={(e) => setRoundForm({ ...roundForm, roundName: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Ngày bắt đầu <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={roundForm.startDate}
+                    onChange={(e) => setRoundForm({ ...roundForm, startDate: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Ngày kết thúc <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={roundForm.endDate}
+                    onChange={(e) => setRoundForm({ ...roundForm, endDate: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-800 leading-relaxed">
+                ℹ️ Sau khi tạo, giáo viên trên App di động có thể chọn đợt này để nhập chiều cao, cân nặng của trẻ. Khi đo xong toàn trường, giáo vụ bấm <strong>"Khóa đợt"</strong> để chốt số liệu và xuất sổ.
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsRoundModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingRound}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs disabled:opacity-50"
+                >
+                  {submittingRound ? 'Đang lưu...' : (modalMode === 'create' ? 'Tạo Đợt Mới' : 'Lưu Thay Đổi')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

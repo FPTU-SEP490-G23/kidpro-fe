@@ -46,5 +46,30 @@ export const healthReportService = {
       responseType: 'blob'
     });
     return response as unknown as Blob;
+  },
+
+  createMeasurementRound: async (payload: {
+    roundName: string;
+    academicYearId?: string;
+    startDate: string;
+    endDate: string;
+  }): Promise<MeasurementRoundResponse> => {
+    const res: any = await axiosClient.post('/health-reports/rounds', payload);
+    return res?.data !== undefined ? res.data : res;
+  },
+
+  updateMeasurementRound: async (id: string, payload: {
+    roundName?: string;
+    startDate?: string;
+    endDate?: string;
+    academicYearId?: string;
+  }): Promise<MeasurementRoundResponse> => {
+    const res: any = await axiosClient.put(`/health-reports/rounds/${id}`, payload);
+    return res?.data !== undefined ? res.data : res;
+  },
+
+  lockMeasurementRound: async (id: string): Promise<MeasurementRoundResponse> => {
+    const res: any = await axiosClient.patch(`/health-reports/rounds/${id}/lock`);
+    return res?.data !== undefined ? res.data : res;
   }
 };

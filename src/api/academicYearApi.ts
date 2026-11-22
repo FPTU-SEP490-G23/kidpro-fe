@@ -1,6 +1,7 @@
 import axiosClient from './axiosClient';
 import {
   AcademicYear,
+  AcademicYearStatus,
   CreateAcademicYearInput,
   UpdateAcademicYearInput,
 } from '../types/academicYear.types';
@@ -26,7 +27,7 @@ const mapBackendToAcademicYear = (item: any): AcademicYear => {
     totalQuota: Number(item.totalQuota ?? 300),
     enrolledCount: Number(item.enrolledCount ?? 0),
     maxSchoolCapacity: Number(item.maxSchoolCapacity ?? 350),
-    status: item.isActive ? 'ACTIVE' : (item.status === 'ACTIVE' ? 'ACTIVE' : (item.status || 'PLANNING')),
+    status: (item.status || (item.isActive ? 'ACTIVE' : 'PLANNING')) as AcademicYearStatus,
     notes: item.notes || item.statusMessage || '',
     isLocked: item.status === 'CLOSED',
     createdAt: item.createdAt || new Date().toISOString(),

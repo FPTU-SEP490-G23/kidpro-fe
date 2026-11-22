@@ -25,16 +25,16 @@ import { GradeLevel } from '../../../types/classAffairs.types';
 import { useToast } from '../../../contexts/ToastContext';
 
 const GRADE_LABELS: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ (3 - 12 tháng)',
-  TODDLER: 'Nhà trẻ (12 - 36 tháng)',
+  INFANT: 'Khối Nhũ Nhi (3 - 12 tháng)',
+  TODDLER: 'Khối Hạt (12 - 36 tháng)',
   NURSERY: 'Khối Mầm (3 - 4 tuổi)',
   KINDERGARTEN: 'Khối Chồi (4 - 5 tuổi)',
   PRE_K: 'Khối Lá (5 - 6 tuổi)',
 };
 
 const GRADE_SHORT: Record<GradeLevel, string> = {
-  INFANT: 'Nhà trẻ nhỏ',
-  TODDLER: 'Nhà trẻ',
+  INFANT: 'Nhũ Nhi',
+  TODDLER: 'Khối Hạt',
   NURSERY: 'Khối Mầm',
   KINDERGARTEN: 'Khối Chồi',
   PRE_K: 'Khối Lá',
@@ -220,7 +220,7 @@ export const StudentPromotionTab: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Quy Trình Kết Chuyển Học Sinh Đầu Năm</h2>
               <p className="text-xs text-slate-500">
-                Lũy tiến khối theo niên khóa: Nhà trẻ → Mầm → Chồi → Lá → Tốt nghiệp
+                Lũy tiến khối theo niên khóa: Nhũ Nhi → Hạt → Mầm → Chồi → Lá → Tốt nghiệp
               </p>
             </div>
           </div>
@@ -307,7 +307,7 @@ export const StudentPromotionTab: React.FC = () => {
 
         {/* Khối lớp Tabs */}
         <div className="flex flex-wrap items-center gap-2 pt-2">
-          {['ALL', 'TODDLER', 'NURSERY', 'KINDERGARTEN', 'PRE_K'].map((gKey) => {
+          {['ALL', 'INFANT', 'TODDLER', 'NURSERY', 'KINDERGARTEN', 'PRE_K'].map((gKey) => {
             const isSelected = selectedGrade === gKey;
             return (
               <button

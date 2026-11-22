@@ -7,6 +7,8 @@ export interface MeasurementRoundResponse {
   academicYearId: string;
   academicYearName: string;
   status: MeasurementRoundStatus;
+  startDate?: string;
+  endDate?: string;
   lockedAt?: string;
   createdAt?: string;
 }
