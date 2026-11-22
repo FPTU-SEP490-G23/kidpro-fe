@@ -934,8 +934,14 @@ export const parentApi = {
     startDate: string;
     endDate?: string;
     dietaryNotes?: string;
+    note?: string;
   }) => {
-    const resp: any = await axiosClient.post('/parents/meal-registers', payload);
+    const body = {
+      ...payload,
+      note: payload.note || payload.dietaryNotes,
+      dietaryNotes: payload.dietaryNotes || payload.note,
+    };
+    const resp: any = await axiosClient.post('/parents/meal-registers', body);
     return resp?.data !== undefined ? resp.data : resp;
   },
 
