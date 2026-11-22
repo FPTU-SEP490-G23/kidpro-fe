@@ -30,8 +30,6 @@ export const BghAnnouncementsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [selectedAudience, setSelectedAudience] = useState<string>('ALL');
-  const [activeTab, setActiveTab] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
-  const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
   // Modal create announcement
@@ -41,11 +39,9 @@ export const BghAnnouncementsPage: React.FC = () => {
     title: '',
     content: '',
     targetAudience: 'ALL',
-    targetGrades: ['ALL'],
     isDraft: false,
     attachmentName: '',
     attachmentSize: 0,
-    attachmentUrl: '',
   });
 
   // State cho kéo thả file
@@ -193,19 +189,15 @@ export const BghAnnouncementsPage: React.FC = () => {
           if (uploadRes?.fileUrl) {
             fileUrl = uploadRes.fileUrl;
           }
-        } catch (upErr: any) {
-          console.warn('Lỗi khi tải tệp đính kèm lên server:', upErr);
+        } catch (uploadErr) {
+          console.warn('Lỗi upload file lên server:', uploadErr);
         }
       }
 
       const payload: AnnouncementCreateRequestDto = {
         ...formData,
-        isDraft: false,
-        targetAudience: formData.targetAudience,
-        targetGrades: selectedGrade === 'ALL' ? ['ALL'] : [selectedGrade],
         attachmentUrl: fileUrl,
-        attachmentName: attachedFile?.name || formData.attachmentName,
-        attachmentSize: attachedFile?.size || formData.attachmentSize,
+        isDraft: false,
       };
 
       await announcementApi.createAnnouncement(payload);
@@ -220,13 +212,10 @@ export const BghAnnouncementsPage: React.FC = () => {
         title: '',
         content: '',
         targetAudience: 'ALL',
-        targetGrades: ['ALL'],
         isDraft: false,
         attachmentName: '',
         attachmentSize: 0,
-        attachmentUrl: '',
       });
-      setSelectedGrade('ALL');
       setAttachedFile(null);
 
       await fetchAnnouncements();
@@ -239,21 +228,6 @@ export const BghAnnouncementsPage: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const onOpenEditDraft = (ann: AnnouncementDto) => {
-    setFormData({
-      title: ann.title,
-      content: ann.content,
-      targetAudience: (ann.targetAudience as any) || 'ALL',
-      targetGrades: ann.targetGrades && ann.targetGrades.length > 0 ? ann.targetGrades : ['ALL'],
-      isDraft: true,
-      attachmentName: ann.attachmentName || '',
-      attachmentSize: ann.attachmentSize || 0,
-      attachmentUrl: ann.attachmentUrl || '',
-    });
-    setSelectedGrade(ann.targetGrades && ann.targetGrades.length > 0 ? ann.targetGrades[0] : 'ALL');
-    setShowModal(true);
   };
 
   const handleDelete = async (id: number, e?: React.MouseEvent) => {
@@ -285,16 +259,7 @@ export const BghAnnouncementsPage: React.FC = () => {
   };
 
   const safeList = Array.isArray(announcements) ? announcements : [];
-  const draftCount = safeList.filter(a => Boolean(a.isDraft || (a as any).status === 'DRAFT')).length;
-  const publishedCount = safeList.filter(a => !Boolean(a.isDraft || (a as any).status === 'DRAFT')).length;
-
   const filteredList = safeList.filter(a => {
-    const isDraftItem = Boolean(a.isDraft || (a as any).status === 'DRAFT');
-    const matchTab =
-      activeTab === 'ALL' ||
-      (activeTab === 'DRAFT' && isDraftItem) ||
-      (activeTab === 'PUBLISHED' && !isDraftItem);
-
     const matchSearch =
       (a.title && a.title.toLowerCase().includes(search.toLowerCase())) ||
       (a.content && a.content.toLowerCase().includes(search.toLowerCase())) ||
@@ -302,7 +267,7 @@ export const BghAnnouncementsPage: React.FC = () => {
 
     const matchAudience = selectedAudience === 'ALL' || a.targetAudience === selectedAudience;
 
-    return matchTab && matchSearch && matchAudience;
+    return matchSearch && matchAudience;
   });
 
   const getAudienceLabel = (aud: string) => {
@@ -386,54 +351,6 @@ export const BghAnnouncementsPage: React.FC = () => {
             <span>Phát Thông Báo Mới</span>
           </button>
         </div>
-      </div>
-
-      {/* Tabs Phân loại thông báo & Bản nháp */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('ALL')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-            activeTab === 'ALL'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-          }`}
-        >
-          <span>Tất Cả Thông Báo</span>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full ${activeTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600 font-mono'}`}>
-            {safeList.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('PUBLISHED')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-            activeTab === 'PUBLISHED'
-              ? 'bg-[#275A4E] text-white shadow-xs'
-              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-          }`}
-        >
-          <span>Đã Phát Hành</span>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full ${activeTab === 'PUBLISHED' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 font-mono'}`}>
-            {publishedCount}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('DRAFT')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-            activeTab === 'DRAFT'
-              ? 'bg-amber-600 text-white shadow-xs'
-              : 'bg-white text-amber-800 hover:bg-amber-50 border border-amber-200'
-          }`}
-        >
-          <span>Bản Nháp (Drafts)</span>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full ${activeTab === 'DRAFT' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-mono'}`}>
-            {draftCount}
-          </span>
-        </button>
       </div>
 
       {/* Filters */}
@@ -525,15 +442,6 @@ export const BghAnnouncementsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {isDraftItem && (
-                      <button
-                        onClick={() => onOpenEditDraft(ann)}
-                        className="px-2.5 py-1 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg transition cursor-pointer"
-                        title="Tiếp tục chỉnh sửa bản nháp"
-                      >
-                        Sửa & Phát hành
-                      </button>
-                    )}
                     <button
                       onClick={() => setViewDetail(ann)}
                       className="p-1.5 text-gray-500 hover:text-[#275A4E] bg-gray-50 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
@@ -600,34 +508,16 @@ export const BghAnnouncementsPage: React.FC = () => {
               {/* Đối tượng tiếp nhận */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Đối tượng tiếp nhận thông báo (Target Audience)
+                  Đối tượng tiếp nhận thông báo
                 </label>
                 <select
                   value={formData.targetAudience}
                   onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value as any })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#275A4E] focus:outline-none bg-white font-medium"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#275A4E] focus:outline-none bg-white"
                 >
                   <option value="ALL">📢 Toàn trường (Tất cả phụ huynh & cán bộ giáo viên)</option>
                   <option value="PARENTS_ONLY">👨‍👩‍👧 Chỉ Phụ Huynh Học Sinh</option>
                   <option value="STAFF_ONLY">👩‍🏫 Chỉ Cán Bộ Giáo Viên & Nhân Viên</option>
-                </select>
-              </div>
-
-              {/* Khối lớp áp dụng */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Khối lớp tiếp nhận thông báo (Target Grade)
-                </label>
-                <select
-                  value={selectedGrade}
-                  onChange={(e) => setSelectedGrade(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#275A4E] focus:outline-none bg-white font-medium"
-                >
-                  <option value="ALL">🏫 Áp dụng tất cả các khối lớp</option>
-                  <option value="NHA_TRE">🍼 Khối Nhà Trẻ (Dưới 3 tuổi)</option>
-                  <option value="MAM">🌱 Khối Mầm (3 - 4 tuổi)</option>
-                  <option value="CHOI">🌿 Khối Chồi (4 - 5 tuổi)</option>
-                  <option value="LA">🎓 Khối Lá (5 - 6 tuổi)</option>
                 </select>
               </div>
 

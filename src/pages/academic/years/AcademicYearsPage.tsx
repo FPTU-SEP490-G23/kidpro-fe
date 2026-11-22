@@ -180,8 +180,6 @@ export const AcademicYearsPage: React.FC = () => {
         </div>
       </div>
 
-
-
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">

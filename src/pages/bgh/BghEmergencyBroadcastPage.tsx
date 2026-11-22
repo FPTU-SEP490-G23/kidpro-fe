@@ -64,15 +64,6 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // BR-122: Kiểm tra mã xác thực bảo mật khẩn cấp
-    if (!formData.authCode || (formData.authCode.trim() !== 'KIDPRO-EMERGENCY-2026' && formData.authCode.trim() !== '123456')) {
-      setToastMsg({
-        type: 'error',
-        text: 'Mã xác thực phát tin khẩn cấp không chính xác. Vui lòng nhập đúng mã bảo mật cấp cao của Ban Giám Hiệu.'
-      });
-      return;
-    }
-
     // Bắt buộc nêu rõ nội dung chỉ đạo hành động
     if (!formData.actionPlan || formData.actionPlan.trim().length < 10) {
       setToastMsg({
@@ -234,25 +225,6 @@ export const BghEmergencyBroadcastPage: React.FC = () => {
                 placeholder="Nêu rõ phương án xử lý, thời gian học sinh nghỉ, hướng dẫn an toàn cho phụ huynh..."
                 required
               />
-            </div>
-
-            {/* BR-122: Auth Code */}
-            <div className="p-4 bg-rose-50 rounded-xl border border-rose-200 space-y-2">
-              <label className="block text-xs font-bold text-rose-900 uppercase flex items-center space-x-1.5">
-                <KeyRound className="w-4 h-4 text-rose-600" />
-                <span>4. Mã xác thực bảo mật khẩn cấp Ban Giám Hiệu</span>
-              </label>
-              <input
-                type="password"
-                value={formData.authCode}
-                onChange={(e) => setFormData({ ...formData, authCode: e.target.value })}
-                placeholder="Nhập mã xác thực (VD: KIDPRO-EMERGENCY-2026 hoặc 123456)"
-                className="w-full px-4 py-2.5 border border-rose-300 rounded-xl text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-600 bg-white"
-                required
-              />
-              <p className="text-xs text-rose-700">
-                Cơ chế bảo vệ 2 lớp ngăn ngừa việc phát nhầm thông báo khẩn gây hoang mang dư luận.
-              </p>
             </div>
 
             <button

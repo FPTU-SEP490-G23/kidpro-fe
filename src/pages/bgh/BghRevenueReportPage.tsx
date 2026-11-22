@@ -77,6 +77,41 @@ export const BghRevenueReportPage: React.FC = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    try {
+      const headers = ['Kỳ Học Phí', 'Mã Hóa Đơn', 'Học Sinh', 'Lớp', 'Phụ Huynh', 'Số Điện Thoại', 'Tuổi Nợ (Ngày)', 'Mức Độ Cảnh Báo'];
+      const rows = filteredDebts.map((d) => [
+        `"Tháng ${selectedMonth}/${selectedYear}"`,
+        `"${d.invoiceCode || ''}"`,
+        `"${d.studentName}"`,
+        `"${d.className}"`,
+        `"${d.parentName}"`,
+        `"${d.parentPhone}"`,
+        `"${d.daysOverdue}"`,
+        `"${d.debtLevel === 'WARNING_2' ? 'Cảnh Báo Cấp 2 (>7 ngày)' : d.debtLevel === 'WARNING_1' ? 'Cảnh Báo Cấp 1 (4-7 ngày)' : 'Nhắc Nhở Nhẹ (1-3 ngày)'}"`
+      ]);
+      const csvContent = '\uFEFF' + [headers.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Bao_Cao_Cong_No_Qua_Han_T${selectedMonth}_${selectedYear}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setAlertInfo({
+        type: 'success',
+        message: 'Xuất file Excel báo cáo công nợ quá hạn thành công.',
+      });
+    } catch (e) {
+      setAlertInfo({
+        type: 'error',
+        message: 'Lỗi khi xuất file Excel báo cáo công nợ.',
+      });
+    }
+  };
+
   const handleSendReminders = async () => {
     if (selectedInvoices.length === 0) return;
     try {
@@ -267,13 +302,8 @@ export const BghRevenueReportPage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                setAlertInfo({
-                  type: 'success',
-                  message: 'Báo cáo công nợ đã được kết xuất thành công và ghi nhận vào Audit Log.',
-                });
-              }}
-              className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50"
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               Xuất Excel
@@ -330,23 +360,21 @@ export const BghRevenueReportPage: React.FC = () => {
                 </th>
                 <th className="px-4 py-3">Học Sinh</th>
                 <th className="px-4 py-3">Lớp Học</th>
-                <th className="px-4 py-3">Phụ Huynh & SĐT</th>
-                <th className="px-4 py-3">Số Tiền Nợ</th>
+                <th className="px-4 py-3">Phụ Huynh &amp; SĐT</th>
                 <th className="px-4 py-3">Tuổi Nợ</th>
                 <th className="px-4 py-3">Phân Loại Mức Độ</th>
-                <th className="px-4 py-3">Nhắc Lần Cuối</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-400">
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
                     Đang tải dữ liệu công nợ...
                   </td>
                 </tr>
               ) : filteredDebts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-400">
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
                     Không có học sinh nào nợ học phí quá hạn trong kỳ này
                   </td>
                 </tr>
@@ -372,7 +400,6 @@ export const BghRevenueReportPage: React.FC = () => {
                         <span className="font-semibold text-slate-700 block">{item.parentName}</span>
                         <span className="text-slate-500">{item.parentPhone}</span>
                       </td>
-                      <td className="px-4 py-3 font-bold text-rose-600">{formatVND(item.overdueAmount)}</td>
                       <td className="px-4 py-3 font-semibold text-slate-700">{item.daysOverdue} ngày</td>
                       <td className="px-4 py-3">
                         {item.debtLevel === 'WARNING_2' ? (
@@ -388,9 +415,6 @@ export const BghRevenueReportPage: React.FC = () => {
                             Nhắc Nhở Nhẹ (1-3 ngày)
                           </span>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-slate-500">
-                        {item.lastReminderDate ? item.lastReminderDate : 'Chưa nhắc'}
                       </td>
                     </tr>
                   );

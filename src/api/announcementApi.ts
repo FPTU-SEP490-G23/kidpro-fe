@@ -7,9 +7,6 @@ export interface AnnouncementDto {
   title: string;
   content: string;
   targetAudience: string;
-  targetGrades?: string[];
-  status?: string;
-  isDraft?: boolean;
   scope?: string;
   scopeLabel?: string;
   attachmentUrl?: string;
@@ -25,7 +22,6 @@ export interface AnnouncementCreateRequestDto {
   title: string;
   content: string;
   targetAudience: 'ALL' | 'PARENTS_ONLY' | 'STAFF_ONLY';
-  targetGrades?: string[];
   attachmentUrl?: string;
   attachmentName?: string;
   attachmentSize?: number;
@@ -48,48 +44,34 @@ export const announcementApi = {
       rawList = res.data;
     }
 
-    return rawList.map((item: any) => {
-      const isDraftStatus = item.status === 'DRAFT' || Boolean(item.isDraft);
-      return {
-        announcementId: Number(item.announcementId || item.id || 0),
-        authorStaffId: item.authorStaffId,
-        authorName: item.authorName || 'Ban Giám Hiệu',
-        title: item.title || '',
-        content: item.content || '',
-        targetAudience: item.targetAudience || 'ALL',
-        targetGrades: Array.isArray(item.targetGrades)
-          ? item.targetGrades
-          : (typeof item.targetGrades === 'string' ? item.targetGrades.split(',') : ['ALL']),
-        status: item.status || (isDraftStatus ? 'DRAFT' : 'PUBLISHED'),
-        isDraft: isDraftStatus,
-        scope: item.scope,
-        scopeLabel: item.scopeLabel,
-        attachmentUrl: item.attachmentUrl || item.attachments?.[0]?.fileUrl,
-        attachmentName: item.attachmentName || item.attachments?.[0]?.fileName,
-        attachmentSize: item.attachmentSize || item.attachments?.[0]?.fileSize,
-        createdAt: item.createdAt || item.publishedAt || new Date().toISOString(),
-        viewCount: item.viewCount || item.viewsCount || 0,
-        message: item.message,
-      };
-    });
+    return rawList.map((item: any) => ({
+      announcementId: Number(item.announcementId || item.id || 0),
+      authorStaffId: item.authorStaffId,
+      authorName: item.authorName || 'Ban Giám Hiệu',
+      title: item.title || '',
+      content: item.content || '',
+      targetAudience: item.scope === 'ALL_SCHOOL' ? 'ALL' : (item.targetAudience || item.scope || 'ALL'),
+      scope: item.scope,
+      scopeLabel: item.scopeLabel,
+      attachmentUrl: item.attachmentUrl || item.attachments?.[0]?.fileUrl,
+      attachmentName: item.attachmentName || item.attachments?.[0]?.fileName,
+      attachmentSize: item.attachmentSize || item.attachments?.[0]?.fileSize,
+      createdAt: item.createdAt || item.publishedAt || new Date().toISOString(),
+      viewCount: item.viewCount || item.viewsCount || 0,
+      message: item.message,
+    }));
   },
 
   getAnnouncementById: async (id: number): Promise<AnnouncementDto> => {
     const res: any = await axiosClient.get(`/bgh/announcements/${id}`);
     const item = res?.data || res;
-    const isDraftStatus = item.status === 'DRAFT' || Boolean(item.isDraft);
     return {
       announcementId: Number(item.announcementId || item.id || 0),
       authorStaffId: item.authorStaffId,
       authorName: item.authorName || 'Ban Giám Hiệu',
       title: item.title || '',
       content: item.content || '',
-      targetAudience: item.targetAudience || 'ALL',
-      targetGrades: Array.isArray(item.targetGrades)
-        ? item.targetGrades
-        : (typeof item.targetGrades === 'string' ? item.targetGrades.split(',') : ['ALL']),
-      status: item.status || (isDraftStatus ? 'DRAFT' : 'PUBLISHED'),
-      isDraft: isDraftStatus,
+      targetAudience: item.scope === 'ALL_SCHOOL' ? 'ALL' : (item.targetAudience || item.scope || 'ALL'),
       scope: item.scope,
       scopeLabel: item.scopeLabel,
       attachmentUrl: item.attachmentUrl || item.attachments?.[0]?.fileUrl,
@@ -113,13 +95,11 @@ export const announcementApi = {
   },
 
   createAnnouncement: async (payload: AnnouncementCreateRequestDto) => {
-    const hasSpecificGrades = payload.targetGrades && payload.targetGrades.length > 0 && !payload.targetGrades.includes('ALL');
     const body = {
       title: payload.title,
       content: payload.content,
-      scope: hasSpecificGrades ? 'SPECIFIC_GRADES' : 'ALL_SCHOOL',
-      targetGrades: payload.targetGrades && payload.targetGrades.length > 0 ? payload.targetGrades : ['ALL'],
-      targetAudience: payload.targetAudience || 'ALL',
+      scope: payload.targetAudience === 'PARENTS_ONLY' ? 'SPECIFIC_GRADES' : 'ALL_SCHOOL',
+      targetGrades: payload.targetAudience === 'PARENTS_ONLY' ? ['PARENTS'] : ['ALL'],
       isDraft: Boolean(payload.isDraft),
       attachments: payload.attachmentName ? [{
         fileName: payload.attachmentName,

@@ -24,7 +24,13 @@ import {
   AssignStudentDiscountRequestDto,
 } from '../../../types/finance.types';
 
-export const DiscountPolicyTab: React.FC = () => {
+interface DiscountPolicyTabProps {
+  isBgh?: boolean;
+  approvalStatus?: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+}
+
+export const DiscountPolicyTab: React.FC<DiscountPolicyTabProps> = ({ isBgh = false, approvalStatus = 'PENDING' }) => {
+  const isLocked = !isBgh && (approvalStatus === 'PENDING_APPROVAL' || approvalStatus === 'APPROVED');
   const [activeSubTab, setActiveSubTab] = useState<'policies' | 'students'>('policies');
 
   const [policies, setPolicies] = useState<DiscountPolicyDto[]>([]);
@@ -257,14 +263,24 @@ export const DiscountPolicyTab: React.FC = () => {
               />
             </div>
 
-            <button
-              onClick={openCreatePolicyModal}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              Thêm chính sách miễn giảm
-            </button>
+            {!isBgh && !isLocked && (
+              <button
+                onClick={openCreatePolicyModal}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Thêm chính sách miễn giảm
+              </button>
+            )}
           </div>
+
+          {/* Thông báo nếu đã khóa */}
+          {isLocked && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-amber-800 text-xs font-semibold">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Chính sách miễn giảm đang chờ Ban Giám Hiệu phê duyệt hoặc đã được Ban Giám Hiệu phê duyệt chính thức. Vui lòng liên hệ Ban Giám Hiệu thu hồi phê duyệt nếu có phát sinh chỉnh sửa.</span>
+            </div>
+          )}
 
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <table className="w-full text-left border-collapse">
@@ -274,7 +290,7 @@ export const DiscountPolicyTab: React.FC = () => {
                   <th className="py-3.5 px-4">Tỷ lệ miễn giảm (%)</th>
                   <th className="py-3.5 px-4">Số tiền giảm cố định</th>
                   <th className="py-3.5 px-4">Phạm vi áp dụng</th>
-                  <th className="py-3.5 px-4 text-right">Thao tác</th>
+                  {!isBgh && !isLocked && <th className="py-3.5 px-4 text-right">Thao tác</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
@@ -306,24 +322,26 @@ export const DiscountPolicyTab: React.FC = () => {
                         <td className="py-3.5 px-4 text-slate-500 text-xs">
                           Khấu trừ vào Học phí chính khóa & Bán trú
                         </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openEditPolicyModal(p)}
-                              className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                              title="Sửa"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeletePolicy(p.policyId, p.policyName)}
-                              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
-                              title="Xóa"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                        {!isBgh && !isLocked && (
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openEditPolicyModal(p)}
+                                className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg cursor-pointer"
+                                title="Sửa"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeletePolicy(p.policyId, p.policyName)}
+                                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                title="Xóa"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                 )}

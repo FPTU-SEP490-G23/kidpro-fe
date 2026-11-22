@@ -148,6 +148,17 @@ export const InvoiceIssuanceTab: React.FC = () => {
     }
   };
 
+  const checkIsOverdue = (inv: InvoiceDto) => {
+    if (inv.status === 'PAID') return false;
+    if (inv.status === 'OVERDUE') return true;
+    const bMonth = inv.billingMonth || selectedMonth;
+    const bYear = inv.billingYear || selectedYear;
+    const nextMonth = bMonth === 12 ? 1 : bMonth + 1;
+    const nextYear = bMonth === 12 ? bYear + 1 : bYear;
+    const deadline = new Date(nextYear, nextMonth - 1, 15, 23, 59, 59);
+    return new Date() > deadline;
+  };
+
   const filteredInvoices = invoices.filter((i) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -172,10 +183,10 @@ export const InvoiceIssuanceTab: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#1E4D40] via-[#245D4F] to-[#16382F] text-white p-6 rounded-3xl shadow-xs relative overflow-hidden">
         <div className="relative z-10 max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-700/80 text-indigo-200 border border-indigo-500/30">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-900/60 text-[#78C2AD] border border-emerald-500/30">
               Chuẩn VietQR Napas 24/7
             </span>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
@@ -210,19 +221,19 @@ export const InvoiceIssuanceTab: React.FC = () => {
             </span>
           </div>
 
-          <h2 className="text-xl font-bold mt-2">Phát hành Thông báo Học phí & Mã VietQR Tự động</h2>
-          <p className="text-indigo-200 text-xs mt-1 leading-relaxed">
+          <h2 className="text-xl font-bold mt-2">Phát hành Thông báo Học phí &amp; Mã VietQR Tự động</h2>
+          <p className="text-emerald-100/80 text-xs mt-1 leading-relaxed">
             Hệ thống tự động kích hoạt thông báo đẩy trên ứng dụng di động của Phụ huynh kèm mã QR Napas MB Bank (STK 666619092005) đã điền sẵn số tiền và nội dung chuyển khoản để gạch nợ tức thì.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-indigo-700/60 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-emerald-700/50 text-xs">
             <div>
-              <label className="block text-indigo-300 font-semibold mb-1">Kỳ phát hành:</label>
-              <div className="flex gap-2">
+              <label className="block text-emerald-200 font-semibold mb-1">Kỳ phát hành:</label>
+              <div className="flex items-center gap-2">
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                  className="bg-indigo-950/60 border border-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs"
+                  className="bg-emerald-950/70 border border-emerald-600/80 text-white px-2.5 py-1.5 rounded-xl text-xs focus:outline-none cursor-pointer"
                 >
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                     <option key={m} value={m}>Tháng {m}</option>
@@ -231,30 +242,30 @@ export const InvoiceIssuanceTab: React.FC = () => {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="bg-indigo-950/60 border border-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs"
+                  className="bg-emerald-950/70 border border-emerald-600/80 text-white px-2.5 py-1.5 rounded-xl text-xs focus:outline-none cursor-pointer"
                 >
                   {[2024, 2025, 2026, 2027].map((y) => (
                     <option key={y} value={y}>Năm {y}</option>
                   ))}
                 </select>
+                {/* Nút reload nhỏ */}
+                <button
+                  type="button"
+                  onClick={fetchData}
+                  disabled={loading}
+                  className="p-1.5 text-emerald-200 hover:text-white bg-emerald-900/60 hover:bg-emerald-800 rounded-lg transition cursor-pointer border border-emerald-600/50"
+                  title="Làm mới dữ liệu kỳ này"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-indigo-300 font-semibold mb-1">Hạn chót nộp học phí:</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="bg-indigo-950/60 border border-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs w-full"
-              />
-            </div>
-
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => setShowGeneralQrModal(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-700/80 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-xs transition-all text-xs cursor-pointer border border-indigo-500/50"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-900/70 hover:bg-emerald-800 text-[#78C2AD] hover:text-white font-bold rounded-xl shadow-xs transition-all text-xs cursor-pointer border border-emerald-600/50"
                 title="Xem mã VietQR tĩnh MB Bank trỏ đến STK 666619092005 (không kèm số tiền)"
               >
                 <QrCode className="w-4 h-4" />
@@ -266,14 +277,19 @@ export const InvoiceIssuanceTab: React.FC = () => {
                 onClick={handlePublish}
                 disabled={publishing || summary?.status !== 'APPROVED' || invoices.length === 0}
                 title={summary?.status !== 'APPROVED' ? 'Chỉ có thể phát hành khi BGH đã phê duyệt bảng tổng hợp học phí tại Bảng Tổng Hợp Học Phí' : ''}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#E5A93C] hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-xs transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {publishing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 {selectedInvoiceIds.length > 0
-                  ? `Phát hành (${selectedInvoiceIds.length}) phiếu đã chọn`
+                  ? `Phát hành (${selectedInvoiceIds.length}) phiếu`
                   : 'Phát hành Toàn trường'}
               </button>
             </div>
+          </div>
+
+          {/* Text quy định kỳ hạn sau ngày 15 tháng sau */}
+          <div className="text-[11px] text-emerald-100/90 mt-3 bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20 leading-relaxed">
+            * <strong>Chính sách hạn nộp định kỳ:</strong> Hạn chót thanh toán là ngày 15 của tháng kế tiếp. Cứ mỗi khi qua ngày 15 của tháng sau mà hóa đơn của tháng trước chưa thanh toán, hệ thống sẽ tự động chuyển thành <strong>Nợ quá hạn (OVERDUE)</strong>.
           </div>
         </div>
       </div>
@@ -435,15 +451,19 @@ export const InvoiceIssuanceTab: React.FC = () => {
                         </td>
                         <td className="py-3.5 px-4 text-xs text-slate-500">{inv.dueDate}</td>
                         <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                              inv.status === 'PAID'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-amber-50 text-amber-700'
-                            }`}
-                          >
-                            {inv.status === 'PAID' ? 'Đã thu' : 'Chờ nộp'}
-                          </span>
+                          {inv.status === 'PAID' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
+                              Đã thu
+                            </span>
+                          ) : checkIsOverdue(inv) ? (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                              Nợ quá hạn
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700">
+                              Chờ nộp
+                            </span>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button

@@ -287,7 +287,7 @@ export const App: React.FC = () => {
             path="/bgh/evaluation-approvals"
             element={
               <ProtectedRoute allowedRoles={['BGH', 'SYSTEM_ADMIN']}>
-                <BghChildcareHubPage initialTab="evaluations" />
+                <BghChildcareHubPage initialTab="quality-report" />
               </ProtectedRoute>
             }
           />

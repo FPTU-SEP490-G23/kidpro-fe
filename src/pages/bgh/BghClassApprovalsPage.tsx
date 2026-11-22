@@ -130,7 +130,7 @@ export const BghClassApprovalsPage: React.FC = () => {
     mutationFn: () => classApprovalApi.resetAllPendingClasses(),
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['class-approvals-bgh'] });
-      success(res?.message || 'Đã khôi phục toàn bộ kế hoạch mở lớp về trạng thái Chờ phê duyệt thành công.');
+      success(res?.message || 'Đã thu hồi phê duyệt toàn bộ kế hoạch mở lớp về trạng thái Dự thảo (PENDING) để Giáo vụ chỉnh sửa.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || 'Không thể khôi phục trạng thái đợt kế hoạch');

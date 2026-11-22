@@ -259,7 +259,6 @@ export const AuditLogsPage: React.FC = () => {
                   <th className="py-3 px-4">Bảng Tác Động</th>
                   <th className="py-3 px-4">Hành Động</th>
                   <th className="py-3 px-4">Mã Bản Ghi</th>
-                  <th className="py-3 px-4">Địa Chỉ IP</th>
                   <th className="py-3 px-4 text-right">Chi Tiết Thay Đổi</th>
                 </tr>
               </thead>
@@ -316,11 +315,6 @@ export const AuditLogsPage: React.FC = () => {
                     {/* Record ID */}
                     <td className="py-3 px-4 font-mono text-slate-700 font-semibold">
                       #{log.recordId}
-                    </td>
-
-                    {/* IP */}
-                    <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
-                      {log.ipAddress}
                     </td>
 
                     {/* Action view */}

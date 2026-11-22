@@ -17,7 +17,13 @@ import { financeApi } from '../../../api/financeApi';
 import { formatCurrency } from '../../../utils/formatters';
 import { ServiceDto, ServiceRequestDto } from '../../../types/finance.types';
 
-export const FeeCatalogTab: React.FC = () => {
+interface FeeCatalogTabProps {
+  isBgh?: boolean;
+  approvalStatus?: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+}
+
+export const FeeCatalogTab: React.FC<FeeCatalogTabProps> = ({ isBgh = false, approvalStatus = 'PENDING' }) => {
+  const isLocked = !isBgh && (approvalStatus === 'PENDING_APPROVAL' || approvalStatus === 'APPROVED');
   const [services, setServices] = useState<ServiceDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -215,24 +221,34 @@ export const FeeCatalogTab: React.FC = () => {
           </select>
         </div>
 
-        <div className="flex gap-2.5 w-full md:w-auto justify-end">
-          <button
-            onClick={() => setIsCopyModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
-            title="Kế thừa danh mục khoản thu từ năm học trước"
-          >
-            <Copy className="w-4 h-4" />
-            Sao chép từ năm trước
-          </button>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Thêm khoản thu mới
-          </button>
-        </div>
+        {!isBgh && !isLocked && (
+          <div className="flex gap-2.5 w-full md:w-auto justify-end">
+            <button
+              onClick={() => setIsCopyModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+              title="Kế thừa danh mục khoản thu từ năm học trước"
+            >
+              <Copy className="w-4 h-4" />
+              Sao chép từ năm trước
+            </button>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Thêm khoản thu mới
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Thông báo nếu đã khóa */}
+      {isLocked && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-amber-800 text-xs font-semibold">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>Biểu phí đang chờ Ban Giám Hiệu phê duyệt hoặc đã được Ban Giám Hiệu phê duyệt chính thức. Vui lòng liên hệ Ban Giám Hiệu thu hồi phê duyệt nếu có phát sinh chỉnh sửa.</span>
+        </div>
+      )}
 
       {/* Services Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -244,7 +260,7 @@ export const FeeCatalogTab: React.FC = () => {
                 <th className="py-3.5 px-4">Đơn giá định mức</th>
                 <th className="py-3.5 px-4">Chu kỳ thu</th>
                 <th className="py-3.5 px-4">Tính chất biểu phí</th>
-                <th className="py-3.5 px-4 text-right">Thao tác</th>
+                {!isBgh && !isLocked && <th className="py-3.5 px-4 text-right">Thao tác</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -291,24 +307,26 @@ export const FeeCatalogTab: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(svc)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(svc.serviceId, svc.serviceName)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Xóa khoản thu"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {!isBgh && !isLocked && (
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(svc)}
+                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            title="Chỉnh sửa"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(svc.serviceId, svc.serviceName)}
+                            className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Xóa khoản thu"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

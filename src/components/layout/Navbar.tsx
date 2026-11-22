@@ -292,21 +292,6 @@ export const Navbar: React.FC = () => {
                           <div className="flex items-center justify-between pt-0.5 text-[10px]">
                             <span className="text-slate-400">{n.authorName || 'Hệ thống'}</span>
                             <div className="flex items-center gap-2">
-                              {n.actionUrl && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSelectNotification(n);
-                                    handleNavigateToAction(n.actionUrl);
-                                  }}
-                                  className="text-[10px] font-bold text-[#275A4E] hover:underline flex items-center gap-0.5 cursor-pointer"
-                                  title="Chuyển đến trang làm việc liên quan"
-                                >
-                                  <span>Xử lý ngay</span>
-                                  <span>→</span>
-                                </button>
-                              )}
                               <span className="text-slate-400">{formatTime(n.createdAt)}</span>
                             </div>
                           </div>
@@ -349,7 +334,7 @@ export const Navbar: React.FC = () => {
                 {canManageAnnouncements && (
                   <div className="p-2.5 border-t border-slate-100 bg-slate-50 text-center">
                     <Link
-                      to="/academic/announcements"
+                      to="/announcements"
                       onClick={() => setIsNotificationOpen(false)}
                       className="text-xs font-bold text-[#275A4E] hover:underline inline-flex items-center gap-1"
                     >
@@ -526,17 +511,6 @@ export const Navbar: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-2">
-                {selectedNotification.actionUrl && (
-                  <button
-                    type="button"
-                    onClick={() => handleNavigateToAction(selectedNotification.actionUrl)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#275A4E] hover:bg-[#1E4D40] text-white transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                  >
-                    <span>Xem & xử lý ngay</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={() => setSelectedNotification(null)}
