@@ -1299,11 +1299,12 @@ export const StudentAdmissionTab: React.FC = () => {
                               (!createForm.academicYearId || c.academicYearId === createForm.academicYearId)
                           )
                           .map((c) => {
-                            const curCount = (c as any).currentEnrollment ?? (c as any).currentCount ?? 0;
+                            const curCount = (c as any).currentEnrollment ?? (c as any).currentCount ?? (c as any).studentCount ?? (c as any).currentStudents ?? 0;
                             const maxCap = c.maxCapacity ?? 30;
+                            const gradeLabel = getGradeShortName(c.gradeLevel) || (c.gradeLevel ? String(c.gradeLevel) : 'Chung');
                             return (
                               <option key={c.id} value={c.id}>
-                                {c.name} (Khối {getGradeShortName(c.gradeLevel)} - Sĩ số hiện tại: {curCount}/{maxCap})
+                                {c.name} (Khối: {gradeLabel}) (Sĩ số hiện tại: {curCount}/{maxCap})
                               </option>
                             );
                           })}

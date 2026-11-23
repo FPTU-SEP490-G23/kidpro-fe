@@ -493,14 +493,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
         useCases: [],
       },
       {
-        id: 'kt-retention',
-        title: 'Tiêu Hao Thực Phẩm & Lưu Mẫu',
-        path: '/kitchen?tab=retention',
-        icon: 'FileText',
-        roles: ['BEP'],
-        useCases: [],
-      },
-      {
         id: 'kt-inspection',
         title: 'Sổ Kiểm Thực 3 Bước & Mẫu Thức Ăn',
         path: '/kitchen?tab=three-step-inspection',

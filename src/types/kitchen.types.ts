@@ -32,10 +32,11 @@ export interface KitchenDailySummary {
 export interface WeeklyMenu {
   id?: string;
   itemId?: number;
+  weeklyMenuId?: number;
   menuStatus?: 'DRAFT' | 'APPROVED' | 'REJECTED';
   menuType?: 'RICE' | 'PORRIDGE';
   weekStartDate?: string;
-  dayOfWeek: number; // 1 = Thứ 2 ... 7 = Chủ Nhật
+  dayOfWeek: number | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
   mealType: 'BREAKFAST' | 'MORNING_SNACK' | 'LUNCH' | 'AFTERNOON_SNACK' | 'SNACK';
   dishName: string;
   nutritionNotes?: string;
@@ -132,8 +133,9 @@ export interface DietaryAllergyItem {
   roomNumber: string;
   allergyTags: string[]; // Danh sách dị nguyên (vd: ["Hải sản", "Đậu phộng"])
   severity: AllergySeverity;
-  todayConflictedDishes: string[]; // Món ăn hôm nay xung đột (vd: ["Chả tôm hấp"])
-  safeSubstituteDish: string; // Món ăn thay thế an toàn đã duyệt
+  todayConflictedDishes: string[]; // Món trong thực đơn ngày đã chọn để tránh
+  selectedMenuItemId?: number;
+  safeSubstituteDish: string; // Tên món thay thế do bếp nhập
   preparationStatus: 'PENDING' | 'PREPARED';
   preparedAt?: string;
   preparedBy?: string;
@@ -147,6 +149,8 @@ export interface DietaryAllergyItem {
 
 export interface DietaryPreparationUpdatePayload {
   itemId: string;
+  date: string;
+  selectedMenuItemId: number;
   preparationStatus: 'PENDING' | 'PREPARED';
   isolatedAreaConfirmed: boolean;
   allergenMatchConfirmed: boolean;
@@ -249,12 +253,17 @@ export interface CookingTemperatureInspectionItem {
 export interface FoodRetentionSampleDetailItem {
   id: string;
   dishName: string;
+  mealSession?: 'LUNCH' | 'AFTERNOON_SNACK' | 'BREAKFAST' | string;
   sampleWeightGrams: number; // Khối lượng lưu (Bắt buộc >= 100g hoặc >= 150ml canh)
   sealCode: string; // Mã số tem niêm phong dùng 1 lần (vd: NP-20261010-01)
   storageTemperatureCelsius: number; // Nhiệt độ tủ bảo quản (2°C <= T <= 8°C)
   photoUrl?: string; // Ảnh hũ thủy tinh dán tem trong tủ lạnh
   sensoryEvaluation: SensoryEvaluationResult; // Đánh giá cảm quan trước khi ăn
   tastedBy: string; // Cán bộ nếm cảm quan
+  disposalTimestamp?: string;
+  disposalNotes?: string;
+  isDisposed?: boolean;
+  createdAt?: string;
 }
 
 export interface ThreeStepFoodSafetyInspectionLog {

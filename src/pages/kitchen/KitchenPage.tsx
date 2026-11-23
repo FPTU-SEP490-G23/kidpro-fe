@@ -12,10 +12,9 @@ import {
 import { MealHeadcountLockDashboardTab } from './tabs/MealHeadcountLockDashboardTab';
 import { AllergyDietaryManagementTab } from './tabs/AllergyDietaryManagementTab';
 import { WeeklyMenuPlanningTab } from './tabs/WeeklyMenuPlanningTab';
-import { FoodRetentionConsumptionTab } from './tabs/FoodRetentionConsumptionTab';
 import { FoodSafetyThreeStepInspectionTab } from './tabs/FoodSafetyThreeStepInspectionTab';
 
-export type KitchenTabKey = 'portions' | 'allergies' | 'menu' | 'retention' | 'three-step-inspection';
+export type KitchenTabKey = 'portions' | 'allergies' | 'menu' | 'three-step-inspection';
 
 interface TabMeta {
   title: string;
@@ -39,11 +38,6 @@ const TAB_META: Record<KitchenTabKey, TabMeta> = {
     description: 'Lập kế hoạch dinh dưỡng cân bằng calo, tỷ lệ đạm - đường - béo cho từng độ tuổi mầm non theo tuần.',
     icon: UtensilsCrossed,
   },
-  retention: {
-    title: 'Tiêu Hao Thực Phẩm & Lưu Mẫu Thức Ăn 24H',
-    description: 'Biên bản tiêu hao nguyên liệu trong ngày và quy trình niêm phong tủ lạnh lưu mẫu thức ăn tối thiểu 24 giờ.',
-    icon: Thermometer,
-  },
   'three-step-inspection': {
     title: 'Sổ Kiểm Thực 3 Bước & Lưu Mẫu (Quyết Định 1246/QĐ-BYT)',
     description: 'Quy trình kiểm tra an toàn thực phẩm 3 bước của Bộ Y Tế: Trước khi nhập - Trước khi chế biến - Trước khi ăn.',
@@ -58,6 +52,7 @@ export const KitchenPage: React.FC = () => {
   const [selectedDate] = useState<string>(todayDateStr);
   
   const resolveTab = (param: string | null): KitchenTabKey => {
+    if (param === 'retention') return 'three-step-inspection';
     if (param && param in TAB_META) {
       return param as KitchenTabKey;
     }
@@ -132,10 +127,7 @@ export const KitchenPage: React.FC = () => {
         {/* Phân hệ 3:  - Thiết Lập Thực Đơn Tuần Bán Trú */}
         {activeTab === 'menu' && <WeeklyMenuPlanningTab />}
 
-        {/* Phân hệ 4:  - Xuất Báo cáo Tiêu hao Thực phẩm & Lưu mẫu 24h */}
-        {activeTab === 'retention' && <FoodRetentionConsumptionTab />}
-
-        {/* Phân hệ 5:  - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
+        {/* Phân hệ 4:  - Sổ Kiểm thực 3 Bước & Lưu Mẫu Thức Ăn 24H */}
         {activeTab === 'three-step-inspection' && (
           <FoodSafetyThreeStepInspectionTab initialDate={selectedDate} />
         )}

@@ -25,7 +25,8 @@ export const busManagementApi = {
         ...(excludeBusId ? { excludeBusId } : {}),
       },
     });
-    return res?.data ?? res;
+    const payload = res?.data ?? res;
+    return (payload && payload.valid !== undefined) ? payload : (payload?.data ?? payload);
   },
 
   getBusById: async (busId: string): Promise<BusItem> => {

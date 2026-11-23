@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Printer,
-  Sparkles,
   Search,
   Check,
   HeartHandshake,
@@ -22,7 +21,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { DietaryAllergyItem } from '../../../types/kitchen.types';
 import { QRCodeSVG } from 'qrcode.react';
 
-// Dữ liệu mẫu chuẩn đối chiếu xung đột dị ứng hôm nay
 export const AllergyDietaryManagementTab: React.FC = () => {
   const { role } = useAuth();
   const queryClient = useQueryClient();
@@ -51,13 +49,42 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   // Modal chỉnh sửa món ăn thay thế
   const [editSubstituteModalItem, setEditSubstituteModalItem] = useState<DietaryAllergyItem | null>(null);
   const [customSubstituteText, setCustomSubstituteText] = useState<string>('');
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState<string>('');
+
+  const preparationDate = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }, []);
+  const currentMenuItemsQuery = useQuery({
+    queryKey: ['allergy-daily-menu', preparationDate],
+    queryFn: async () => {
+      const date = new Date(`${preparationDate}T00:00:00`);
+      const weekday = date.getDay() || 7;
+      date.setDate(date.getDate() - weekday + 1);
+      const weekStartDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dayName = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'][weekday - 1];
+      const responses = await Promise.all(['RICE', 'PORRIDGE'].map((type) =>
+        kitchenApi.getWeeklyMenus(weekStartDate, type)
+      ));
+      return responses
+        .flatMap((response: any) => {
+          const data = response?.data ?? response;
+          return Array.isArray(data) ? data : [];
+        })
+        .filter((menuItem: any) => menuItem.dayOfWeek === dayName && menuItem.itemId != null);
+    }
+  });
+  const todayMenuItems = currentMenuItemsQuery.data ?? [];
+  const menuItemById = useMemo(() => new Map(
+    todayMenuItems.map((menuItem: any) => [Number(menuItem.itemId), menuItem])
+  ), [todayMenuItems]);
 
   // 1. Fetch danh sách học sinh dị ứng (GET /api/kitchen/allergy-alerts)
   const { data: allergyRecords, isRefetching, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['students-by-allergy'],
+    queryKey: ['students-by-allergy', preparationDate],
     queryFn: async () => {
       try {
-        const res: any = await kitchenApi.getStudentsByAllergy();
+        const res: any = await kitchenApi.getStudentsByAllergy(preparationDate);
         const data = res?.data ?? res;
         return Array.isArray(data) ? data : [];
       } catch (e) {
@@ -71,41 +98,6 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     if (!allergyRecords || !Array.isArray(allergyRecords)) return;
     setItems(allergyRecords.map((record) => {
       const tags: string[] = record.allergyTags ?? [];
-      const lowerTags = tags.join(' ').toLowerCase();
-
-      let defaultConflicted: string[] = Array.isArray(record.todayConflictedDishes) && record.todayConflictedDishes.length > 0
-        ? record.todayConflictedDishes
-        : [];
-      let defaultSubstitute = (record.safeSubstituteDish || '').trim();
-
-      if (defaultConflicted.length === 0) {
-        if (lowerTags.includes('tôm') || lowerTags.includes('cua') || lowerTags.includes('hải sản')) {
-          defaultConflicted = ['Chả tôm hấp'];
-        } else if (lowerTags.includes('lạc') || lowerTags.includes('đậu phộng') || lowerTags.includes('hạt')) {
-          defaultConflicted = ['Nộm bắp cải lạc rang'];
-        } else if (lowerTags.includes('trứng')) {
-          defaultConflicted = ['Trứng cuộn rau củ'];
-        } else if (lowerTags.includes('sữa')) {
-          defaultConflicted = ['Sữa tươi có đường'];
-        } else {
-          defaultConflicted = ['Món ăn chứa dị nguyên trong ngày'];
-        }
-      }
-
-      if (!defaultSubstitute) {
-        if (lowerTags.includes('tôm') || lowerTags.includes('cua') || lowerTags.includes('hải sản')) {
-          defaultSubstitute = 'Thịt nạc băm rim nấm';
-        } else if (lowerTags.includes('lạc') || lowerTags.includes('đậu phộng') || lowerTags.includes('hạt')) {
-          defaultSubstitute = 'Nộm bắp cải mè rang';
-        } else if (lowerTags.includes('trứng')) {
-          defaultSubstitute = 'Đậu hũ non sốt cà chua';
-        } else if (lowerTags.includes('sữa')) {
-          defaultSubstitute = 'Sữa hạt dinh dưỡng';
-        } else {
-          defaultSubstitute = 'Suất ăn dinh dưỡng tiêu chuẩn (Đã loại trừ dị nguyên)';
-        }
-      }
-
       const room = record.roomNumber || (record.className ? `Phòng ${record.className}` : 'Phòng 101');
 
       return {
@@ -114,8 +106,9 @@ export const AllergyDietaryManagementTab: React.FC = () => {
         className: record.className ?? 'Chưa xếp lớp',
         roomNumber: room,
         allergyTags: tags,
-        todayConflictedDishes: defaultConflicted,
-        safeSubstituteDish: defaultSubstitute,
+        todayConflictedDishes: Array.isArray(record.todayConflictedDishes) ? record.todayConflictedDishes : [],
+        selectedMenuItemId: record.selectedMenuItemId == null ? undefined : Number(record.selectedMenuItemId),
+        safeSubstituteDish: (record.safeSubstituteDish || '').trim(),
         severity: record.severity === 'ANAPHYLAXIS'
           ? 'ANAPHYLAXIS'
           : record.severity === 'HIGH'
@@ -137,6 +130,8 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     mutationFn: async (payload: {
       itemId: string;
       preparationStatus: 'PENDING' | 'PREPARED';
+      date: string;
+      selectedMenuItemId: number;
       isolatedAreaConfirmed: boolean;
       allergenMatchConfirmed: boolean;
       safeSubstituteDish?: string;
@@ -152,7 +147,9 @@ export const AllergyDietaryManagementTab: React.FC = () => {
               preparationStatus: updated.preparationStatus,
               isolatedAreaConfirmed: updated.isolatedAreaConfirmed,
               allergenMatchKnown: updated.allergenMatchKnown,
-              safeSubstituteDish: updated.safeSubstituteDish
+              safeSubstituteDish: updated.safeSubstituteDish,
+              selectedMenuItemId: updated.selectedMenuItemId,
+              todayConflictedDishes: updated.todayConflictedDishes ?? []
             }
           : item
       ));
@@ -171,8 +168,11 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   });
 
   const markPrepared = (item: DietaryAllergyItem) => {
+    if (!item.selectedMenuItemId || !item.safeSubstituteDish.trim()) return;
     updatePreparationMutation.mutate({
       itemId: item.id,
+      date: preparationDate,
+      selectedMenuItemId: item.selectedMenuItemId,
       preparationStatus: 'PREPARED',
       isolatedAreaConfirmed: item.isolatedAreaConfirmed,
       allergenMatchConfirmed: item.allergenMatchKnown === true,
@@ -240,11 +240,14 @@ export const AllergyDietaryManagementTab: React.FC = () => {
 
   // Toggle checkbox cam kết khu vực cách ly
   const handleToggleIsolation = (item: DietaryAllergyItem, checked: boolean) => {
+    if (!item.selectedMenuItemId || !item.safeSubstituteDish.trim()) return;
     setItems((prev) =>
       prev.map((i) => (i.id === item.id ? { ...i, isolatedAreaConfirmed: checked } : i))
     );
     updatePreparationMutation.mutate({
       itemId: item.id,
+      date: preparationDate,
+      selectedMenuItemId: item.selectedMenuItemId,
       preparationStatus: item.preparationStatus,
       isolatedAreaConfirmed: checked,
       allergenMatchConfirmed: item.allergenMatchKnown === true,
@@ -253,6 +256,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   };
 
   const handleToggleAllergenVerification = (item: DietaryAllergyItem, checked: boolean) => {
+    if (!item.selectedMenuItemId || !item.safeSubstituteDish.trim()) return;
     if (checked) {
       const conflicts = checkAllergenConflict(item.safeSubstituteDish, item.allergyTags);
       if (conflicts.length > 0) {
@@ -266,6 +270,8 @@ export const AllergyDietaryManagementTab: React.FC = () => {
 
     updatePreparationMutation.mutate({
       itemId: item.id,
+      date: preparationDate,
+      selectedMenuItemId: item.selectedMenuItemId,
       preparationStatus: 'PENDING',
       isolatedAreaConfirmed: item.isolatedAreaConfirmed,
       allergenMatchConfirmed: checked,
@@ -317,10 +323,11 @@ export const AllergyDietaryManagementTab: React.FC = () => {
   const handleOpenEditSubstitute = (item: DietaryAllergyItem) => {
     setEditSubstituteModalItem(item);
     setCustomSubstituteText(item.safeSubstituteDish);
+    setSelectedMenuItemId(item.selectedMenuItemId ? String(item.selectedMenuItemId) : '');
   };
 
   const handleSaveSubstitute = () => {
-    if (!editSubstituteModalItem || !customSubstituteText.trim()) return;
+    if (!editSubstituteModalItem || !customSubstituteText.trim() || !selectedMenuItemId) return;
     const conflicts = checkAllergenConflict(customSubstituteText.trim(), editSubstituteModalItem.allergyTags);
     if (conflicts.length > 0) {
       setToastMessage({
@@ -331,6 +338,8 @@ export const AllergyDietaryManagementTab: React.FC = () => {
     }
     updatePreparationMutation.mutate({
       itemId: editSubstituteModalItem.id,
+      date: preparationDate,
+      selectedMenuItemId: Number(selectedMenuItemId),
       preparationStatus: 'PENDING',
       isolatedAreaConfirmed: editSubstituteModalItem.isolatedAreaConfirmed,
       allergenMatchConfirmed: false,
@@ -492,70 +501,11 @@ export const AllergyDietaryManagementTab: React.FC = () => {
       {/* SUB-VIEW 1: BẢNG QUẢN LÝ KHAY ĂN CÁCH LY CHO ĐẦU BẾP */}
       {activeSubView === 'KITCHEN_TRACKER' && (
         <div className="space-y-6">
-          {/* BANNER ĐỐI CHIẾU XUNG ĐỘT THỰC ĐƠN HÔM NAY (Section 2 - Daily Conflict Banner) */}
-          <div className="rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/50 p-5 shadow-xs">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-amber-500 text-white">
-                    <Sparkles className="h-4 w-4" />
-                  </span>
-                  <h3 className="font-bold text-slate-800 text-sm">
-                    Đối Chiếu Xung Đột Giữa Thực Đơn Bán Trú & Tiền Sử Dị Ứng Hôm Nay
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-                  Hệ thống tự động quét các món ăn trong thực đơn bữa trưa và bữa xế hôm nay, đối chiếu với danh mục dị nguyên của học sinh có mặt để đề xuất món thay thế an toàn.
-                </p>
-              </div>
-
-              <div className="text-right shrink-0">
-                <span className="text-xs font-bold text-slate-600 block">Tiến độ chuẩn bị</span>
-                <span className="text-xl font-extrabold text-[#275A4E]">
-                  {preparedCount} / {items.length} khay
-                </span>
-              </div>
+          {currentMenuItemsQuery.isError && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">
+              Không thể tải thực đơn hôm nay. Vui lòng làm mới trang trước khi lưu món thay thế.
             </div>
-
-            {/* Danh sách các món xung đột phổ biến */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-red-200 bg-white p-3.5 shadow-2xs">
-                <span className="text-[11px] font-bold text-red-600 block uppercase">
-                  Món Xung Đột 1: Chả tôm hấp
-                </span>
-                <p className="text-xs text-slate-700 font-semibold mt-1">
-                  Trùng dị ứng: Tôm / Cua ({items.filter((i) => i.allergyTags.some((t) => t.includes('Hải sản') || t.includes('Tôm'))).length} bé)
-                </p>
-                <span className="text-[11px] text-emerald-700 font-medium block mt-1">
-                  ✅ Món thay thế: Thịt nạc băm rim nấm
-                </span>
-              </div>
-
-              <div className="rounded-2xl border border-amber-200 bg-white p-3.5 shadow-2xs">
-                <span className="text-[11px] font-bold text-amber-700 block uppercase">
-                  Món Xung Đột 2: Nộm bắp cải lạc rang
-                </span>
-                <p className="text-xs text-slate-700 font-semibold mt-1">
-                  Trùng dị ứng: Đậu phộng / Lạc (1 bé)
-                </p>
-                <span className="text-[11px] text-emerald-700 font-medium block mt-1">
-                  ✅ Món thay thế: Nộm bắp cải mè rang
-                </span>
-              </div>
-
-              <div className="rounded-2xl border border-blue-200 bg-white p-3.5 shadow-2xs">
-                <span className="text-[11px] font-bold text-blue-700 block uppercase">
-                  Món Xung Đột 3: Trứng cuộn rau củ
-                </span>
-                <p className="text-xs text-slate-700 font-semibold mt-1">
-                  Trùng dị ứng: Trứng gà (1 bé)
-                </p>
-                <span className="text-[11px] text-emerald-700 font-medium block mt-1">
-                  ✅ Món thay thế: Đậu hũ non sốt cà chua
-                </span>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* THANH BỘ LỌC DANH SÁCH KHAY ĂN */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
@@ -695,7 +645,9 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                               Món ăn kiêng kỵ hôm nay:
                             </span>
                             <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-900">
-                              {item.todayConflictedDishes.join(', ')}
+                              {item.selectedMenuItemId
+                                ? menuItemById.get(item.selectedMenuItemId)?.dishName || item.todayConflictedDishes.join(', ')
+                                : 'Chưa chọn món trong thực đơn hôm nay'}
                             </div>
                           </div>
 
@@ -716,11 +668,11 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                               )}
                             </div>
                             <div className={`p-2.5 rounded-xl border text-xs font-bold ${
-                              checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0
+                              item.safeSubstituteDish && checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0
                                 ? 'bg-rose-50 border-rose-300 text-rose-900'
                                 : 'bg-emerald-50 border-emerald-200 text-emerald-900'
                             }`}>
-                              {item.safeSubstituteDish || '(Chưa chọn món thay thế)'}
+                              {item.safeSubstituteDish || 'Chưa nhập món thay thế'}
                               {checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0 && (
                                 <span className="block mt-1 text-[11px] text-rose-700 font-bold">
                                   ⚠️ CẢNH BÁO TRÙNG DỊ NGUYÊN: {checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).join(', ')}
@@ -736,7 +688,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                             type="checkbox"
                             id={`isolate-${item.id}`}
                             checked={item.isolatedAreaConfirmed}
-                            disabled={isDone}
+                            disabled={isDone || !item.selectedMenuItemId || !item.safeSubstituteDish.trim()}
                             onChange={(e) => handleToggleIsolation(item, e.target.checked)}
                             className="h-4 w-4 rounded-md text-[#275A4E] focus:ring-[#275A4E] border-slate-300"
                           />
@@ -752,7 +704,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
                             type="checkbox"
                             id={`allergen-verified-${item.id}`}
                             checked={item.allergenMatchKnown === true}
-                            disabled={isDone || updatePreparationMutation.isPending || !item.safeSubstituteDish.trim() || checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0}
+                            disabled={isDone || updatePreparationMutation.isPending || !item.selectedMenuItemId || !item.safeSubstituteDish.trim() || checkAllergenConflict(item.safeSubstituteDish, item.allergyTags).length > 0}
                             onChange={(event) => handleToggleAllergenVerification(item, event.target.checked)}
                             className="mt-0.5 h-4 w-4 rounded-md text-[#275A4E] focus:ring-[#275A4E] border-slate-300"
                           />
@@ -984,6 +936,31 @@ export const AllergyDietaryManagementTab: React.FC = () => {
               Dị ứng: <strong>{editSubstituteModalItem.allergyTags.join(', ')}</strong>. Vui lòng nhập món ăn an toàn không chứa các thành phần trên.
             </p>
 
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Món trong thực đơn hôm nay cần tránh
+            </label>
+            <select
+              value={selectedMenuItemId}
+              onChange={(e) => setSelectedMenuItemId(e.target.value)}
+              disabled={currentMenuItemsQuery.isLoading || currentMenuItemsQuery.isError}
+              className="mb-3 w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-[#275A4E] focus:outline-hidden min-h-[44px]"
+            >
+              <option value="">Chọn món trong thực đơn hôm nay</option>
+              {todayMenuItems.map((menuItem: any) => (
+                <option key={menuItem.itemId} value={menuItem.itemId}>
+                  {menuItem.mealType}: {menuItem.dishName}
+                </option>
+              ))}
+            </select>
+            {currentMenuItemsQuery.isLoading && (
+              <p className="mb-3 text-xs text-slate-500">Đang tải thực đơn trong ngày...</p>
+            )}
+            {!currentMenuItemsQuery.isLoading && todayMenuItems.length === 0 && (
+              <p className="mb-3 text-xs text-amber-700">Chưa có món nào trong thực đơn hôm nay.</p>
+            )}
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Món ăn thay thế an toàn
+            </label>
             <textarea
               rows={3}
               value={customSubstituteText}
@@ -1003,6 +980,7 @@ export const AllergyDietaryManagementTab: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSaveSubstitute}
+                disabled={!selectedMenuItemId || !customSubstituteText.trim() || updatePreparationMutation.isPending}
                 className="px-5 py-2.5 rounded-xl bg-[#275A4E] text-white text-xs font-bold shadow-md min-h-[44px]"
               >
                 Lưu Món Thay Thế

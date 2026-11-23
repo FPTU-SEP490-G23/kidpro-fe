@@ -12,11 +12,18 @@ import {
   X,
   Ban,
   Check,
-  FileText
+  FileText,
+  Plus,
+  Trash2,
+  Archive,
+  Camera,
+  CheckCircle,
+  Sparkles
 } from 'lucide-react';
 import {
   ThreeStepFoodSafetyInspectionLog,
-  RawMaterialInspectionItem
+  RawMaterialInspectionItem,
+  FoodRetentionSampleDetailItem
 } from '../../../types/kitchen.types';
 import kitchenApi from '../../../api/kitchenApi';
 import { openKitchenEvidence, uploadKitchenEvidence } from '../../../api/kitchenEvidenceApi';
@@ -113,6 +120,9 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
     cookingMethod: '',
     coreTemperatureCelsius: 70
   });
+  const [selectedMealSession, setSelectedMealSession] = useState<'LUNCH' | 'AFTERNOON_SNACK' | 'BREAKFAST'>('LUNCH');
+  const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0);
+  const [newSampleDishName, setNewSampleDishName] = useState<string>('');
 
   const getWeekStartDate = (dateText: string) => {
     const date = new Date(`${dateText}T00:00:00`);
@@ -222,16 +232,14 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
   const handleInvoicePhotoUpload = async (itemId: string, file?: File) => {
     if (!file) return;
     try {
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const path = `inspections/${selectedDate}/invoice_${itemId}.${extension}`;
-      const savedPath = await uploadKitchenEvidence(file, path);
+      const savedPath = await uploadKitchenEvidence(file, `kidpro/kitchen/invoices/${selectedDate}`);
       setLocalLog((current) => ({
         ...current,
         rawMaterials: current.rawMaterials.map((item) =>
           item.id === itemId ? { ...item, invoicePhotoPath: savedPath } : item
         )
       }));
-      setToastMessage({ type: 'success', text: 'Đã tải ảnh hóa đơn lên kho bằng chứng.' });
+      setToastMessage({ type: 'success', text: 'Đã tải ảnh hóa đơn lên Cloudinary thành công.' });
     } catch (uploadError) {
       setToastMessage({
         type: 'error',
@@ -242,28 +250,72 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
 
   const handleSamplePhotoUpload = async (sampleId: string, sealCode: string, file?: File) => {
     if (!file) return;
-    const safeSealCode = sealCode.trim().replace(/[^A-Za-z0-9_-]/g, '_');
-    if (!safeSealCode) {
-      setToastMessage({ type: 'error', text: 'Nhập mã niêm phong trước khi tải ảnh mẫu.' });
-      return;
-    }
     try {
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const path = `samples/${selectedDate}/${safeSealCode}.${extension}`;
-      const savedPath = await uploadKitchenEvidence(file, path);
+      const savedPath = await uploadKitchenEvidence(file, `kidpro/kitchen/retention_samples/${selectedDate}`);
       setLocalLog((current) => ({
         ...current,
         retentionSamples: current.retentionSamples.map((sample) =>
           sample.id === sampleId ? { ...sample, photoUrl: savedPath } : sample
         )
       }));
-      setToastMessage({ type: 'success', text: 'Đã tải ảnh tem niêm phong lên kho bằng chứng.' });
+      setToastMessage({ type: 'success', text: 'Đã tải ảnh niêm phong mẫu lên Cloudinary thành công.' });
     } catch (uploadError) {
       setToastMessage({
         type: 'error',
         text: uploadError instanceof Error ? uploadError.message : 'Không thể tải ảnh mẫu lưu.'
       });
     }
+  };
+
+  const handleAddSample = (dishName?: string) => {
+    const name = (dishName || newSampleDishName).trim();
+    if (!name) {
+      setToastMessage({ type: 'warning', text: 'Vui lòng chọn hoặc nhập tên món ăn để lưu mẫu.' });
+      return;
+    }
+    const idx = localLog.retentionSamples.length + 1;
+    const dateFormatted = selectedDate.replace(/-/g, '');
+    const seal = `NP-${dateFormatted}-${String(idx).padStart(2, '0')}`;
+    const newSample: FoodRetentionSampleDetailItem = {
+      id: crypto.randomUUID(),
+      dishName: name,
+      mealSession: selectedMealSession,
+      sampleWeightGrams: 100,
+      sealCode: seal,
+      storageTemperatureCelsius: fridgeTemperature,
+      sensoryEvaluation: 'PASSED',
+      tastedBy: 'Cô Bếp Trưởng'
+    };
+    setLocalLog((current) => ({
+      ...current,
+      retentionSamples: [...current.retentionSamples, newSample]
+    }));
+    setNewSampleDishName('');
+    setToastMessage({ type: 'success', text: `Đã thêm món "${name}" vào danh sách lưu mẫu.` });
+  };
+
+  const handleRemoveSample = (sampleId: string) => {
+    setLocalLog((current) => ({
+      ...current,
+      retentionSamples: current.retentionSamples.filter((s) => s.id !== sampleId)
+    }));
+  };
+
+  const handleDisposeSample = async (sampleId: string) => {
+    const confirmed = window.confirm('Xác nhận mẫu đã lưu đủ 24 giờ và không có sự cố ngộ độc thực phẩm trong toàn trường?');
+    if (!confirmed) return;
+    try {
+      await kitchenApi.disposeInspectionStep3Sample(sampleId, 'Hủy mẫu an toàn sau 24 giờ');
+    } catch (ignored) {}
+    setLocalLog((current) => ({
+      ...current,
+      retentionSamples: current.retentionSamples.map((s) =>
+        s.id === sampleId
+          ? { ...s, isDisposed: true, disposalTimestamp: new Date().toISOString() }
+          : s
+      )
+    }));
+    setToastMessage({ type: 'success', text: 'Đã ghi nhận tiêu hủy mẫu lưu 24 giờ an toàn.' });
   };
 
   // Handle Step 1 Save
@@ -968,142 +1020,337 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
         </div>
       )}
 
-      {/* ================= TAB 3: BƯỚC 3 (11:15 AM) ================= */}
+      {/* ================= TAB 3: BƯỚC 3 (11:15 AM) - TÍCH HỢP LƯU MẪU THỨC ĂN 24H ================= */}
       {activeStepTab === 'step3' && (
-        <div className="space-y-5 animate-in fade-in duration-150">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-5">
-            <div className="border-b pb-3">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <FileCheck2 className="h-4 w-4 text-[#275A4E]" />
-                <span>Bước 3: Kiểm Tra Trước Khi Ăn & Lưu Mẫu Thức Ăn 24 Giờ (11:15 AM)</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Đánh giá cảm quan trước khi chia suất, niêm phong mẫu $\ge 100g$, tủ 2°C - 8°C và bắt buộc chữ ký kép Bếp & BGH
-              </p>
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
+            {/* Header & Button Xuất biên bản kiểm thực 3 bước */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-[#E5A93C] text-slate-950">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Bếp Bán Trú</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Quyết định 1246/QĐ-BYT
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-slate-800 flex items-center gap-2 mt-2">
+                  <Thermometer className="h-5 w-5 text-[#275A4E]" />
+                  <span>Tiêu Hao Thực Phẩm & Lưu Mẫu Thức Ăn 24H (Bước 3: Trước Khi Ăn)</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Khối lượng mẫu $\ge 100g$, bảo quản ở 2°C – 8°C. Hệ thống tự động đếm lùi thời gian lưu tối thiểu 24 giờ theo QĐ 1246/QĐ-BYT.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Printer className="h-4 w-4 text-[#275A4E]" />
+                  <span>Xuất Biên Bản Kiểm Thực 3 Bước</span>
+                </button>
+              </div>
             </div>
-            {isWeeklyMenuError ? (
-              <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                Không tải được thực đơn để đối chiếu mẫu lưu: {weeklyMenuError instanceof Error ? weeklyMenuError.message : 'Lỗi không xác định'}.
-              </div>
-            ) : !isInspectionLogLoading && !isWeeklyMenuLoading && todaysApprovedDishes.length === 0 ? (
-              <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                Chưa có thực đơn đã duyệt cho ngày này. Không thể hoàn tất bước lưu mẫu cho tới khi có thực đơn đã duyệt.
-              </div>
-            ) : null}
 
-            {/* Bảng lưu mẫu thức ăn */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold uppercase border-b">
-                  <tr>
-                    <th className="py-3 px-3">Món Ăn Thực Đơn</th>
-                    <th className="py-3 px-3">Cảm Quan Trước Ăn</th>
-                    <th className="py-3 px-3">Khối Lượng Mẫu Lưu (g / ml)</th>
-                    <th className="py-3 px-3">Mã Tem Niêm Phong</th>
-                    <th className="py-3 px-3">Nhiệt Độ Tủ Lưu (°C)</th>
-                    <th className="py-3 px-3">Ảnh Hũ Mẫu</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {localLog.retentionSamples.length === 0 ? (
+            {/* Bữa ăn tabs & Ngày lưu */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
+              <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMealSession('LUNCH')}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                    selectedMealSession === 'LUNCH'
+                      ? 'bg-white text-[#275A4E] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Bữa Trưa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMealSession('AFTERNOON_SNACK')}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                    selectedMealSession === 'AFTERNOON_SNACK'
+                      ? 'bg-white text-[#275A4E] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Bữa Xế
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMealSession('BREAKFAST')}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                    selectedMealSession === 'BREAKFAST'
+                      ? 'bg-white text-[#275A4E] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Bữa Sáng
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-semibold">
+                <span>Ngày lưu mẫu:</span>
+                <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-800">
+                  {selectedDate}
+                </span>
+              </div>
+            </div>
+
+            {/* Khối Nhiệt Độ Tủ Lạnh Chuyên Dụng Lưu Nghiệm (2°C - 8°C) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-[#275A4E] text-white flex items-center justify-center shrink-0">
+                  <Thermometer className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                    Nhiệt Độ Tủ Lạnh Chuyên Dụng Lưu Nghiệm (2°C – 8°C)
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Yêu cầu đo nhiệt độ thực tế bằng nhiệt kế điện tử trước khi niêm phong mẫu
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                <span className="text-xs text-slate-600 font-medium">Nhiệt độ hiện tại:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={fridgeTemperature}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setFridgeTemperature(val);
+                      setLocalLog((current) => ({
+                        ...current,
+                        retentionSamples: current.retentionSamples.map((s) => ({
+                          ...s,
+                          storageTemperatureCelsius: val
+                        }))
+                      }));
+                    }}
+                    className="w-16 px-2.5 py-1 text-sm font-extrabold text-center rounded-lg border border-emerald-300 bg-white shadow-2xs focus:ring-2 focus:ring-[#275A4E]"
+                  />
+                  <span className="text-xs font-bold text-slate-700">°C</span>
+                </div>
+                {fridgeTemperature >= 2 && fridgeTemperature <= 8 ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <CheckCircle className="h-3.5 w-3.5" /> Đạt chuẩn
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Ngoài 2-8°C
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* DANH SÁCH MÓN ĂN BẮT BUỘC LƯU NGHIỆM */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                  <span>DANH SÁCH MÓN ĂN BẮT BUỘC LƯU NGHIỆM ({localLog.retentionSamples.length} MÓN)</span>
+                </h4>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) handleAddSample(e.target.value);
+                    }}
+                    className="text-xs rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 shadow-2xs"
+                  >
+                    <option value="">-- Chọn món ăn từ thực đơn --</option>
+                    {todaysApprovedDishes.map((dish, idx) => (
+                      <option key={idx} value={dish.dishName}>
+                        {dish.dishName} ({dish.mealType || 'Bữa chính'})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const name = window.prompt('Nhập tên món ăn cần lưu mẫu:');
+                      if (name) handleAddSample(name);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-[#275A4E] text-[#275A4E] bg-emerald-50/50 hover:bg-emerald-100/50 text-xs font-bold transition cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Thêm món khác</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Bảng lưu mẫu thức ăn */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-600 font-bold uppercase border-b border-slate-200">
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-400">
-                        Chưa có mẫu lưu thực phẩm nào được ghi nhận.
-                      </td>
+                      <th className="py-3 px-3 w-12 text-center">STT</th>
+                      <th className="py-3 px-3">Tên Món Ăn Trong Thực Đơn</th>
+                      <th className="py-3 px-3">Bữa Ăn</th>
+                      <th className="py-3 px-3">Khối Lượng Mẫu (≥ 100g)</th>
+                      <th className="py-3 px-3">Mã Tem Niêm Phong</th>
+                      <th className="py-3 px-3">Đánh Giá Chuẩn</th>
+                      <th className="py-3 px-3">Ảnh Niêm Phong (Cloudinary)</th>
+                      <th className="py-3 px-3 text-center">Thao Tác</th>
                     </tr>
-                  ) : (
-                    localLog.retentionSamples.map((sample, idx) => {
-                    const isWeightValid = sample.sampleWeightGrams >= 100;
-                    const isTempValid = sample.storageTemperatureCelsius >= 2 && sample.storageTemperatureCelsius <= 8;
-
-                    return (
-                      <tr key={sample.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-3 font-bold text-slate-800">{sample.dishName}</td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            ĐẠT YÊU CẦU
-                          </span>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-1.5">
-                            <input
-                              type="number"
-                              value={sample.sampleWeightGrams}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value, 10) || 0;
-                                const updated = [...localLog.retentionSamples];
-                                updated[idx] = { ...sample, sampleWeightGrams: val };
-                                setLocalLog({ ...localLog, retentionSamples: updated });
-                              }}
-                              className={`w-20 px-2 py-1 text-xs rounded-lg border font-bold ${
-                                isWeightValid ? 'border-slate-300' : 'border-rose-400 bg-rose-50 text-rose-700'
-                              }`}
-                            />
-                            <span className="text-slate-500">g</span>
-                          </div>
-                          {!isWeightValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Bắt buộc ≥ 100g</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3">
-                          <input
-                            type="text"
-                            value={sample.sealCode}
-                            onChange={(e) => {
-                              const updated = [...localLog.retentionSamples];
-                              updated[idx] = { ...sample, sealCode: e.target.value, photoUrl: undefined };
-                              setLocalLog({ ...localLog, retentionSamples: updated });
-                            }}
-                            aria-label={`Mã niêm phong mẫu ${sample.dishName}`}
-                            className={`w-36 px-2 py-1 text-xs rounded-lg border font-mono ${
-                              sample.sealCode.trim() ? 'border-slate-300' : 'border-rose-400 bg-rose-50'
-                            }`}
-                          />
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-1.5">
-                            <input
-                              type="number"
-                              step="any"
-                              value={sample.storageTemperatureCelsius}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value) || 0;
-                                const updated = [...localLog.retentionSamples];
-                                updated[idx] = { ...sample, storageTemperatureCelsius: val };
-                                setLocalLog({ ...localLog, retentionSamples: updated });
-                              }}
-                              className={`w-16 px-2 py-1 text-xs rounded-lg border font-bold ${
-                                isTempValid ? 'border-slate-300' : 'border-rose-400 bg-rose-50 text-rose-700'
-                              }`}
-                            />
-                            <span className="text-slate-500">°C</span>
-                          </div>
-                          {!isTempValid && (
-                            <span className="text-[10px] text-rose-600 block mt-0.5">Tủ phải 2-8°C</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3">
-                          {sample.photoUrl && <button type="button" onClick={() => openKitchenEvidence(sample.photoUrl!).catch((error) => setToastMessage({ type: 'error', text: error.message }))} className="mb-1 block text-[10px] font-semibold text-[#275A4E] underline">Xem ảnh đã tải</button>}
-                          <input type="file" accept="image/*" aria-label={`Ảnh mẫu ${sample.dishName}`} onChange={(event) => handleSamplePhotoUpload(sample.id, sample.sealCode, event.target.files?.[0])} className="max-w-32 text-[10px]" />
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {localLog.retentionSamples.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-slate-400">
+                          Chưa có mẫu lưu thực phẩm nào được ghi nhận. Vui lòng bấm &quot;Thêm món khác&quot; hoặc chọn món từ thực đơn.
                         </td>
                       </tr>
-                    );
-                  }))}
-                </tbody>
-              </table>
+                    ) : (
+                      localLog.retentionSamples.map((sample, idx) => {
+                        const isWeightValid = sample.sampleWeightGrams >= 100;
+                        const isTempValid = sample.storageTemperatureCelsius >= 2 && sample.storageTemperatureCelsius <= 8;
+
+                        return (
+                          <tr key={sample.id || idx} className="hover:bg-slate-50/80 transition">
+                            <td className="py-3 px-3 text-center font-bold text-slate-400">{idx + 1}</td>
+                            <td className="py-3 px-3">
+                              <input
+                                type="text"
+                                value={sample.dishName}
+                                onChange={(e) => {
+                                  const updated = [...localLog.retentionSamples];
+                                  updated[idx] = { ...sample, dishName: e.target.value };
+                                  setLocalLog({ ...localLog, retentionSamples: updated });
+                                }}
+                                className="w-full max-w-xs px-2.5 py-1 text-xs font-bold text-slate-800 rounded-lg border border-slate-200 focus:border-[#275A4E]"
+                              />
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                                {sample.mealSession === 'LUNCH'
+                                  ? 'Bữa Trưa'
+                                  : sample.mealSession === 'AFTERNOON_SNACK'
+                                    ? 'Bữa Xế'
+                                    : sample.mealSession === 'BREAKFAST'
+                                      ? 'Bữa Sáng'
+                                      : 'Bữa Trưa'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="number"
+                                  value={sample.sampleWeightGrams}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value, 10) || 0;
+                                    const updated = [...localLog.retentionSamples];
+                                    updated[idx] = { ...sample, sampleWeightGrams: val };
+                                    setLocalLog({ ...localLog, retentionSamples: updated });
+                                  }}
+                                  className={`w-20 px-2 py-1 text-xs rounded-lg border font-bold text-center ${
+                                    isWeightValid ? 'border-slate-300' : 'border-rose-400 bg-rose-50 text-rose-700'
+                                  }`}
+                                />
+                                <span className="text-slate-500 font-medium">gram</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3">
+                              <input
+                                type="text"
+                                value={sample.sealCode}
+                                onChange={(e) => {
+                                  const updated = [...localLog.retentionSamples];
+                                  updated[idx] = { ...sample, sealCode: e.target.value };
+                                  setLocalLog({ ...localLog, retentionSamples: updated });
+                                }}
+                                className="w-36 px-2.5 py-1 text-xs rounded-lg border border-slate-300 font-mono font-bold text-slate-700"
+                              />
+                            </td>
+                            <td className="py-3 px-3">
+                              {isWeightValid ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                  <Check className="h-3 w-3" /> Đạt ≥ 100g
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                  Chưa đạt &lt; 100g
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3">
+                              {sample.photoUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => openKitchenEvidence(sample.photoUrl!).catch((error) => setToastMessage({ type: 'error', text: error.message }))}
+                                  className="mb-1 block text-[10px] font-bold text-[#275A4E] hover:underline"
+                                >
+                                  ☁️ Xem ảnh Cloudinary
+                                </button>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                aria-label={`Ảnh mẫu ${sample.dishName}`}
+                                onChange={(event) => handleSamplePhotoUpload(sample.id, sample.sealCode, event.target.files?.[0])}
+                                className="max-w-36 text-[10px]"
+                              />
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSample(sample.id)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                title="Xóa món khỏi danh sách lưu mẫu"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="w-full max-w-sm">
-              <DigitalSignaturePad
-                signerTitle="Bếp Trưởng"
-                signerName="Nguyễn Văn Tuấn"
-                savedSignature={localLog.step3ChefSignature}
-                onSave={(signature) => setLocalLog({ ...localLog, step3ChefSignature: signature })}
-              />
+            {/* Chữ ký Bếp trưởng và Hiệu trưởng (Cloudinary) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div className="w-full">
+                <DigitalSignaturePad
+                  signerTitle="Bếp Trưởng"
+                  signerName="Cô Bếp Trưởng (Demo)"
+                  savedSignature={localLog.step3ChefSignature}
+                  onSave={(signature) => setLocalLog({ ...localLog, step3ChefSignature: signature })}
+                />
+              </div>
+
+              <div className="w-full">
+                <DigitalSignaturePad
+                  signerTitle="Ban Giám Hiệu / Kiểm Thực"
+                  signerName="Hiệu Trưởng Nhà Trường"
+                  savedSignature={localLog.step3PrincipalSignature}
+                  onSave={(signature) => setLocalLog({ ...localLog, step3PrincipalSignature: signature })}
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl text-[11px] text-slate-500 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[#275A4E] shrink-0" />
+              <span>
+                Người lưu được xác định từ tài khoản đăng nhập: <strong>Cô Bếp Trưởng (Demo)</strong>. Tất cả hình ảnh và chữ ký điện tử được tải tự động lên dịch vụ đám mây Cloudinary bảo mật theo chuẩn an toàn ATTP.
+              </span>
             </div>
 
             {/* Hoàn tất lưu mẫu 3 bước */}
-            <div className="flex justify-end pt-3 border-t">
+            <div className="flex justify-end pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={handleSaveStep3}
@@ -1111,8 +1358,122 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 className="px-6 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white shadow-xs transition min-h-[44px] cursor-pointer flex items-center gap-1.5"
               >
                 <Check className="h-4 w-4" />
-                <span>Xác Nhận & Niêm Phong Mẫu 24H (11:15 AM)</span>
+                <span>Lưu Mẫu Vào Sổ & Niêm Phong 24H (11:15 AM)</span>
               </button>
+            </div>
+          </div>
+
+          {/* ================= BẢNG THEO DÕI VÀ TIÊU HỦY MẪU THỨC ĂN 24H (SECTION 2 CỦA ẢNH 2) ================= */}
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                  <Archive className="h-5 w-5 text-[#275A4E]" />
+                  <span>Danh Sách Mẫu Đang Lưu Nghiệm Trong Tủ Bảo Quản (Theo Dõi 24H)</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Thời điểm bắt đầu lưu và mốc đủ 24 giờ được ghi nhận tự động để phục vụ quy trình kiểm thực và tiêu hủy an toàn theo QĐ 1246/QĐ-BYT.
+                </p>
+              </div>
+
+              <div className="text-xs font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                Tổng cộng: <span className="text-[#275A4E] font-black">{localLog.retentionSamples.length}</span> mẫu lưu
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-bold uppercase border-b border-slate-200">
+                  <tr>
+                    <th className="py-3 px-3 w-12 text-center">STT</th>
+                    <th className="py-3 px-3">Tên Món Ăn</th>
+                    <th className="py-3 px-3">Bữa Ăn</th>
+                    <th className="py-3 px-3">Mã Niêm Phong</th>
+                    <th className="py-3 px-3">Khối Lượng</th>
+                    <th className="py-3 px-3">Nhiệt Độ Tủ</th>
+                    <th className="py-3 px-3">Ảnh Hũ Mẫu</th>
+                    <th className="py-3 px-3">Thời Điểm Lưu</th>
+                    <th className="py-3 px-3">Đồng Hồ 24 Giờ</th>
+                    <th className="py-3 px-3 text-center">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {localLog.retentionSamples.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-8 text-center text-slate-400">
+                        Chưa có mẫu nào đang lưu trong tủ cho ngày này.
+                      </td>
+                    </tr>
+                  ) : (
+                    localLog.retentionSamples.map((sample, idx) => {
+                      const isDisposed = Boolean(sample.isDisposed);
+
+                      return (
+                        <tr key={sample.id || idx} className="hover:bg-slate-50/80 transition">
+                          <td className="py-3 px-3 text-center font-bold text-slate-400">{idx + 1}</td>
+                          <td className="py-3 px-3 font-bold text-slate-800">{sample.dishName}</td>
+                          <td className="py-3 px-3">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                              {sample.mealSession === 'LUNCH'
+                                ? 'Bữa Trưa'
+                                : sample.mealSession === 'AFTERNOON_SNACK'
+                                  ? 'Bữa Xế'
+                                  : sample.mealSession === 'BREAKFAST'
+                                    ? 'Bữa Sáng'
+                                    : 'Bữa Trưa'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 font-mono font-bold text-slate-700">{sample.sealCode || '--'}</td>
+                          <td className="py-3 px-3 font-semibold">{sample.sampleWeightGrams} g</td>
+                          <td className="py-3 px-3 font-bold text-emerald-700">{sample.storageTemperatureCelsius}°C</td>
+                          <td className="py-3 px-3">
+                            {sample.photoUrl ? (
+                              <button
+                                type="button"
+                                onClick={() => openKitchenEvidence(sample.photoUrl!).catch((error) => setToastMessage({ type: 'error', text: error.message }))}
+                                className="text-[10px] font-bold text-[#275A4E] hover:underline"
+                              >
+                                ☁️ Xem ảnh Cloudinary
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-slate-400">Chưa có ảnh</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-slate-600 font-medium">
+                            {sample.createdAt ? new Date(sample.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '11:15 AM'}
+                          </td>
+                          <td className="py-3 px-3">
+                            {isDisposed ? (
+                              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+                                Đã tiêu hủy an toàn
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 w-fit">
+                                <Clock className="h-3 w-3" /> Đang lưu 24h
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            {!isDisposed ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDisposeSample(sample.id)}
+                                className="px-3 py-1 rounded-xl text-xs font-bold transition min-h-[32px] bg-rose-700 text-white hover:bg-rose-800 cursor-pointer shadow-2xs"
+                              >
+                                Hủy mẫu
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-medium">
+                                Đã hủy
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

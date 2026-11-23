@@ -21,68 +21,8 @@ import { kitchenApi } from '../../../api/kitchenApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
   FoodSampleRetention,
-  MealSessionType,
-  FoodConsumptionItem
+  MealSessionType
 } from '../../../types/kitchen.types';
-
-// Dữ liệu định mức nguyên liệu tiêu hao chuẩn cho bếp ăn
-const INITIAL_CONSUMPTION_ITEMS: FoodConsumptionItem[] = [
-  {
-    id: 'ing-1',
-    ingredientName: 'Gạo tẻ ST25 (Nấu cơm trắng)',
-    category: 'GRAIN',
-    unit: 'Kg',
-    quotaPerPortionGrams: 110,
-    standardPlannedQtyKg: 20.79,
-    actualConsumedQtyKg: 21.0,
-    variancePercentage: 1.0,
-    varianceExplanation: ''
-  },
-  {
-    id: 'ing-2',
-    ingredientName: 'Thịt nạc vai heo VietGAP (Thịt kho trứng)',
-    category: 'MEAT',
-    unit: 'Kg',
-    quotaPerPortionGrams: 75,
-    standardPlannedQtyKg: 14.18,
-    actualConsumedQtyKg: 14.5,
-    variancePercentage: 2.3,
-    varianceExplanation: ''
-  },
-  {
-    id: 'ing-3',
-    ingredientName: 'Trứng gà ta có kiểm dịch',
-    category: 'OTHER',
-    unit: 'Quả',
-    quotaPerPortionGrams: 50,
-    standardPlannedQtyKg: 9.45,
-    actualConsumedQtyKg: 9.5,
-    variancePercentage: 0.5,
-    varianceExplanation: ''
-  },
-  {
-    id: 'ing-4',
-    ingredientName: 'Bí đao sạch an toàn (Canh bí đao thịt băm)',
-    category: 'VEGETABLE',
-    unit: 'Kg',
-    quotaPerPortionGrams: 65,
-    standardPlannedQtyKg: 12.29,
-    actualConsumedQtyKg: 15.5,
-    variancePercentage: 26.1,
-    varianceExplanation: 'Học sinh ăn ngon miệng, xin thêm canh bữa trưa nên bếp xuất thêm 3.2kg bí đao tươi.'
-  },
-  {
-    id: 'ing-5',
-    ingredientName: 'Dầu đậu nành dinh dưỡng Simply',
-    category: 'SPICE',
-    unit: 'Lít',
-    quotaPerPortionGrams: 8,
-    standardPlannedQtyKg: 1.51,
-    actualConsumedQtyKg: 1.5,
-    variancePercentage: -0.7,
-    varianceExplanation: ''
-  }
-];
 
 const getDefaultRetentionDate = () => {
   const now = new Date();
@@ -132,10 +72,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   });
   const storedSamples: FoodSampleRetention[] = foodSamplesQuery.data ?? [];
 
-  const [activeSubTab, setActiveSubTab] = useState<'RETENTION_24H' | 'CONSUMPTION_REPORT'>(
-    'RETENTION_24H'
-  );
-
   // Toast / Thông báo
   const [toastMessage, setToastMessage] = useState<{
     type: 'success' | 'warning' | 'error' | 'info';
@@ -152,13 +88,32 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   const [fridgeTemperature, setFridgeTemperature] = useState<number>(4.0); // Bắt buộc 2°C - 8°C
   const [samplesToSave, setSamplesToSave] = useState<{ dishName: string; weightGrams: number; sealCode: string }[]>([]);
 
+  // Lấy danh sách món ăn từ thực đơn được duyệt trong database
+  const availableDishesQuery = useQuery({
+    queryKey: ['available-dishes', retentionDate, selectedMealSession],
+    queryFn: () => kitchenApi.getAvailableDishes(retentionDate, selectedMealSession),
+  });
+  const availableDishes: string[] = availableDishesQuery.data ?? [];
+
+  // Tự động nạp danh sách món ăn từ thực đơn vào danh sách lưu mẫu
+  React.useEffect(() => {
+    const dishes = Array.isArray(availableDishesQuery.data)
+      ? availableDishesQuery.data
+      : (availableDishesQuery.data as any)?.data ?? [];
+    if (dishes.length > 0) {
+      setSamplesToSave(
+        dishes.map((dish: string, idx: number) => ({
+          dishName: dish,
+          weightGrams: 100,
+          sealCode: `NP-${retentionDate.replace(/-/g, '')}-0${idx + 1}`
+        }))
+      );
+    }
+  }, [availableDishesQuery.data, retentionDate, selectedMealSession]);
+
   // ==========================================
   // KHỐI 2: TIÊU HAO THỰC PHẨM & QUYẾT TOÁN KHO
   // ==========================================
-  const [consumptionHeadcount, setConsumptionHeadcount] = useState<number>(189);
-  const [consumptionItems, setConsumptionItems] = useState<FoodConsumptionItem[]>(
-    INITIAL_CONSUMPTION_ITEMS
-  );
   const [isExportInspectionModalOpen, setIsExportInspectionModalOpen] = useState<boolean>(false);
 
   // Mutation: Lưu mẫu thức ăn 24h (POST /api/kitchen/food-samples)
@@ -274,39 +229,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
   };
 
   // Cập nhật khối lượng tiêu hao thực tế
-  const handleUpdateActualConsumed = (itemId: string, actualKg: number) => {
-    setConsumptionItems((prev) =>
-      prev.map((item) => {
-        if (item.id === itemId) {
-          const planned = (item.quotaPerPortionGrams * consumptionHeadcount) / 1000;
-          const variance = planned > 0 ? Number((((actualKg - planned) / planned) * 100).toFixed(1)) : 0;
-          return {
-            ...item,
-            standardPlannedQtyKg: Number(planned.toFixed(2)),
-            actualConsumedQtyKg: actualKg,
-            variancePercentage: variance
-          };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleUpdateVarianceExplanation = (itemId: string, explanation: string) => {
-    setConsumptionItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, varianceExplanation: explanation } : item))
-    );
-  };
-
-  // Kiểm tra cảnh báo chênh lệch > 20%
-  const itemsWithHighVariance = consumptionItems.filter(
-    (item) => Math.abs(item.variancePercentage) > 20
-  );
-  const hasUnexplainedHighVariance = itemsWithHighVariance.some(
-    (item) => !item.varianceExplanation || !item.varianceExplanation.trim()
-  );
-
-  // Mẫu quá hạn chưa hủy
   return (
     <div className="space-y-6">
       {/* Toast Notification Box */}
@@ -345,29 +267,10 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
       {/* SUB-TABS NAVIGATION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveSubTab('RETENTION_24H')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 min-h-[44px] ${
-              activeSubTab === 'RETENTION_24H'
-                ? 'bg-[#275A4E] text-white shadow-md shadow-emerald-900/10'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
-          >
+          <div className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-[#275A4E] text-white shadow-md shadow-emerald-900/10 flex items-center gap-2">
             <Thermometer className="h-4 w-4" />
-            <span>Sổ Lưu Mẫu Thức Ăn</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('CONSUMPTION_REPORT')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 min-h-[44px] ${
-              activeSubTab === 'CONSUMPTION_REPORT'
-                ? 'bg-[#E5A93C] text-[#1E4D40] shadow-md shadow-amber-900/10'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <Scale className="h-4 w-4 text-amber-700" />
-            <span>Báo Cáo Tiêu Hao Thực Phẩm & Quyết Toán Kho</span>
-          </button>
+            <span>Sổ Lưu Mẫu Thức Ăn Bán Trú</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -381,10 +284,7 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
         </div>
       </div>
 
-      {/* SUB-TAB 1: LƯU MẪU THỨC ĂN 24H (RETENTION LOGGER) */}
-      {activeSubTab === 'RETENTION_24H' && (
-        <div className="space-y-6">
-          {/* FORM GHI NHẬN LƯU MẪU 24 GIỜ (Section 2 - 24h Retention Logger Form) */}
+      {/* FORM GHI NHẬN LƯU MẪU 24 GIỜ (Section 2 - 24h Retention Logger Form) */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -514,13 +414,21 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
                         <tr key={idx} className="hover:bg-slate-50/50">
                           <td className="py-2.5 px-3 font-bold text-slate-400">{idx + 1}</td>
                           <td className="py-2.5 px-3">
-                            <input
-                              type="text"
+                            <select
                               value={row.dishName}
                               onChange={(e) => handleUpdateSampleRow(idx, 'dishName', e.target.value)}
-                              placeholder="Nhập tên món ăn..."
-                              className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-800 font-semibold focus:border-[#275A4E] focus:outline-hidden"
-                            />
+                              className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-800 font-semibold focus:border-[#275A4E] focus:outline-hidden bg-white"
+                            >
+                              <option value="">-- Chọn món ăn từ thực đơn --</option>
+                              {availableDishes.map((dish) => (
+                                <option key={dish} value={dish}>
+                                  {dish}
+                                </option>
+                              ))}
+                              {row.dishName && !availableDishes.includes(row.dishName) && (
+                                <option value={row.dishName}>{row.dishName}</option>
+                              )}
+                            </select>
                           </td>
                           <td className="py-2.5 px-3 text-center">
                             <div className="inline-flex items-center gap-1">
@@ -746,169 +654,6 @@ export const FoodRetentionConsumptionTab: React.FC = () => {
               </table>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* SUB-TAB 2: BÁO CÁO TIÊU HAO THỰC PHẨM & QUYẾT TOÁN KHO BẾP */}
-      {activeSubTab === 'CONSUMPTION_REPORT' && (
-        <div className="space-y-6">
-          {/* CẢNH BÁO CHÊNH LỆCH TIÊU HAO > 20% */}
-          {hasUnexplainedHighVariance && (
-            <div className="rounded-3xl border-2 border-red-500 bg-red-50 p-5 shadow-sm flex items-start gap-4">
-              <AlertTriangle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" />
-              <div className="space-y-1 flex-1">
-                <h4 className="font-extrabold text-red-900 text-base">
-                  CẢNH BÁO CHÊNH LỆCH TIÊU HAO VƯỢT QUÁ 20%
-                </h4>
-                <p className="text-xs text-red-800 leading-relaxed">
-                  Phát hiện nguyên liệu có chênh lệch xuất dùng thực tế so với định mức suất ăn đã chốt lúc 08:30 vượt quá 20%. Bắt buộc nhập văn bản giải trình lý do xuất dùng trước khi hoàn tất quyết toán bếp trong ngày.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* BẢNG QUYẾT TOÁN TIÊU HAO NGUYÊN LIỆU THỰC TẾ */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-              <div>
-                <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-2">
-                  <Scale className="h-5 w-5 text-[#275A4E]" />
-                  <span>Đối Chiếu Định Mức & Tiêu Hao Thực Tế Theo Suất Ăn Đã Chốt</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Số suất ăn đã đóng băng lúc 08:30: <strong className="text-[#275A4E]">{consumptionHeadcount} suất</strong>. Tự động tính chênh lệch (% Variance).
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-bold">Tổng suất chốt:</span>
-                <input
-                  type="number"
-                  value={consumptionHeadcount}
-                  onChange={(e) => setConsumptionHeadcount(parseInt(e.target.value) || 0)}
-                  className="w-20 rounded-xl border border-slate-200 px-3 py-1.5 text-center font-bold text-xs text-slate-800"
-                />
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase text-[11px]">
-                  <tr>
-                    <th className="py-3 px-3">Tên Nguyên Liệu</th>
-                    <th className="py-3 px-3 text-center">Định Mức (g/suất)</th>
-                    <th className="py-3 px-3 text-center">Kế Hoạch Định Mức (Kg)</th>
-                    <th className="py-3 px-3 text-center">Thực Tế Xuất Dùng (Kg)</th>
-                    <th className="py-3 px-3 text-center">Chênh Lệch (% Variance)</th>
-                    <th className="py-3 px-3">Giải Trình Xuất Dùng (Bắt buộc nếu &gt; 20%)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {consumptionItems.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
-                        Chưa có dữ liệu tiêu hao nguyên liệu trong kỳ báo cáo.
-                      </td>
-                    </tr>
-                  ) : (
-                    consumptionItems.map((item) => {
-                    const isHigh = Math.abs(item.variancePercentage) > 20;
-
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-50/50">
-                        <td className="py-3 px-3 font-bold text-slate-800">
-                          {item.ingredientName}
-                          <span className="block text-[10px] text-slate-400 font-normal">
-                            Đơn vị tính: {item.unit}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-center font-semibold text-slate-600">
-                          {item.quotaPerPortionGrams}g
-                        </td>
-
-                        <td className="py-3 px-3 text-center font-bold text-slate-700">
-                          {item.standardPlannedQtyKg} kg
-                        </td>
-
-                        <td className="py-3 px-3 text-center">
-                          <input
-                            type="number"
-                            step="any"
-                            value={item.actualConsumedQtyKg}
-                            onChange={(e) =>
-                              handleUpdateActualConsumed(
-                                item.id,
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className="w-24 rounded-xl border border-slate-200 px-2 py-1.5 text-center font-bold text-xs text-slate-800 focus:border-[#275A4E] focus:outline-hidden"
-                          />
-                        </td>
-
-                        <td className="py-3 px-3 text-center font-mono font-extrabold">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs ${
-                              isHigh
-                                ? 'bg-red-100 text-red-800'
-                                : Math.abs(item.variancePercentage) > 5
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-emerald-100 text-emerald-800'
-                            }`}
-                          >
-                            {item.variancePercentage > 0 ? `+${item.variancePercentage}%` : `${item.variancePercentage}%`}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3">
-                          {isHigh ? (
-                            <input
-                              type="text"
-                              value={item.varianceExplanation || ''}
-                              onChange={(e) =>
-                                handleUpdateVarianceExplanation(item.id, e.target.value)
-                              }
-                              placeholder="Nhập giải trình lý do xuất dùng..."
-                              className="w-full rounded-xl border border-red-300 bg-red-50/40 p-2 text-xs text-red-900 font-medium focus:border-red-500 focus:outline-hidden"
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">Đạt định mức bình thường</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  }))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
-                Toàn bộ dữ liệu tiêu hao được mã hóa và đối soát tự động với hóa đơn nguyên liệu nhập kho.
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (hasUnexplainedHighVariance) {
-                    setToastMessage({
-                      type: 'error',
-                      text: 'Chênh lệch tiêu hao vượt quá 20%. Vui lòng nhập giải trình lý do xuất dùng.'
-                    });
-                    return;
-                  }
-                  setToastMessage({
-                    type: 'success',
-                    text: 'Đã lưu và quyết toán tiêu hao thực phẩm thành công!'
-                  });
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold shadow-md min-h-[44px]"
-              >
-                Lưu Báo Cáo Quyết Toán Kho
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL XUẤT BIÊN BẢN KIỂM THỰC 3 BƯỚC (PDF / PRINT PREVIEW) */}
       {isExportInspectionModalOpen && (

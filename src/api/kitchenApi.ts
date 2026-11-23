@@ -92,6 +92,16 @@ export const kitchenApi = {
     return axiosClient.put<FoodSampleRetention>(`/kitchen/food-samples/${id}/disposal`, payload);
   },
 
+  getAvailableDishes: async (date?: string, mealSession?: string): Promise<string[]> => {
+    const params: Record<string, string> = {};
+    if (date) params.date = date;
+    if (mealSession) params.mealSession = mealSession;
+    const res: any = await axiosClient.get('/kitchen/food-samples/available-dishes', { params });
+    if (Array.isArray(res)) return res;
+    if (res?.data && Array.isArray(res.data)) return res.data;
+    return [];
+  },
+
   // Lưu báo cáo tiêu hao nguyên liệu & kiểm thực
   saveFoodConsumptionReport: (data: FoodConsumptionReport) => {
     return axiosClient.post<FoodConsumptionReport>('/kitchen/consumption-report', data);
@@ -110,6 +120,10 @@ export const kitchenApi = {
 
   exportInspectionReportPdf: (date: string) => {
     return axiosClient.get(`/kitchen/inspection-logs/export-pdf?date=${date}`, { responseType: 'blob' });
+  },
+
+  disposeInspectionStep3Sample: (id: string | number, notes?: string) => {
+    return axiosClient.put(`/kitchen/inspection-logs/step3/${id}/disposal`, { notes });
   },
 };
 

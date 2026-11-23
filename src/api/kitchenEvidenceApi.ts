@@ -1,6 +1,5 @@
-import { supabase } from '../config/supabase';
+import axiosClient from './axiosClient';
 
-const BUCKET = 'kitchen-evidence';
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -12,7 +11,7 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-export const uploadKitchenEvidence = async (file: File, path: string): Promise<string> => {
+export const uploadKitchenEvidence = async (file: File, folder: string = 'kidpro/kitchen/evidence'): Promise<string> => {
   if (!file.type.startsWith('image/')) {
     throw new Error('Chỉ chấp nhận tệp hình ảnh.');
   }
@@ -21,17 +20,19 @@ export const uploadKitchenEvidence = async (file: File, path: string): Promise<s
   }
 
   try {
-    const { data, error } = await supabase.storage.from(BUCKET).upload(path, file, {
-      upsert: true,
-      contentType: file.type
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    const res: any = await axiosClient.post('/kitchen/inspection-logs/upload-evidence', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
-    if (error) {
-      console.warn(`Supabase storage (${BUCKET}) chưa sẵn sàng: ${error.message}. Chuyển sang lưu trữ Base64 cục bộ để chạy thử nghiệm.`);
-      return await fileToBase64(file);
-    }
-    return data.path;
+    const url = res?.data?.url || res?.url;
+    if (url) return url;
+    return await fileToBase64(file);
   } catch (err: any) {
-    console.warn(`Lỗi kết nối Supabase storage: ${err?.message || err}. Sử dụng Base64 dự phòng.`);
+    console.warn('Lỗi khi tải ảnh lên backend/Cloudinary, sử dụng Base64 dự phòng:', err?.message || err);
     return await fileToBase64(file);
   }
 };
@@ -45,15 +46,5 @@ export const openKitchenEvidence = async (path: string): Promise<void> => {
     return;
   }
 
-  const newWindow = window.open('about:blank', '_blank');
-  if (!newWindow) {
-    throw new Error('Trình duyệt đã chặn cửa sổ xem ảnh. Hãy cho phép cửa sổ bật lên rồi thử lại.');
-  }
-
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 300);
-  if (error) {
-    newWindow.close();
-    throw new Error(`Không thể mở ảnh bằng chứng: ${error.message}`);
-  }
-  newWindow.location.href = data.signedUrl;
+  window.open(path, '_blank');
 };

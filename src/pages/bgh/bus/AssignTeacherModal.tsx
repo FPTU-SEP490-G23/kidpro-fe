@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { UserCheck, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { UserCheck, X, Loader2, AlertCircle } from 'lucide-react';
 import {
   BusItem,
   TeacherOption,
   TeacherBusAssignmentRequest,
+  TeacherBusAssignmentItem,
   ShiftType,
 } from '../../../types/bus.types';
 
@@ -12,6 +13,7 @@ interface Props {
   buses: BusItem[];
   teachers: TeacherOption[];
   preselectedBusId?: string;
+  existingAssignments?: TeacherBusAssignmentItem[];
   onClose: () => void;
   onSubmit: (data: TeacherBusAssignmentRequest) => Promise<void>;
 }
@@ -21,6 +23,7 @@ export const AssignTeacherModal: React.FC<Props> = ({
   buses,
   teachers,
   preselectedBusId,
+  existingAssignments = [],
   onClose,
   onSubmit,
 }) => {
@@ -33,6 +36,27 @@ export const AssignTeacherModal: React.FC<Props> = ({
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const shiftConflict = useMemo(() => {
+    if (!staffId || !assignedDate || !existingAssignments || existingAssignments.length === 0) return null;
+    const sameTeacherAndDate = existingAssignments.filter(
+      (a) => a.staffId === staffId && a.assignedDate === assignedDate
+    );
+    for (const a of sameTeacherAndDate) {
+      if (a.shiftType === 'TWO_WAY') {
+        return `Giáo viên này đã được phân công Cả 2 chiều trên xe buýt ${a.busNumber} vào ngày ${assignedDate}. Không thể phân công thêm xe khác.`;
+      }
+      if (shiftType === 'TWO_WAY') {
+        const sName = (a.shiftType as any) === 'MORNING' || a.shiftType === 'MORNING_ONLY' ? 'Chiều đón buổi sáng' : 'Chiều trả buổi chiều';
+        return `Giáo viên này đã có ca trực (${sName}) trên xe buýt ${a.busNumber} vào ngày ${assignedDate}. Không thể phân công Cả 2 chiều.`;
+      }
+      if (a.shiftType === shiftType) {
+        const sName = shiftType === 'MORNING_ONLY' ? 'Chiều đón buổi sáng' : 'Chiều trả buổi chiều';
+        return `Giáo viên này đã phụ trách ca (${sName}) trên xe buýt ${a.busNumber} vào ngày ${assignedDate}. Một giáo viên chỉ được quản lý 1 xe buýt tại cùng một thời điểm.`;
+      }
+    }
+    return null;
+  }, [staffId, assignedDate, shiftType, existingAssignments]);
 
   useEffect(() => {
     if (preselectedBusId) {
@@ -62,6 +86,10 @@ export const AssignTeacherModal: React.FC<Props> = ({
     }
     if (!assignedDate) {
       setErrorMsg('Vui lòng chọn ngày phân công.');
+      return;
+    }
+    if (shiftConflict) {
+      setErrorMsg(shiftConflict);
       return;
     }
 
@@ -109,6 +137,13 @@ export const AssignTeacherModal: React.FC<Props> = ({
             {errorMsg}
           </div>
         )}
+
+        <div className="mb-4 rounded-xl bg-blue-50/70 p-3 text-xs text-blue-800 border border-blue-200 flex items-start gap-2">
+          <span className="font-bold text-blue-900 shrink-0">Lưu ý phân ca:</span>
+          <span>
+            Một giáo viên chỉ phụ trách 1 xe tại một thời điểm. Nếu giáo viên phụ trách <strong>Cả 2 chiều</strong> thì không thể nhận xe khác. Giáo viên có thể trực ca <strong>Sáng</strong> trên xe này và ca <strong>Chiều</strong> trên xe khác trong cùng ngày.
+          </span>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -178,6 +213,13 @@ export const AssignTeacherModal: React.FC<Props> = ({
             </div>
           </div>
 
+          {shiftConflict && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>{shiftConflict}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
               Ghi chú nhiệm vụ (Tùy chọn)
@@ -202,7 +244,7 @@ export const AssignTeacherModal: React.FC<Props> = ({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!shiftConflict}
               className="flex items-center justify-center gap-2 rounded-xl bg-[#275A4E] px-5 py-2 text-sm font-bold text-white shadow-md shadow-emerald-900/10 hover:bg-[#1E4D40] transition cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (

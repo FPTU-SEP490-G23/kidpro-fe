@@ -437,11 +437,11 @@ export const BghBusManagementPage: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-9 w-9 rounded-xl bg-emerald-50 text-[#275A4E] flex items-center justify-center font-bold text-xs">
-                        {bus.busNumber.split('-')[0] || 'BUS'}
+                      <div className="h-9 w-9 rounded-xl bg-emerald-50 text-[#275A4E] flex items-center justify-center shrink-0">
+                        <Bus className="w-5 h-5 text-[#275A4E]" />
                       </div>
-                      <div>
-                        <h3 className="font-extrabold text-sm text-slate-900">{bus.busNumber}</h3>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 truncate">{bus.busNumber}</h3>
                         <p className="text-[11px] text-slate-400 font-medium">{bus.capacity} chỗ ngồi</p>
                       </div>
                     </div>
@@ -839,6 +839,7 @@ export const BghBusManagementPage: React.FC = () => {
         buses={buses}
         teachers={teachers}
         preselectedBusId={selectedBusId}
+        existingAssignments={assignments}
         onClose={() => setIsAssignTeacherOpen(false)}
         onSubmit={handleAssignTeacher}
       />

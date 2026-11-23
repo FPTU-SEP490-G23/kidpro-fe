@@ -7,12 +7,16 @@ export const useFoodInspectionSteps = () => {
 
   return useMutation<ThreeStepFoodSafetyInspectionLog, Error, ThreeStepFoodSafetyInspectionLog>({
     mutationFn: async (payload: ThreeStepFoodSafetyInspectionLog) => {
-      const response = await kitchenApi.saveThreeStepInspectionLog(payload);
-      return response.data;
+      const response: any = await kitchenApi.saveThreeStepInspectionLog(payload);
+      const data = response?.data ?? response;
+      return (data && (data.inspectionDate || data.logId)) ? data : payload;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       // Invalidate queries để đồng bộ dữ liệu toàn hệ thống
-      queryClient.invalidateQueries({ queryKey: ['food-inspection-log', data.inspectionDate] });
+      const targetDate = data?.inspectionDate || variables?.inspectionDate;
+      if (targetDate) {
+        queryClient.invalidateQueries({ queryKey: ['food-inspection-log', targetDate] });
+      }
       queryClient.invalidateQueries({ queryKey: ['food-samples'] });
       queryClient.invalidateQueries({ queryKey: ['daily-summary'] });
     },
