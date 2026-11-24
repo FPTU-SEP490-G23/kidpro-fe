@@ -27,6 +27,7 @@ export interface DevelopmentQualityReportDto {
   totalClasses: number;
   completedClasses: number;
   overallPassRate: number;
+  passingThreshold: number;
   isLockedAndApproved: boolean;
   generatedAt?: string;
   generatedBy?: string;
@@ -35,11 +36,17 @@ export interface DevelopmentQualityReportDto {
 }
 
 export const developmentQualityReportApi = {
-  getReport: async (params?: { period?: string; classId?: string }) => {
+  getReport: async (params?: { period?: string; academicYear?: string; classId?: string }) => {
     return axiosClient.get<DevelopmentQualityReportDto>('/bgh/reports/development-quality', { params });
   },
 
-  exportReport: async (params?: { period?: string; classId?: string; format?: string }) => {
+  updatePassingThreshold: async (threshold: number) => {
+    return axiosClient.put<{ threshold: number }>('/bgh/reports/development-quality/threshold', {
+      threshold,
+    });
+  },
+
+  exportReport: async (params?: { period?: string; academicYear?: string; classId?: string; format?: string }) => {
     return axiosClient.get('/bgh/reports/development-quality/export', {
       params,
       responseType: 'blob',

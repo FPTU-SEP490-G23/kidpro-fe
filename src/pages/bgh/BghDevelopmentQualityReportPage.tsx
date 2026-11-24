@@ -1,24 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Award,
-  Download,
-  Filter,
   RefreshCw,
   CheckCircle2,
   AlertCircle,
   FileSpreadsheet,
   TrendingUp,
   Users,
-  Building2,
-  Calendar,
-  Lock,
-  Unlock,
   Activity,
   Brain,
   MessageCircle,
   Smile,
   Palette,
-  ChevronRight,
   Eye,
   X,
   UserCheck,
@@ -34,22 +27,48 @@ import { AcademicYear } from '../../types/academicYear.types';
 import developmentEvaluationApi, { DevelopmentEvaluationDto } from '../../api/developmentEvaluationApi';
 import classApprovalApi, { ClassApprovalItem } from '../../api/classApprovalApi';
 
-const PERIOD_OPTIONS = [
-  { value: 'START_YEAR', label: 'Khảo sát Đầu năm' },
-  { value: 'MID_TERM_1', label: 'Đánh giá Giữa Học kỳ I' },
-  { value: 'END_TERM_1', label: 'Tổng kết Học kỳ I' },
-  { value: 'MID_TERM_2', label: 'Đánh giá Giữa Học kỳ II' },
-  { value: 'END_YEAR', label: 'Tổng kết Cuối năm học' },
-];
+const getCurrentAcademicYearName = () => {
+  const today = new Date();
+  const startYear = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
+  return `${startYear}-${startYear + 1}`;
+};
+
+const DEFAULT_PASSING_THRESHOLD = 6;
+
+const parseScore = (value?: string | number | null): number | null => {
+  if (value === undefined || value === null) return null;
+  const match = value.toString().trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)(?:\s*\/\s*10)?$/);
+  if (!match) return null;
+  const score = Number(match[1]);
+  return Number.isFinite(score) && score >= 0 && score <= 10 ? score : null;
+};
+
+const getAverageScore = (evaluation: DevelopmentEvaluationDto): number | null => {
+  const scores = [
+    evaluation.physicalScore,
+    evaluation.cognitiveScore,
+    evaluation.languageScore,
+    evaluation.socialEmotionalScore,
+    evaluation.aestheticScore,
+  ].map(parseScore);
+  if (scores.some((score) => score === null)) return null;
+  return scores.reduce<number>((sum, score) => sum + (score ?? 0), 0) / scores.length;
+};
+
+const isEvaluationPassed = (evaluation: DevelopmentEvaluationDto, threshold: number): boolean => {
+  const average = getAverageScore(evaluation);
+  return average !== null && average > threshold;
+};
 
 export const BghDevelopmentQualityReportPage: React.FC = () => {
   const [activeYears, setActiveYears] = useState<AcademicYear[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>('');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('MID_TERM_1');
   const [report, setReport] = useState<DevelopmentQualityReportDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [exporting, setExporting] = useState<boolean>(false);
-  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+  const [thresholdInput, setThresholdInput] = useState<string>(String(DEFAULT_PASSING_THRESHOLD));
+  const [savingThreshold, setSavingThreshold] = useState<boolean>(false);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Danh sách các lớp kèm giáo viên
   const [classesList, setClassesList] = useState<ClassApprovalItem[]>([]);
@@ -61,6 +80,9 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
 
   // Modal xem điểm chi tiết 5 lĩnh vực của 1 học sinh
   const [selectedStudentEval, setSelectedStudentEval] = useState<DevelopmentEvaluationDto | null>(null);
+  const selectedAcademicYearName = activeYears.find((year) => year.id === selectedYearId)?.name
+    || getCurrentAcademicYearName();
+  const passingThreshold = report?.passingThreshold ?? DEFAULT_PASSING_THRESHOLD;
 
   // 1. Tải danh sách niên khóa - Chỉ lấy các niên khóa có status === 'ACTIVE'
   useEffect(() => {
@@ -106,25 +128,23 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
   }, [classesList]);
 
   // 3. Tải báo cáo tổng quan
-  const fetchReport = async () => {
+  const fetchReport = async (): Promise<boolean> => {
     try {
       setLoading(true);
-      const res: any = await developmentQualityReportApi.getReport({ period: selectedPeriod });
+      setToastMsg(null);
+      const res: any = await developmentQualityReportApi.getReport({
+        academicYear: selectedAcademicYearName,
+      });
       const data: DevelopmentQualityReportDto = res?.data || res;
       setReport(data);
-
-      if (data && data.totalClasses > 0 && data.completedClasses < data.totalClasses) {
-        setToastMsg({
-          type: 'warning',
-          text: `Còn ${data.totalClasses - data.completedClasses} lớp chưa hoàn tất đánh giá kỳ này. Dữ liệu báo cáo mang tính tổng hợp.`
-        });
-      }
+      return true;
     } catch (err: any) {
       console.error('Lỗi khi tải báo cáo chất lượng trẻ:', err);
       setToastMsg({
         type: 'error',
         text: err.response?.data?.message || 'Không thể tải báo cáo phát triển trẻ. Vui lòng thử lại.'
       });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -132,7 +152,40 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
 
   useEffect(() => {
     fetchReport();
-  }, [selectedPeriod, selectedYearId]);
+  }, [selectedYearId]);
+
+  useEffect(() => {
+    setThresholdInput(String(passingThreshold));
+  }, [passingThreshold]);
+
+  const handleSaveThreshold = async () => {
+    const threshold = Number(thresholdInput);
+    if (thresholdInput.trim() === '' || !Number.isFinite(threshold) || threshold < 0 || threshold > 10) {
+      setToastMsg({ type: 'error', text: 'Ngưỡng điểm phải nằm trong khoảng 0 đến 10.' });
+      return;
+    }
+
+    try {
+      setSavingThreshold(true);
+      setToastMsg(null);
+      await developmentQualityReportApi.updatePassingThreshold(threshold);
+      const reportRefreshed = await fetchReport();
+      if (reportRefreshed) {
+        setToastMsg({
+          type: 'success',
+          text: `Đã cập nhật ngưỡng đạt chuẩn: điểm trung bình phải lớn hơn ${threshold}/10.`,
+        });
+      }
+    } catch (err: any) {
+      console.error('Lỗi cập nhật ngưỡng đánh giá:', err);
+      setToastMsg({
+        type: 'error',
+        text: err.response?.data?.message || 'Không thể lưu ngưỡng đánh giá. Vui lòng thử lại.',
+      });
+    } finally {
+      setSavingThreshold(false);
+    }
+  };
 
   // 4. Khi BGH bấm vào 1 lớp để xem danh sách học sinh do giáo viên gửi lên
   const handleSelectClass = async (cls: ClassQualityStatsDto) => {
@@ -147,7 +200,8 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
       setLoadingClassEvaluations(true);
       const res = await developmentEvaluationApi.getEvaluations({
         classId: cls.classId,
-        period: selectedPeriod,
+        academicYear: selectedAcademicYearName,
+        enrolledOnly: true,
       });
       const data = Array.isArray(res) ? res : ((res as any)?.data || []);
       setClassEvaluations(data);
@@ -164,22 +218,19 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
     try {
       setExporting(true);
 
-      // Thu thập toàn bộ đánh giá của kỳ hiện tại
-      let exportData: DevelopmentEvaluationDto[] = [];
-      try {
-        const res = await developmentEvaluationApi.getEvaluations({ period: selectedPeriod });
-        exportData = Array.isArray(res) ? res : ((res as any)?.data || []);
-      } catch (e) {
-        exportData = classEvaluations;
-      }
-
-      const activeYearName = activeYears.find((y) => y.id === selectedYearId)?.name || '2026-2027';
-      const periodLabel = PERIOD_OPTIONS.find((p) => p.value === selectedPeriod)?.label || selectedPeriod;
+      const res = await developmentEvaluationApi.getEvaluations({
+        academicYear: selectedAcademicYearName,
+        enrolledOnly: true,
+      });
+      const exportData: DevelopmentEvaluationDto[] = Array.isArray(res)
+        ? res
+        : ((res as any)?.data || []);
+      const activeYearName = selectedAcademicYearName;
+      const threshold = report?.passingThreshold ?? DEFAULT_PASSING_THRESHOLD;
 
       // Xây dựng nội dung CSV với UTF-8 BOM để Excel hiển thị tiếng Việt hoàn hảo
       const headers = [
         'Niên Khóa',
-        'Kỳ Đánh Giá',
         'Lớp Học',
         'Giáo Viên Chủ Nhiệm',
         'Mã Học Sinh',
@@ -189,50 +240,46 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
         '3. Ngôn Ngữ & Giao Tiếp',
         '4. Tình Cảm & Kỹ Năng Xã Hội',
         '5. Thẩm Mỹ & Nghệ Thuật',
-        'Nhận Xét Sư Phạm',
-        'Trạng Thái Duyệt'
+        'Điểm Trung Bình 5 Lĩnh Vực',
+        'Kết Quả',
       ];
 
       const rows: string[] = [];
       rows.push(headers.map((h) => `"${h}"`).join(','));
 
-      if (exportData.length === 0 && report?.classStats) {
-        // Fallback xuất theo lớp nếu chưa có phiếu cá nhân
-        report.classStats.forEach((cs) => {
-          const tName = classTeacherMap.get(cs.classId) || 'Giáo viên phụ trách';
-          rows.push([
-            `"${activeYearName}"`,
-            `"${periodLabel}"`,
-            `"${cs.className}"`,
-            `"${tName}"`,
-            `"ALL"`,
-            `"Tổng hợp toàn lớp (${cs.evaluatedStudents}/${cs.totalStudents} trẻ)"`,
-            `"Đạt chuẩn"`,
-            `"Đạt chuẩn"`,
-            `"Đạt chuẩn"`,
-            `"Đạt chuẩn"`,
-            `"Đạt chuẩn"`,
-            `"Tỷ lệ đạt chuẩn: ${Math.round(cs.overallPassRate)}%"`,
-            `"${cs.status}"`
-          ].join(','));
-        });
+      if (exportData.length === 0) {
+        rows.push([
+          activeYearName,
+          '',
+          '',
+          '',
+          'Chưa có dữ liệu đánh giá',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+        ].map((value) => `"${value}"`).join(','));
       } else {
         exportData.forEach((ev) => {
           const tName = ev.teacherName || classTeacherMap.get(selectedClassForDetail?.classId || '') || 'Giáo viên chủ nhiệm';
+          const average = getAverageScore(ev);
           rows.push([
             `"${activeYearName}"`,
-            `"${periodLabel}"`,
             `"${ev.className || selectedClassForDetail?.className || 'Lớp học'}"`,
             `"${tName}"`,
             `"${ev.studentCode || ''}"`,
             `"${ev.studentName || ''}"`,
-            `"${ev.physicalScore || 'Đạt'}"`,
-            `"${ev.cognitiveScore || 'Đạt'}"`,
-            `"${ev.languageScore || 'Đạt'}"`,
-            `"${ev.socialEmotionalScore || 'Đạt'}"`,
-            `"${ev.aestheticScore || 'Đạt'}"`,
-            `"${(ev.reviewNote || 'Bé phát triển tốt, hòa đồng cùng các bạn').replace(/"/g, '""')}"`,
-            `"${ev.status === 'APPROVED' ? 'Đã phê duyệt' : 'Chờ duyệt'}"`
+            `"${ev.physicalScore || ''}"`,
+            `"${ev.cognitiveScore || ''}"`,
+            `"${ev.languageScore || ''}"`,
+            `"${ev.socialEmotionalScore || ''}"`,
+            `"${ev.aestheticScore || ''}"`,
+            `"${average === null ? '' : average.toFixed(1)}"`,
+            `"${average === null ? 'Chưa đủ dữ liệu' : average > threshold ? 'Đạt' : 'Chưa đạt'}"`,
           ].join(','));
         });
       }
@@ -242,7 +289,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Bao_Cao_Chat_Luong_Tre_${activeYearName}_${selectedPeriod}.csv`);
+      link.setAttribute('download', `Bao_Cao_Chat_Luong_Tre_${activeYearName}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -282,8 +329,6 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
           className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
             toastMsg.type === 'success'
               ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : toastMsg.type === 'warning'
-              ? 'bg-amber-50 border-amber-200 text-amber-800'
               : 'bg-rose-50 border-rose-200 text-rose-800'
           }`}
         >
@@ -291,7 +336,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
             {toastMsg.type === 'success' ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
             )}
             <span className="text-sm font-medium">{toastMsg.text}</span>
           </div>
@@ -304,7 +349,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
         </div>
       )}
 
-      {/* Header Banner & Bộ lọc Niên khóa (ACTIVE ONLY) & Kỳ đánh giá */}
+      {/* Header banner and academic-year filter */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
@@ -320,9 +365,8 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Toolbar: Bộ lọc niên khóa ACTIVE + Kỳ đánh giá + Nút xuất Excel */}
+        {/* Toolbar: academic-year filter and export */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* 1. Bộ lọc niên khóa: CHỈ CHỌN NIÊN KHÓA ACTIVE */}
           <div className="flex items-center bg-emerald-50/80 border border-emerald-200 rounded-xl px-3 py-2 text-xs font-semibold">
             <GraduationCap className="w-4 h-4 text-[#275A4E] mr-2" />
             <span className="text-slate-500 mr-1.5">Niên khóa:</span>
@@ -340,25 +384,6 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                   </option>
                 ))
               )}
-            </select>
-          </div>
-
-          {/* 2. Kỳ đánh giá */}
-          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
-            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-            <select
-              value={selectedPeriod}
-              onChange={(e) => {
-                setSelectedPeriod(e.target.value);
-                setSelectedClassForDetail(null);
-              }}
-              className="bg-transparent border-none text-gray-800 font-semibold focus:outline-none cursor-pointer"
-            >
-              {PERIOD_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
             </select>
           </div>
 
@@ -391,7 +416,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
       ) : (
         <>
           {/* KPI Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-400 uppercase">Học sinh đã đánh giá</span>
@@ -406,27 +431,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                 <span className="text-xs text-gray-500">trẻ toàn trường</span>
               </div>
               <div className="mt-2 text-xs text-blue-600 font-medium">
-                {activeYears.find((y) => y.id === selectedYearId)?.name || '2026-2027'} (ACTIVE)
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Tiến độ nộp đánh giá</span>
-                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-                  <Building2 className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className="text-2xl font-black text-emerald-600">
-                  {report?.completedClasses ?? 0}/{report?.totalClasses ?? 0}
-                </span>
-                <span className="text-xs text-gray-500">lớp hoàn tất</span>
-              </div>
-              <div className="mt-2 text-xs text-emerald-600 font-medium">
-                {report && report.totalClasses > 0
-                  ? Math.round((report.completedClasses / report.totalClasses) * 100)
-                  : 0}% lớp đã tổng hợp
+                {selectedAcademicYearName} (ACTIVE)
               </div>
             </div>
 
@@ -448,27 +453,11 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Trạng thái khóa sổ</span>
-                <div className={`p-2 rounded-xl ${report?.isLockedAndApproved ? 'bg-purple-50 text-purple-600' : 'bg-green-50 text-green-600'}`}>
-                  {report?.isLockedAndApproved ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
-                </div>
-              </div>
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className={`text-lg font-bold ${report?.isLockedAndApproved ? 'text-purple-700' : 'text-green-700'}`}>
-                  {report?.isLockedAndApproved ? 'Đã khóa sổ' : 'Đang tiếp nhận'}
-                </span>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                {report?.isLockedAndApproved ? 'Bảo lưu số liệu chính thức' : 'Giáo viên gửi lên BGH duyệt'}
-              </div>
-            </div>
           </div>
 
           {/* 5 Domains Development Breakdown */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-bold text-gray-900 flex items-center space-x-2">
                   <Activity className="w-5 h-5 text-[#275A4E]" />
@@ -476,7 +465,34 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Thể chất • Nhận thức • Ngôn ngữ • Tình cảm - Kỹ năng xã hội • Thẩm mỹ
+                  {' '}• Đạt khi điểm trung bình 5 lĩnh vực lớn hơn {passingThreshold}/10
                 </p>
+              </div>
+              <div className="flex items-end gap-2 self-start sm:self-auto">
+                <label className="text-xs font-semibold text-slate-600">
+                  Ngưỡng điểm TB
+                  <span className="mt-1 flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.01"
+                      value={thresholdInput}
+                      onChange={(event) => setThresholdInput(event.target.value)}
+                      aria-label="Ngưỡng điểm trung bình để đạt"
+                      className="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-bold text-slate-800 focus:border-[#275A4E] focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    />
+                    <span className="text-xs text-slate-400">/10</span>
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSaveThreshold}
+                  disabled={savingThreshold || loading}
+                  className="rounded-lg bg-[#275A4E] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#1E4D40] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingThreshold ? 'Đang lưu...' : 'Lưu ngưỡng'}
+                </button>
               </div>
             </div>
 
@@ -550,7 +566,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                   {report?.classStats?.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-10 text-gray-400">
-                        Không có dữ liệu lớp học nào trong kỳ báo cáo này.
+                        Không có lớp nào có học sinh ENROLLED trong niên khóa này.
                       </td>
                     </tr>
                   ) : (
@@ -644,7 +660,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                 </div>
               ) : classEvaluations.length === 0 ? (
                 <div className="py-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl">
-                  Chưa có dữ liệu đánh giá nào được nộp cho lớp này trong kỳ {PERIOD_OPTIONS.find((p) => p.value === selectedPeriod)?.label}.
+                  Chưa có dữ liệu đánh giá nào được nộp cho lớp này trong niên khóa {selectedAcademicYearName}.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -658,6 +674,8 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                         <th className="py-2.5 px-4">Ngôn Ngữ</th>
                         <th className="py-2.5 px-4">TC-XH</th>
                         <th className="py-2.5 px-4">Thẩm Mỹ</th>
+                        <th className="py-2.5 px-4">Điểm TB</th>
+                        <th className="py-2.5 px-4">Kết quả</th>
                         <th className="py-2.5 px-4 text-right">Chi Tiết Điểm</th>
                       </tr>
                     </thead>
@@ -675,19 +693,35 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                             {ev.studentName}
                           </td>
                           <td className="py-2.5 px-4 text-emerald-600 font-medium">
-                            {ev.physicalScore || 'Đạt'}
+                            {ev.physicalScore || '—'}
                           </td>
                           <td className="py-2.5 px-4 text-indigo-600 font-medium">
-                            {ev.cognitiveScore || 'Đạt'}
+                            {ev.cognitiveScore || '—'}
                           </td>
                           <td className="py-2.5 px-4 text-blue-600 font-medium">
-                            {ev.languageScore || 'Đạt'}
+                            {ev.languageScore || '—'}
                           </td>
                           <td className="py-2.5 px-4 text-amber-600 font-medium">
-                            {ev.socialEmotionalScore || 'Đạt'}
+                            {ev.socialEmotionalScore || '—'}
                           </td>
                           <td className="py-2.5 px-4 text-rose-600 font-medium">
-                            {ev.aestheticScore || 'Đạt'}
+                            {ev.aestheticScore || '—'}
+                          </td>
+                          <td className="py-2.5 px-4 font-semibold">
+                            {getAverageScore(ev)?.toFixed(1) ?? '—'}
+                          </td>
+                          <td className={`py-2.5 px-4 font-bold ${
+                            getAverageScore(ev) === null
+                              ? 'text-slate-400'
+                              : isEvaluationPassed(ev, passingThreshold)
+                                ? 'text-emerald-600'
+                                : 'text-rose-600'
+                          }`}>
+                            {getAverageScore(ev) === null
+                              ? 'Thiếu điểm'
+                              : isEvaluationPassed(ev, passingThreshold)
+                                ? 'ĐẠT'
+                                : 'CHƯA ĐẠT'}
                           </td>
                           <td className="py-2.5 px-4 text-right">
                             <button
@@ -743,7 +777,29 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
             {/* Body Modal: Điểm cụ thể 5 lĩnh vực */}
             <div className="p-6 space-y-4">
               <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Kết Quả Đánh Giá Chi Tiết 5 Lĩnh Vực ({PERIOD_OPTIONS.find((p) => p.value === selectedPeriod)?.label}):
+                Kết Quả Đánh Giá Chi Tiết 5 Lĩnh Vực (Niên khóa {selectedAcademicYearName}):
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                <div>
+                  <div className="text-xs font-semibold text-slate-500">Điểm trung bình 5 lĩnh vực</div>
+                  <div className="text-lg font-extrabold text-slate-900">
+                    {getAverageScore(selectedStudentEval)?.toFixed(1) ?? '—'} / 10
+                  </div>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  getAverageScore(selectedStudentEval) === null
+                    ? 'bg-slate-200 text-slate-600'
+                    : isEvaluationPassed(selectedStudentEval, passingThreshold)
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {getAverageScore(selectedStudentEval) === null
+                    ? 'CHƯA ĐỦ ĐIỂM'
+                    : isEvaluationPassed(selectedStudentEval, passingThreshold)
+                      ? 'ĐẠT'
+                      : 'CHƯA ĐẠT'}
+                </span>
               </div>
 
               <div className="space-y-2.5">
@@ -754,7 +810,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-800">1. Phát Triển Thể Chất & Vận Động</span>
                   </div>
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-600 text-white">
-                    {selectedStudentEval.physicalScore || 'ĐẠT CHUẨN (Tốt)'}
+                    {selectedStudentEval.physicalScore || '—'}
                   </span>
                 </div>
 
@@ -765,7 +821,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-800">2. Phát Triển Nhận Thức & Tư Duy</span>
                   </div>
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-indigo-600 text-white">
-                    {selectedStudentEval.cognitiveScore || 'ĐẠT CHUẨN (Tốt)'}
+                    {selectedStudentEval.cognitiveScore || '—'}
                   </span>
                 </div>
 
@@ -776,7 +832,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-800">3. Phát Triển Ngôn Ngữ & Giao Tiếp</span>
                   </div>
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-blue-600 text-white">
-                    {selectedStudentEval.languageScore || 'ĐẠT CHUẨN (Tốt)'}
+                    {selectedStudentEval.languageScore || '—'}
                   </span>
                 </div>
 
@@ -787,7 +843,7 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-800">4. Tình Cảm & Kỹ Năng Xã Hội</span>
                   </div>
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-amber-600 text-white">
-                    {selectedStudentEval.socialEmotionalScore || 'ĐẠT CHUẨN (Tốt)'}
+                    {selectedStudentEval.socialEmotionalScore || '—'}
                   </span>
                 </div>
 
@@ -798,20 +854,11 @@ export const BghDevelopmentQualityReportPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-800">5. Phát Triển Thẩm Mỹ & Nghệ Thuật</span>
                   </div>
                   <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-rose-600 text-white">
-                    {selectedStudentEval.aestheticScore || 'ĐẠT CHUẨN (Tốt)'}
+                    {selectedStudentEval.aestheticScore || '—'}
                   </span>
                 </div>
               </div>
 
-              {/* Nhận xét sư phạm của giáo viên */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="text-xs font-bold text-slate-700 block">
-                  Nhận xét của Giáo viên ({selectedStudentEval.teacherName || selectedClassForDetail?.teacherName}):
-                </span>
-                <p className="text-xs text-slate-600 italic leading-relaxed">
-                  "{selectedStudentEval.reviewNote || 'Bé ngoan, tích cực tham gia các hoạt động tập thể, tiếp thu kiến thức nhanh, hòa đồng cùng bạn bè.'}"
-                </p>
-              </div>
             </div>
 
             {/* Footer Modal */}

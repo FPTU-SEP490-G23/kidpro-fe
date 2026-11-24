@@ -19,7 +19,13 @@ export interface DevelopmentEvaluationDto {
 }
 
 export const developmentEvaluationApi = {
-  getEvaluations: async (params?: { classId?: string; period?: string; status?: string }) => {
+  getEvaluations: async (params?: {
+    classId?: string;
+    period?: string;
+    status?: string;
+    academicYear?: string;
+    enrolledOnly?: boolean;
+  }) => {
     return axiosClient.get<DevelopmentEvaluationDto[]>('/bgh/evaluations/approvals', { params });
   },
 
