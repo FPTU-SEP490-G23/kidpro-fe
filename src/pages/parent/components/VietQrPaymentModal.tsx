@@ -97,17 +97,17 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
   };
 
   const paymentDesc = qrData?.description || `KIDPRO ${invoice.referenceCode}`;
-  const accountNumber = '666619092005';
-  const bankName = qrData?.bankName || 'MBBank (Ngân hàng TMCP Quân Đội)';
+  const accountNumber = qrData?.accountNumber || '666619092005';
+  const bankName = qrData?.bankName || 'Ngân hàng thụ hưởng';
   const accountName = qrData?.accountName || 'TRUONG MAM NON KIDPRO';
 
   const dynamicQrUrl = (
     qrData?.qrImageUrl ||
     (invoice.paymentQrCode ? invoice.paymentQrCode.replace(/KIDPRO8888/g, '666619092005') : '') ||
-    `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${invoice.totalAmount}&addInfo=${encodeURIComponent(paymentDesc)}&accountName=TRUONG%20MAM%20NON%20KIDPRO`
+    `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${invoice.totalAmount}&addInfo=${encodeURIComponent(paymentDesc)}&accountName=${encodeURIComponent(accountName)}`
   ).replace(/KIDPRO8888/g, '666619092005');
 
-  const staticQrUrl = 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO';
+  const staticQrUrl = qrData?.staticQrUrl || 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO';
 
   const activeQrUrl = qrMode === 'DYNAMIC' ? dynamicQrUrl : staticQrUrl;
 
@@ -201,7 +201,7 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
             <div className="text-center space-y-1 pt-1">
               <div className="inline-flex items-center gap-2 text-xs font-bold text-[#275A4E] uppercase tracking-wider">
                 <QrCode className="h-5 w-5" />
-                <span>Thanh Toán Học Phí Trực Tuyến - VietQR MB Bank</span>
+                <span>Thanh Toán Học Phí Trực Tuyến - PayOS (Napas 24/7)</span>
               </div>
               <h3 className="text-lg font-extrabold text-slate-900">
                 Hóa Đơn {invoice.invoiceNumber}
@@ -274,7 +274,7 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
               {isLoadingQr ? (
                 <div className="py-12 flex flex-col items-center justify-center">
                   <Loader2 className="h-8 w-8 animate-spin text-[#275A4E] mb-2" />
-                  <p className="text-xs text-slate-500">Đang tải mã VietQR chuẩn MB Bank...</p>
+                  <p className="text-xs text-slate-500">Đang tạo mã PayOS tự động...</p>
                 </div>
               ) : (
                 <div className="relative inline-block p-2 bg-white rounded-2xl border-2 border-slate-200 shadow-sm">
@@ -284,7 +284,7 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
                     className="w-56 h-56 mx-auto object-contain rounded-xl"
                   />
                   <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-[#275A4E] text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs border border-white whitespace-nowrap">
-                    {qrMode === 'DYNAMIC' ? 'NAPAS 24/7 • TỰ ĐỘNG GẠCH NỢ' : 'NAPAS 24/7 • MB BANK 666619092005'}
+                    {qrMode === 'DYNAMIC' ? 'PAYOS • TỰ ĐỘNG GẠCH NỢ' : `NAPAS 24/7 • ${accountNumber}`}
                   </div>
                 </div>
               )}
@@ -366,6 +366,17 @@ export const VietQrPaymentModal: React.FC<VietQrPaymentModalProps> = ({
 
             {/* Nút Hành Động 1-Chạm Trên Thiết Bị Di Động & Lưu ảnh */}
             <div className="space-y-2 pt-1">
+              {qrData?.checkoutUrl ? (
+                <button
+                  type="button"
+                  onClick={() => window.open(qrData.checkoutUrl, '_blank')}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 px-4 text-xs font-bold shadow-lg shadow-indigo-600/20 transition min-h-[48px] cursor-pointer"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>THANH TOÁN TRỰC TIẾP QUA CỔNG PAYOS</span>
+                </button>
+              ) : null}
+
               {isMobile ? (
                 <button
                   type="button"

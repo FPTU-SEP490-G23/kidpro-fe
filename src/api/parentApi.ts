@@ -393,32 +393,33 @@ export const parentApi = {
   // ==========================================
   // THANH TOÁN HỌC PHÍ QUA VIETQR 1-CHẠM
   // ==========================================
-  // Lấy dữ liệu VietQR chuẩn Napas247 (GET /api/finance/invoices/{id}/vietqr)
+  // Lấy dữ liệu VietQR chuẩn Napas247 / PayOS (GET /api/finance/invoices/{id}/vietqr)
   getInvoiceVietQrData: async (invoiceId: string, amount?: number, refCode?: string) => {
     try {
       const resp = await axiosClient.get<any>(`/finance/invoices/${invoiceId}/vietqr`);
       const d = resp.data;
       const finalAmt = d.amount ?? amount ?? 0;
       const ref = d.referenceCode || d.invoiceCode || refCode || invoiceId;
-      const dynamicQr = (d.paymentQrCode || d.qrImageUrl)
-        ? String(d.paymentQrCode || d.qrImageUrl).replace(/KIDPRO8888/g, '666619092005')
+      const dynamicQr = (d.qrImageUrl || d.paymentQrCode)
+        ? String(d.qrImageUrl || d.paymentQrCode).replace(/KIDPRO8888/g, '666619092005')
         : `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${finalAmt}&addInfo=${encodeURIComponent(ref)}&accountName=TRUONG%20MAM%20NON%20KIDPRO`;
-      const staticQr = 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO';
+      const staticQr = d.staticQrUrl || 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO';
 
       return {
         invoiceId,
         invoiceNumber: d.invoiceNumber || d.invoiceCode || invoiceId,
         referenceCode: ref,
         accountName: d.accountName || 'TRUONG MAM NON KIDPRO',
-        accountNumber: '666619092005',
-        bankName: d.bankName || 'MBBank (Ngân hàng TMCP Quân Đội)',
-        bankCode: '970422',
+        accountNumber: d.accountNumber || '666619092005',
+        bankName: d.bankName || 'Ngân hàng thụ hưởng',
+        bankCode: d.bankCode || '970422',
         amount: Number(finalAmt),
         description: d.description || `KIDPRO ${ref}`,
         qrImageUrl: dynamicQr,
         staticQrUrl: staticQr,
-        paymentQrCode: dynamicQr,
-        deepLinkUrl: d.deepLinkUrl || `vietqr://transfer?bankCode=970422&accNo=666619092005&amount=${finalAmt}&memo=${encodeURIComponent(ref)}`,
+        paymentQrCode: d.paymentQrCode || dynamicQr,
+        checkoutUrl: d.checkoutUrl,
+        deepLinkUrl: d.checkoutUrl || d.deepLinkUrl || `vietqr://transfer?bankCode=${d.bankCode || '970422'}&accNo=${d.accountNumber || '666619092005'}&amount=${finalAmt}&memo=${encodeURIComponent(ref)}`,
         isGatewayBusy: false,
       } as VietQrPaymentInfo;
     } catch {

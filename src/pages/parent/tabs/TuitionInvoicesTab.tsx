@@ -66,15 +66,15 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
     enabled: Boolean(studentId),
   });
 
-  const currentInvoice = invoices.find((inv) => inv.status !== 'PAID') || invoices[0];
-  const historyInvoices = invoices.filter((inv) => inv.status === 'PAID');
+  const currentInvoice = invoices.find((inv) => inv.status !== 'PAID' && inv.status !== 'OVERPAID') || invoices[0];
+  const historyInvoices = invoices.filter((inv) => inv.status === 'PAID' || inv.status === 'OVERPAID');
 
   // Xử lý mở biên lai điện tử chuẩn VAS
   const handleViewReceipt = async (inv: TuitionInvoiceItem) => {
-    if (inv.status !== 'PAID') {
+    if (inv.status !== 'PAID' && inv.status !== 'OVERPAID') {
       setToastMessage({
         type: 'warning',
-        text: 'Biên lai thu tiền điện tử chỉ được phát hành cho các hóa đơn đã thanh toán đầy đủ.',
+        text: 'Biên lai thu tiền điện tử chỉ được phát hành cho các hóa đơn đã thanh toán đầy đủ hoặc nộp thừa.',
       });
       return;
     }
@@ -246,16 +246,19 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                       className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
                         currentInvoice.status === 'PAID'
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : currentInvoice.status === 'PARTIALLY_PAID'
+                          : currentInvoice.status === 'OVERPAID'
+                          ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                          : currentInvoice.status === 'PARTIALLY_PAID' || currentInvoice.status === 'PARTIAL' || currentInvoice.status === 'UNDERPAID'
                           ? 'bg-amber-100 text-amber-800 border border-amber-300'
                           : currentInvoice.status === 'DISPUTED'
                           ? 'bg-purple-100 text-purple-800 border border-purple-300'
                           : 'bg-rose-100 text-rose-800 border border-rose-300'
                       }`}
                     >
-                      {currentInvoice.status === 'ISSUED' && '🔴 CHƯA THANH TOÁN'}
+                      {(currentInvoice.status === 'ISSUED' || currentInvoice.status === 'UNPAID') && '🔴 CHƯA THANH TOÁN'}
                       {currentInvoice.status === 'PAID' && '🟢 ĐÃ THANH TOÁN'}
-                      {currentInvoice.status === 'PARTIALLY_PAID' && '🟡 THANH TOÁN MỘT PHẦN'}
+                      {currentInvoice.status === 'OVERPAID' && '🟣 NỘP THỪA'}
+                      {(currentInvoice.status === 'PARTIALLY_PAID' || currentInvoice.status === 'PARTIAL' || currentInvoice.status === 'UNDERPAID') && '🟡 NỘP THIẾU'}
                       {currentInvoice.status === 'DISPUTED' && '🟣 ĐANG KHIẾU NẠI / TRA SOÁT'}
                       {currentInvoice.status === 'RECALLED' && '⚠️ ĐANG THU HỒI'}
                     </span>
@@ -295,7 +298,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                     {/* Nút thanh toán VietQR 1-Chạm */}
                     <button
                       type="button"
-                      disabled={currentInvoice.isRecalled || currentInvoice.status === 'PAID'}
+                      disabled={currentInvoice.isRecalled || currentInvoice.status === 'PAID' || currentInvoice.status === 'OVERPAID'}
                       onClick={() => setSelectedInvoiceForPayment(currentInvoice)}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#275A4E] hover:bg-[#1E4D40] text-white px-5 py-3 text-xs font-bold shadow-md shadow-[#275A4E]/20 transition disabled:opacity-50 min-h-[44px]"
                     >
@@ -307,7 +310,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        if (currentInvoice.status === 'PAID') {
+                        if (currentInvoice.status === 'PAID' || currentInvoice.status === 'OVERPAID') {
                           setToastMessage({
                             type: 'warning',
                             text: 'Hóa đơn này đã được thanh toán hoàn tất. Vui lòng liên hệ trực tiếp phòng Kế toán để làm thủ tục hoàn trả hoặc đối trừ kỳ sau.',
@@ -565,7 +568,7 @@ export const TuitionInvoicesTab: React.FC<TuitionInvoicesTabProps> = ({
                         Hóa đơn Học phí {inv.billingPeriod} - Bé {studentName}
                       </span>
                       <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-bold border border-emerald-300">
-                        ĐÃ THANH TOÁN (PAID)
+                        {inv.status === 'OVERPAID' ? 'NỘP THỪA (OVERPAID)' : 'ĐÃ THANH TOÁN (PAID)'}
                       </span>
                     </div>
 

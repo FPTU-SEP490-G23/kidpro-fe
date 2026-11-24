@@ -100,6 +100,10 @@ export const financeApi = {
     return axiosClient.get<InvoiceDto>(`/finance/invoices/${id}`);
   },
 
+  getInvoiceVietQr: (invoiceId: string) => {
+    return axiosClient.get<any>(`/finance/invoices/${invoiceId}/vietqr`);
+  },
+
   generateBilling: (data: GenerateBillingRequestDto) => {
     return axiosClient.post<{
       totalCreated: number;

@@ -18,6 +18,7 @@ import {
   XCircle,
   AlertTriangle,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import { financeApi } from '../../../api/financeApi';
 import { formatCurrency } from '../../../utils/formatters';
@@ -51,8 +52,22 @@ export const InvoiceIssuanceTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   const [viewingQrInvoice, setViewingQrInvoice] = useState<InvoiceDto | null>(null);
+  const [payOsQrData, setPayOsQrData] = useState<any>(null);
+  const [loadingPayOsQr, setLoadingPayOsQr] = useState<boolean>(false);
   const [qrModalMode, setQrModalMode] = useState<'DYNAMIC' | 'STATIC'>('DYNAMIC');
   const [showGeneralQrModal, setShowGeneralQrModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (viewingQrInvoice) {
+      setLoadingPayOsQr(true);
+      financeApi.getInvoiceVietQr(viewingQrInvoice.invoiceId)
+        .then((res: any) => setPayOsQrData(res?.data || res))
+        .catch(() => setPayOsQrData(null))
+        .finally(() => setLoadingPayOsQr(false));
+    } else {
+      setPayOsQrData(null);
+    }
+  }, [viewingQrInvoice]);
 
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -455,6 +470,14 @@ export const InvoiceIssuanceTab: React.FC = () => {
                             <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
                               Đã thu
                             </span>
+                          ) : inv.status === 'OVERPAID' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700">
+                              Nộp thừa
+                            </span>
+                          ) : inv.status === 'PARTIAL' || inv.status === 'UNDERPAID' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700">
+                              Nộp thiếu
+                            </span>
                           ) : checkIsOverdue(inv) ? (
                             <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                               Nợ quá hạn
@@ -496,8 +519,8 @@ export const InvoiceIssuanceTab: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
               <p className="text-xs font-semibold text-indigo-200 uppercase tracking-widest">Học Phí Trực Tuyến 24/7</p>
-              <h3 className="text-lg font-bold mt-1">HỆ THỐNG MẦM NON KIDPRO</h3>
-              <p className="text-xs text-indigo-200">Ngân hàng TMCP Quân Đội (MB Bank)</p>
+              <h3 className="text-lg font-bold mt-1">CỔNG THANH TOÁN PAYOS</h3>
+              <p className="text-xs text-indigo-200">{payOsQrData?.bankName || 'Ngân hàng đối tác PayOS'}</p>
             </div>
 
             <div className="p-5 space-y-3">
@@ -524,31 +547,49 @@ export const InvoiceIssuanceTab: React.FC = () => {
               </div>
 
               <div className="bg-white p-2 rounded-2xl shadow-inner border border-slate-200 inline-block">
-                <img
-                  src={
-                    qrModalMode === 'DYNAMIC'
-                      ? (viewingQrInvoice.paymentQrCode
-                          ? viewingQrInvoice.paymentQrCode.replace(/KIDPRO8888/g, '666619092005')
-                          : `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${viewingQrInvoice.finalAmount}&addInfo=${viewingQrInvoice.invoiceCode}&accountName=TRUONG%20MAM%20NON%20KIDPRO`)
-                      : 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO'
-                  }
-                  alt="VietQR Code"
-                  className="w-52 h-52 mx-auto object-contain rounded-xl"
-                />
+                {loadingPayOsQr ? (
+                  <div className="w-52 h-52 flex flex-col items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
+                    <p className="text-xs text-slate-400">Đang tạo mã PayOS...</p>
+                  </div>
+                ) : (
+                  <img
+                    src={
+                      qrModalMode === 'DYNAMIC'
+                        ? (payOsQrData?.qrImageUrl || (viewingQrInvoice.paymentQrCode
+                            ? viewingQrInvoice.paymentQrCode.replace(/KIDPRO8888/g, '666619092005')
+                            : `https://img.vietqr.io/image/970422-666619092005-compact2.png?amount=${viewingQrInvoice.finalAmount}&addInfo=${viewingQrInvoice.invoiceCode}&accountName=TRUONG%20MAM%20NON%20KIDPRO`))
+                        : (payOsQrData?.staticQrUrl || 'https://img.vietqr.io/image/970422-666619092005-compact2.png?accountName=TRUONG%20MAM%20NON%20KIDPRO')
+                    }
+                    alt="VietQR Code"
+                    className="w-52 h-52 mx-auto object-contain rounded-xl"
+                  />
+                )}
               </div>
+
+              {payOsQrData?.checkoutUrl && (
+                <button
+                  type="button"
+                  onClick={() => window.open(payOsQrData.checkoutUrl, '_blank')}
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Mở Cổng Thanh Toán PayOS</span>
+                </button>
+              )}
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-left space-y-1">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Ngân hàng:</span>
-                  <span className="font-semibold text-slate-800">MB Bank (Quân Đội)</span>
+                  <span className="font-semibold text-slate-800">{payOsQrData?.bankName || 'MB Bank / PayOS Partner'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Số tài khoản:</span>
-                  <span className="font-mono font-bold text-indigo-700">666619092005</span>
+                  <span className="font-mono font-bold text-indigo-700">{payOsQrData?.accountNumber || '666619092005'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Chủ tài khoản:</span>
-                  <span className="font-semibold text-slate-800">TRUONG MAM NON KIDPRO</span>
+                  <span className="font-semibold text-slate-800">{payOsQrData?.accountName || 'TRUONG MAM NON KIDPRO'}</span>
                 </div>
                 {qrModalMode === 'DYNAMIC' ? (
                   <>

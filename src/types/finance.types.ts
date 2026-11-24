@@ -1,5 +1,5 @@
 export type FeeType = 'MONTHLY_FIXED' | 'PER_ATTENDANCE_DAY' | 'ONE_TIME';
-export type InvoiceStatus = 'PENDING' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+export type InvoiceStatus = 'PENDING' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'OVERPAID' | 'UNDERPAID' | 'UNPAID' | 'DISPUTED' | 'DRAFT';
 export type FeeCycle = 'MONTHLY' | 'YEARLY' | 'DAILY';
 export type FeeStatus = 'ACTIVE' | 'INACTIVE';
 export type FeeNature = 'FIXED' | 'DAILY_VARIABLE' | 'SURCHARGE';
@@ -72,7 +72,7 @@ export interface MealRefundAuditLog {
 // ==========================================
 // ĐỘNG CƠ QUYẾT TOÁN HỌC PHÍ ĐỘNG (BILLING ENGINE)
 // ==========================================
-export type DynamicInvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'PARTIAL' | 'OVERDUE' | 'CANCELLED';
+export type DynamicInvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'PARTIAL' | 'OVERDUE' | 'CANCELLED' | 'OVERPAID' | 'UNDERPAID' | 'UNPAID' | 'DISPUTED';
 
 export interface DynamicInvoice {
   id: string;
@@ -662,8 +662,9 @@ export interface InvoiceDto {
   discountAmount: number;
   discountPolicyName?: string;
   finalAmount: number;
+  paidAmount?: number;
   dueDate: string;
-  status: 'UNPAID' | 'DRAFT' | 'PENDING' | 'PARTIAL' | 'PAID' | 'CANCELLED' | 'OVERDUE' | 'DISPUTED';
+  status: InvoiceStatus;
   paymentQrCode: string;
   items: InvoiceItemDto[];
   message?: string;

@@ -237,7 +237,7 @@ export interface RegisterFcmTokenPayload {
 // XEM BẢNG KÊ HỌC PHÍ & CHI TIẾT KHẤU TRỪ
 // ==========================================
 
-export type ParentInvoiceStatus = 'ISSUED' | 'PAID' | 'PARTIALLY_PAID' | 'DISPUTED' | 'RECALLED';
+export type ParentInvoiceStatus = 'ISSUED' | 'PAID' | 'PARTIALLY_PAID' | 'PARTIAL' | 'UNDERPAID' | 'OVERPAID' | 'DISPUTED' | 'RECALLED' | 'UNPAID';
 
 export interface MealRefundDetailItem {
   date: string; // YYYY-MM-DD
@@ -315,6 +315,7 @@ export interface VietQrPaymentInfo {
   qrImageUrl: string;
   staticQrUrl?: string;
   paymentQrCode?: string;
+  checkoutUrl?: string;
   deepLinkUrl: string; // vietqr:// hoặc universal link PayOS
   isGatewayBusy?: boolean; // MSG-194
 }

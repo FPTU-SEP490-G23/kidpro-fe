@@ -53,8 +53,8 @@ export const CashReceiptsTab: React.FC = () => {
     try {
       const res = await financeApi.getInvoices({});
       const list: InvoiceDto[] = (res as any)?.data || res || [];
-      const unpaidCount = list.filter((i) => i.status !== 'PAID').length;
-      const paidCount = list.filter((i) => i.status === 'PAID').length;
+      const unpaidCount = list.filter((i) => i.status !== 'PAID' && i.status !== 'OVERPAID').length;
+      const paidCount = list.filter((i) => i.status === 'PAID' || i.status === 'OVERPAID').length;
       setStats({ unpaid: unpaidCount, paid: paidCount });
     } catch {
       // ignore
@@ -84,7 +84,8 @@ export const CashReceiptsTab: React.FC = () => {
 
   const openCashPayModal = (inv: InvoiceDto) => {
     setSelectedInvoice(inv);
-    setAmountPaid(inv.finalAmount);
+    const remaining = Math.max(0, inv.finalAmount - (inv.paidAmount || 0));
+    setAmountPaid(remaining > 0 ? remaining : inv.finalAmount);
     setPayerName(inv.parentName || 'Phụ huynh học sinh');
     setPaymentDate(new Date().toISOString().split('T')[0]);
     setNotes('Thu tiền mặt trực tiếp tại văn phòng kế toán trường');
@@ -530,7 +531,8 @@ export const CashReceiptsTab: React.FC = () => {
             <option value="ALL">Tất cả trạng thái</option>
             <option value="UNPAID">Chờ thanh toán (UNPAID)</option>
             <option value="PAID">Đã thanh toán (PAID) — Sẵn sàng in biên lai</option>
-            <option value="PARTIAL">Nộp một phần (PARTIAL)</option>
+            <option value="PARTIAL">Nộp thiếu (PARTIAL)</option>
+            <option value="OVERPAID">Nộp thừa (OVERPAID)</option>
           </select>
         </div>
 
@@ -602,25 +604,34 @@ export const CashReceiptsTab: React.FC = () => {
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">Sẵn sàng xuất biên lai</span>
                         </div>
+                      ) : inv.status === 'OVERPAID' ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 w-fit">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                            Nộp thừa
+                          </span>
+                          <span className="text-[10px] text-purple-600 font-medium">Đã thanh toán thừa tiền</span>
+                        </div>
+                      ) : inv.status === 'PARTIAL' || inv.status === 'UNDERPAID' ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 w-fit">
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                            Nộp thiếu
+                          </span>
+                          <span className="text-[10px] text-amber-600 font-medium">
+                            Đã nộp: {formatCurrency(inv.paidAmount || 0)}
+                          </span>
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200">
+                          <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
                           Chờ thanh toán
                         </span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {inv.status !== 'PAID' ? (
-                          <button
-                            onClick={() => openCashPayModal(inv)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
-                            title="Xác nhận thu tiền mặt và gạch nợ"
-                          >
-                            <Banknote className="w-3.5 h-3.5" />
-                            Thu tiền mặt
-                          </button>
-                        ) : (
+                        {inv.status === 'PAID' || inv.status === 'OVERPAID' ? (
                           <button
                             onClick={() => handleViewReceipt(inv)}
                             disabled={loadingReceipt && activeReceiptInvoiceId === inv.invoiceId}
@@ -633,6 +644,15 @@ export const CashReceiptsTab: React.FC = () => {
                               <Printer className="w-3.5 h-3.5 text-indigo-600" />
                             )}
                             In biên lai
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openCashPayModal(inv)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
+                            title="Xác nhận thu tiền mặt và gạch nợ"
+                          >
+                            <Banknote className="w-3.5 h-3.5" />
+                            {inv.status === 'PARTIAL' || inv.status === 'UNDERPAID' ? 'Thu tiếp tiền mặt' : 'Thu tiền mặt'}
                           </button>
                         )}
                       </div>

@@ -409,7 +409,8 @@ export const TuitionCalculationTab: React.FC = () => {
             <option value="ALL">Tất cả trạng thái</option>
             <option value="UNPAID">Chờ thanh toán (UNPAID)</option>
             <option value="PAID">Đã thanh toán (PAID)</option>
-            <option value="PARTIAL">Thanh toán một phần (PARTIAL)</option>
+            <option value="PARTIAL">Nộp thiếu (PARTIAL)</option>
+            <option value="OVERPAID">Nộp thừa (OVERPAID)</option>
           </select>
 
           <div className="relative">
@@ -618,17 +619,22 @@ export const TuitionCalculationTab: React.FC = () => {
                           Đã thanh toán
                         </span>
                       )}
+                      {inv.status === 'OVERPAID' && (
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          Nộp thừa
+                        </span>
+                      )}
+                      {(inv.status === 'PARTIAL' || inv.status === 'UNDERPAID') && (
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          Nộp thiếu
+                        </span>
+                      )}
                       {inv.status === 'UNPAID' && (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                           Chờ thanh toán
                         </span>
                       )}
-                      {inv.status === 'PARTIAL' && (
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          Nộp một phần
-                        </span>
-                      )}
-                      {!['PAID', 'UNPAID', 'PARTIAL'].includes(inv.status) && (
+                      {!['PAID', 'OVERPAID', 'PARTIAL', 'UNDERPAID', 'UNPAID'].includes(inv.status) && (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
                           {inv.status}
                         </span>
