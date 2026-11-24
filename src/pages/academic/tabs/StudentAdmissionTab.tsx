@@ -171,13 +171,11 @@ export const StudentAdmissionTab: React.FC = () => {
     queryFn: () => academicYearApi.getAcademicYears(),
   });
 
-  // Niên khóa hiện hành đang áp dụng (ACTIVE)
-  const activeAcademicYear = useMemo(() => {
-    return (
-      academicYears.find((y: any) => y.status === 'ACTIVE' || y.isActive === true) ||
-      academicYears[0]
-    );
-  }, [academicYears]);
+  // Endpoint chỉ trả về năm học có status ACTIVE và isActive = true.
+  const { data: activeAcademicYear = null } = useQuery({
+    queryKey: ['academic-year-active'],
+    queryFn: () => academicYearApi.getActiveAcademicYear(),
+  });
 
   // Danh mục tất cả lớp học
   const { data: allClasses = [] } = useQuery<ClassSummary[]>({
@@ -1047,7 +1045,11 @@ export const StudentAdmissionTab: React.FC = () => {
                         type="text"
                         readOnly
                         disabled
-                        value={activeAcademicYear ? `${activeAcademicYear.name} (Đang áp dụng)` : 'Năm học hiện hành'}
+                        value={
+                          activeAcademicYear
+                            ? `${activeAcademicYear.name} (Đang áp dụng)`
+                            : 'Chưa có năm học ACTIVE và is_active = true'
+                        }
                         className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 cursor-not-allowed select-none"
                       />
                       <input type="hidden" value={createForm.academicYearId || (activeAcademicYear?.id || '')} />

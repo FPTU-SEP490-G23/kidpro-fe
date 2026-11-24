@@ -27,6 +27,7 @@ const mapBackendToAcademicYear = (item: any): AcademicYear => {
     totalQuota: Number(item.totalQuota ?? 300),
     enrolledCount: Number(item.enrolledCount ?? 0),
     maxSchoolCapacity: Number(item.maxSchoolCapacity ?? 350),
+    isActive: item.isActive === true,
     status: (item.status || (item.isActive ? 'ACTIVE' : 'PLANNING')) as AcademicYearStatus,
     notes: item.notes || item.statusMessage || '',
     isLocked: item.status === 'CLOSED',
@@ -83,7 +84,10 @@ export const academicYearApi = {
       if (!item || item === null) {
         return null;
       }
-      if (item && (item.academicYearId || item.id) && item.isActive !== false && item.status !== 'CLOSED') {
+      if (item
+        && (item.academicYearId || item.id)
+        && item.isActive === true
+        && String(item.status || '').toUpperCase() === 'ACTIVE') {
         return mapBackendToAcademicYear(item);
       }
       return null;

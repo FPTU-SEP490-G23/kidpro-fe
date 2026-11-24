@@ -49,7 +49,7 @@ export const teachingAssignmentApi = {
   // Phê duyệt tất cả các lớp đủ điều kiện (đủ GVCN và Phụ tá)
   approveAllAssignments: async (): Promise<{ message: string; approvedCount?: number; data?: TeachingAssignmentItem[] }> => {
     const res: any = await axiosClient.post('/bgh/teaching-assignments/approve-all');
-    return res?.data || res;
+    return res;
   },
 
   // Từ chối phân công cho cả lớp học kèm lý do

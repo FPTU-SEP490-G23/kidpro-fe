@@ -11,6 +11,8 @@ export interface BusRegistrationItem {
   busId: string;
   busNumber: string;
   routeName: string;
+  stopId?: number;
+  stopName?: string;
   pickupAddress: string;
   pickupType: 'ONE_WAY_PICKUP' | 'ONE_WAY_DROPOFF' | 'TWO_WAY';
   startDate: string;

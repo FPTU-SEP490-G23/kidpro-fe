@@ -29,7 +29,7 @@ interface ClassAssignmentGroup {
   assistant?: TeachingAssignmentItem;
   otherAssignments: TeachingAssignmentItem[];
   allAssignments: TeachingAssignmentItem[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string;
 }
 

@@ -863,50 +863,30 @@ export const parentApi = {
   // ==========================================
   // 1. Tuyến xe buýt có sẵn
   getAvailableBuses: async () => {
-    try {
-      const resp = await axiosClient.get<any>('/parents/available-buses');
-      const list = safeExtractList(resp);
-      if (list.length > 0) {
-        return list.map((b: any) => ({
-          ...b,
-          id: b.busId || b.id,
-          busId: b.busId || b.id,
-          busName: b.routeDescription || b.busName || b.routeName || `Tuyến buýt số ${b.busNumber || ''}`,
-          routeName: b.routeDescription || b.routeName || b.busName || `Tuyến buýt số ${b.busNumber || ''}`,
-          licensePlate: b.busNumber || b.licensePlate || 'Xe trường',
-          busNumber: b.busNumber || b.licensePlate || 'Xe trường',
-          fee: b.fee || 1200000,
-        }));
-      }
-    } catch (e) {
-      console.warn('API /parents/available-buses fallback notice:', e);
-    }
-    return [
-      { id: 'BUS-01', busId: 'BUS-01', busName: 'Tuyến số 01 (Quận 1 - Quận 5)', routeName: 'Tuyến số 01 (Quận 1 - Quận 5)', licensePlate: '51B-123.45', busNumber: '51B-123.45', driverName: 'Nguyễn Văn Nam', driverPhone: '0908 111 222', fee: 1200000 },
-      { id: 'BUS-02', busId: 'BUS-02', busName: 'Tuyến số 02 (Quận 7 - Nhà Bè)', routeName: 'Tuyến số 02 (Quận 7 - Nhà Bè)', licensePlate: '51B-678.90', busNumber: '51B-678.90', driverName: 'Trần Văn Dũng', driverPhone: '0912 333 444', fee: 1200000 },
-    ];
+    const resp = await axiosClient.get<any>('/parents/available-buses');
+    return safeExtractList(resp).map((b: any) => ({
+      ...b,
+      id: b.busId || b.id,
+      busId: b.busId || b.id,
+      busName: b.routeDescription || b.busName || b.routeName || `Tuyến buýt số ${b.busNumber || ''}`,
+      routeName: b.routeDescription || b.routeName || b.busName || `Tuyến buýt số ${b.busNumber || ''}`,
+      licensePlate: b.busNumber || b.licensePlate || 'Xe trường',
+      busNumber: b.busNumber || b.licensePlate || 'Xe trường',
+      fee: b.fee || 1200000,
+    }));
   },
 
   // 2. Điểm dừng theo tuyến xe
   getBusStops: async (busId: string) => {
-    try {
-      const resp = await axiosClient.get<any>(`/parents/buses/${busId}/stops`);
-      const list = safeExtractList(resp);
-      if (list.length > 0) return list;
-    } catch {
-      // fallback
-    }
-    return [
-      { id: 'STOP-01', stopName: 'Công viên 23/9 (Q.1)', stopAddress: 'Đường Phạm Ngũ Lão, Q.1', pickupTime: '06:45', dropoffTime: '17:15' },
-      { id: 'STOP-02', stopName: 'Chợ Bến Thành (Q.1)', stopAddress: 'Cửa Nam Chợ Bến Thành, Q.1', pickupTime: '07:00', dropoffTime: '17:00' },
-      { id: 'STOP-03', stopName: 'Ngã tư Nguyễn Trãi - Cống Quỳnh', stopAddress: 'Nguyễn Trãi, Q.1', pickupTime: '07:15', dropoffTime: '16:45' },
-    ];
+    const resp = await axiosClient.get<any>(`/parents/buses/${busId}/stops`);
+    return safeExtractList(resp);
   },
 
   // 3. Nộp đơn đăng ký xe buýt
   submitBusRegister: async (payload: {
     studentId: string;
     busId: string;
+    stopId: number;
     pickupAddress: string;
     pickupType: 'ONE_WAY' | 'TWO_WAY';
     startDate: string;

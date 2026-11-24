@@ -24,11 +24,117 @@ import { facilityClassroomApi, FacilityClassroom } from '../../api/facilityClass
 import academicYearApi from '../../api/academicYearApi';
 import { busManagementApi } from '../../api/busManagementApi';
 import { TeacherOption } from '../../types/bus.types';
+import type { AcademicYear } from '../../types/academicYear.types';
+
+const CLUB_DAYS = [
+  { value: '2', label: 'Thứ 2' },
+  { value: '3', label: 'Thứ 3' },
+  { value: '4', label: 'Thứ 4' },
+  { value: '5', label: 'Thứ 5' },
+  { value: '6', label: 'Thứ 6' },
+  { value: '7', label: 'Thứ 7' },
+  { value: 'SUNDAY', label: 'Chủ nhật' },
+];
+
+const toScheduleDescription = (days: string[], startTime: string, endTime: string): string => {
+  const dayLabels = CLUB_DAYS.filter((day) => days.includes(day.value)).map((day) => day.label);
+  return `${dayLabels.join(', ')} (${startTime} - ${endTime})`;
+};
+
+const parseScheduleDescription = (value: string) => {
+  const dayValues: Record<string, string> = {
+    '2': '2', hai: '2', '3': '3', ba: '3', '4': '4', tư: '4', bốn: '4',
+    '5': '5', năm: '5', '6': '6', sáu: '6', '7': '7', bảy: '7',
+  };
+  const days = new Set<string>();
+  const dayPattern = /thứ\s*(2|3|4|5|6|7|hai|ba|tư|bốn|năm|sáu|bảy)/gi;
+  let dayMatch: RegExpExecArray | null;
+  while ((dayMatch = dayPattern.exec(value)) !== null) {
+    const day = dayValues[dayMatch[1].toLowerCase()];
+    if (day) days.add(day);
+  }
+  if (/chủ\s*nhật/i.test(value)) days.add('SUNDAY');
+
+  const timeMatch = value.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  return {
+    days: CLUB_DAYS.filter((day) => days.has(day.value)).map((day) => day.value),
+    startTime: timeMatch?.[1] || '16:00',
+    endTime: timeMatch?.[2] || '17:00',
+  };
+};
+
+interface ScheduleEditorProps {
+  days: string[];
+  onDaysChange: (days: string[]) => void;
+  startTime: string;
+  onStartTimeChange: (time: string) => void;
+  endTime: string;
+  onEndTimeChange: (time: string) => void;
+}
+
+const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
+  days,
+  onDaysChange,
+  startTime,
+  onStartTimeChange,
+  endTime,
+  onEndTimeChange,
+}) => (
+  <>
+    <div>
+      <label className="text-xs font-semibold text-slate-700 block mb-1">
+        Thứ học <span className="text-rose-500">*</span>
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {CLUB_DAYS.map((day) => (
+          <label key={day.value} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs">
+            <input
+              type="checkbox"
+              checked={days.includes(day.value)}
+              onChange={(event) => onDaysChange(
+                event.target.checked
+                  ? [...days, day.value]
+                  : days.filter((value) => value !== day.value)
+              )}
+            />
+            {day.label}
+          </label>
+        ))}
+      </div>
+    </div>
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="text-xs font-semibold text-slate-700 block mb-1">
+          Giờ bắt đầu <span className="text-rose-500">*</span>
+        </label>
+        <input
+          type="time"
+          required
+          value={startTime}
+          onChange={(event) => onStartTimeChange(event.target.value)}
+          className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-semibold text-slate-700 block mb-1">
+          Giờ kết thúc <span className="text-rose-500">*</span>
+        </label>
+        <input
+          type="time"
+          required
+          value={endTime}
+          onChange={(event) => onEndTimeChange(event.target.value)}
+          className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
+        />
+      </div>
+    </div>
+  </>
+);
 
 export const BghExtracurricularClassesPage: React.FC = () => {
   const [classes, setClasses] = useState<ExtracurricularClassDto[]>([]);
   const [classrooms, setClassrooms] = useState<FacilityClassroom[]>([]);
-  const [academicYears, setAcademicYears] = useState<any[]>([]);
+  const [activeAcademicYear, setActiveAcademicYear] = useState<AcademicYear | null>(null);
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -43,6 +149,9 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     externalInstructorName: '',
     tuitionFee: 500000,
   });
+  const [createScheduleDays, setCreateScheduleDays] = useState<string[]>([]);
+  const [createScheduleStart, setCreateScheduleStart] = useState('16:30');
+  const [createScheduleEnd, setCreateScheduleEnd] = useState('17:30');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Modal Full Edit Class
@@ -55,6 +164,9 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     externalInstructorName: '',
     tuitionFee: 500000,
   });
+  const [editScheduleDays, setEditScheduleDays] = useState<string[]>([]);
+  const [editScheduleStart, setEditScheduleStart] = useState('16:30');
+  const [editScheduleEnd, setEditScheduleEnd] = useState('17:30');
   const [updating, setUpdating] = useState<boolean>(false);
 
   // Toast
@@ -63,20 +175,17 @@ export const BghExtracurricularClassesPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [clsRes, roomRes, yearRes, teachersRes] = await Promise.all([
+      const [clsRes, roomRes, activeYear, teachersRes] = await Promise.all([
         extracurricularApi.getClasses(),
         facilityClassroomApi.getAllClassrooms(),
-        academicYearApi.getAcademicYears(),
+        academicYearApi.getActiveAcademicYear(),
         busManagementApi.getTeacherOptions(),
       ]);
       setClasses(Array.isArray(clsRes) ? clsRes : ((clsRes as any)?.data || []));
       setClassrooms(roomRes || []);
-      const years = Array.isArray(yearRes) ? yearRes : ((yearRes as any)?.data || []);
-      setAcademicYears(years);
+      setActiveAcademicYear(activeYear);
+      setFormData((prev) => ({ ...prev, academicYearId: activeYear?.id || '' }));
       setTeachers(Array.isArray(teachersRes) ? teachersRes : []);
-      if (years.length > 0 && !formData.academicYearId) {
-        setFormData((prev) => ({ ...prev, academicYearId: years[0].academicYearId || years[0].id }));
-      }
     } catch (err: any) {
       console.error('Lỗi khi tải dữ liệu CLB ngoại khóa:', err);
     } finally {
@@ -92,6 +201,14 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     e.preventDefault();
     if (!formData.className.trim()) {
       setAlertInfo({ type: 'error', message: 'Vui lòng nhập tên lớp câu lạc bộ năng khiếu.' });
+      return;
+    }
+    if (!activeAcademicYear?.id) {
+      setAlertInfo({ type: 'error', message: 'Chưa có năm học đang hoạt động (is_active = true, status = ACTIVE).' });
+      return;
+    }
+    if (createScheduleDays.length === 0 || !createScheduleStart || !createScheduleEnd || createScheduleStart >= createScheduleEnd) {
+      setAlertInfo({ type: 'error', message: 'Vui lòng chọn thứ học và khung giờ hợp lệ.' });
       return;
     }
     if (formData.maxCapacity < 10 || formData.maxCapacity > 30) {
@@ -113,6 +230,8 @@ export const BghExtracurricularClassesPage: React.FC = () => {
       setSubmitting(true);
       const payload: ExtracurricularClassCreatePayload = {
         ...formData,
+        academicYearId: activeAcademicYear.id,
+        scheduleDescription: toScheduleDescription(createScheduleDays, createScheduleStart, createScheduleEnd),
         classroomId: formData.classroomId && formData.classroomId.trim() !== '' ? formData.classroomId : undefined,
       };
       const res = await extracurricularApi.createAndApproveClass(payload);
@@ -123,13 +242,16 @@ export const BghExtracurricularClassesPage: React.FC = () => {
       setCreateModalOpen(false);
       setFormData({
         className: '',
-        academicYearId: academicYears[0]?.academicYearId || '',
+        academicYearId: activeAcademicYear.id,
         classroomId: '',
         scheduleDescription: '',
         maxCapacity: 20,
         externalInstructorName: '',
         tuitionFee: 500000,
       });
+      setCreateScheduleDays([]);
+      setCreateScheduleStart('16:30');
+      setCreateScheduleEnd('17:30');
       fetchData();
     } catch (err: any) {
       setAlertInfo({
@@ -152,6 +274,10 @@ export const BghExtracurricularClassesPage: React.FC = () => {
 
   const handleOpenEditModal = (cls: ExtracurricularClassDto) => {
     setEditingClass(cls);
+    const schedule = parseScheduleDescription(cls.scheduleDescription || '');
+    setEditScheduleDays(schedule.days);
+    setEditScheduleStart(schedule.startTime);
+    setEditScheduleEnd(schedule.endTime);
     setEditFormData({
       className: cls.className || '',
       classroomId: cls.classroomId || '',
@@ -167,6 +293,10 @@ export const BghExtracurricularClassesPage: React.FC = () => {
     if (!editingClass) return;
     if (!editFormData.className.trim()) {
       setAlertInfo({ type: 'error', message: 'Vui lòng nhập tên lớp câu lạc bộ.' });
+      return;
+    }
+    if (editScheduleDays.length === 0 || !editScheduleStart || !editScheduleEnd || editScheduleStart >= editScheduleEnd) {
+      setAlertInfo({ type: 'error', message: 'Vui lòng chọn thứ học và khung giờ hợp lệ.' });
       return;
     }
     if (editFormData.maxCapacity < 10 || editFormData.maxCapacity > 30) {
@@ -185,6 +315,7 @@ export const BghExtracurricularClassesPage: React.FC = () => {
       setUpdating(true);
       const payload: ExtracurricularClassUpdatePayload = {
         ...editFormData,
+        scheduleDescription: toScheduleDescription(editScheduleDays, editScheduleStart, editScheduleEnd),
         classroomId: editFormData.classroomId && editFormData.classroomId.trim() !== '' ? editFormData.classroomId : undefined,
       };
       await extracurricularApi.updateClass(editingClass.extracurricularClassId, payload);
@@ -393,19 +524,11 @@ export const BghExtracurricularClassesPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    Năm học áp dụng <span className="text-rose-500">*</span>
+                    Năm học áp dụng
                   </label>
-                  <select
-                    value={formData.academicYearId}
-                    onChange={(e) => setFormData({ ...formData, academicYearId: e.target.value })}
-                    className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-                  >
-                    {academicYears.map((y) => (
-                      <option key={y.academicYearId || y.id} value={y.academicYearId || y.id}>
-                        {y.yearName || y.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="w-full text-sm p-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-700">
+                    {activeAcademicYear?.name || 'Chưa có năm học đang hoạt động'}
+                  </div>
                 </div>
 
                 <div>
@@ -427,19 +550,14 @@ export const BghExtracurricularClassesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Lịch học & Khung giờ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Thứ 3 & Thứ 5 (16:30 - 17:30)"
-                  value={formData.scheduleDescription}
-                  onChange={(e) => setFormData({ ...formData, scheduleDescription: e.target.value })}
-                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-                />
-              </div>
+              <ScheduleEditor
+                days={createScheduleDays}
+                onDaysChange={setCreateScheduleDays}
+                startTime={createScheduleStart}
+                onStartTimeChange={setCreateScheduleStart}
+                endTime={createScheduleEnd}
+                onEndTimeChange={setCreateScheduleEnd}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -565,18 +683,14 @@ export const BghExtracurricularClassesPage: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Lịch học & Khung giờ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editFormData.scheduleDescription}
-                  onChange={(e) => setEditFormData({ ...editFormData, scheduleDescription: e.target.value })}
-                  className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#275A4E]"
-                />
-              </div>
+              <ScheduleEditor
+                days={editScheduleDays}
+                onDaysChange={setEditScheduleDays}
+                startTime={editScheduleStart}
+                onStartTimeChange={setEditScheduleStart}
+                endTime={editScheduleEnd}
+                onEndTimeChange={setEditScheduleEnd}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

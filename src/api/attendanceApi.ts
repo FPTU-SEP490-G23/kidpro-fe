@@ -8,6 +8,11 @@ import {
   FaceLog,
   EmergencyPickupAuthorization
 } from '../types/attendance.types';
+import {
+  BusAttendanceAction,
+  BusTripState,
+  TeacherBusRoute,
+} from '../types/bus.types';
 
 export const attendanceApi = {
   //  & Ghi nhận kết quả quét camera cổng (Check-in & Check-out)
@@ -154,25 +159,15 @@ export const attendanceApi = {
   },
 
   // 6. Tuyến xe buýt giáo viên phụ trách
-  getTeacherBusRoutes: async () => {
-    try {
-      const resp = await axiosClient.get<any[]>('/teachers/bus/routes');
-      return resp.data || [];
-    } catch {
-      return [
-        { id: 'BUS-01', routeName: 'Tuyến số 01 (Quận 1 - Quận 5)', busPlate: '51B-123.45', driverName: 'Nguyễn Văn Nam', driverPhone: '0908 111 222' }
-      ];
-    }
+  getTeacherBusRoutes: async (): Promise<TeacherBusRoute[]> => {
+    const resp: any = await axiosClient.get('/teachers/bus/routes');
+    return resp?.data ?? resp;
   },
 
   // 7. Điểm dừng chuyến xe buýt
-  getBusTripStops: async (tripId: string) => {
-    try {
-      const resp = await axiosClient.get<any[]>(`/teachers/bus/trips/${tripId}/stops`);
-      return resp.data || [];
-    } catch {
-      return [];
-    }
+  getBusTripStops: async (tripId: string): Promise<BusTripState> => {
+    const resp: any = await axiosClient.get(`/teachers/bus/trips/${tripId}/stops`);
+    return resp?.data ?? resp;
   },
 
   // 8. Điểm danh đón/trả học sinh xe buýt tại trạm
@@ -180,7 +175,7 @@ export const attendanceApi = {
     studentId: string;
     stopId?: string;
     tripId: string;
-    checkinType: 'PICKUP' | 'DROPOFF';
+    action: BusAttendanceAction;
     latitude?: number;
     longitude?: number;
   }) => {
@@ -190,9 +185,10 @@ export const attendanceApi = {
 
   // 9. Chốt an toàn khoang xe rỗng
   performBusSafetyClosure: async (tripId: string, data: {
-    emptyCabinConfirmed: boolean;
-    photoUrl?: string;
-    note?: string;
+    photoUrl: string;
+    qrTailScanToken: string;
+    remainingStudentsCount: number;
+    notes?: string;
   }) => {
     const resp = await axiosClient.post(`/attendance/bus/trips/${tripId}/safety-closure`, data);
     return resp.data;

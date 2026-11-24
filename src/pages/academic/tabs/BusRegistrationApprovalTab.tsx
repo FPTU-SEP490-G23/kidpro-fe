@@ -150,6 +150,13 @@ export const BusRegistrationApprovalTab: React.FC = () => {
             Từ Chối
           </span>
         );
+      case 'CANCELLED':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            <XCircle className="w-3.5 h-3.5" />
+            Đã hủy đơn
+          </span>
+        );
       case 'PENDING':
       default:
         return (
@@ -332,7 +339,7 @@ export const BusRegistrationApprovalTab: React.FC = () => {
                       </div>
                       <div className="flex items-start gap-1 mt-1 text-[11px] text-slate-600 line-clamp-2">
                         <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
-                        <span>{item.pickupAddress}</span>
+                        <span>{item.stopName ? `${item.stopName} — ` : ''}{item.pickupAddress}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">

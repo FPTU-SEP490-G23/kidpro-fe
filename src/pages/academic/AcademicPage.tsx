@@ -133,7 +133,7 @@ const TAB_META: Record<AcademicTabKey, TabMeta> = {
   },
   parent_accounts: {
     title: 'Quản Lý & Kích Hoạt Tài Khoản Phụ Huynh (Parent Mobile App)',
-    description: 'Khởi tạo tài khoản Mobile App theo số điện thoại, gửi mã kích hoạt và liên kết nhiều con (Multi-child) chuyển đổi hồ sơ liền mạch.',
+    description: 'Khởi tạo tài khoản Mobile App bằng email, dùng số điện thoại làm thông tin liên hệ và liên kết nhiều con.',
     icon: Users,
     badge: 'Tài Khoản Phụ Huynh',
   },

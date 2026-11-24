@@ -677,7 +677,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                 11:15 AM
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Nếm cảm quan, dán tem niêm phong lưu hũ $\ge 100g$, tủ 2-8°C & Ký kép</p>
+            <p className="text-xs text-slate-500 mt-1">Nếm cảm quan, dán tem niêm phong lưu hũ ≥ 100g, tủ 2-8°C & Ký kép</p>
             <div className="mt-2 text-[11px] font-bold">
               {localLog.step3Completed ? (
                 <span className="text-emerald-700 flex items-center gap-1">
@@ -1041,7 +1041,7 @@ export const FoodSafetyThreeStepInspectionTab: React.FC<FoodSafetyThreeStepInspe
                   <span>Tiêu Hao Thực Phẩm & Lưu Mẫu Thức Ăn 24H (Bước 3: Trước Khi Ăn)</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Khối lượng mẫu $\ge 100g$, bảo quản ở 2°C – 8°C. Hệ thống tự động đếm lùi thời gian lưu tối thiểu 24 giờ theo QĐ 1246/QĐ-BYT.
+                  Khối lượng mẫu ≥ 100g, bảo quản ở 2°C – 8°C. Hệ thống tự động đếm lùi thời gian lưu tối thiểu 24 giờ theo QĐ 1246/QĐ-BYT.
                 </p>
               </div>
 

@@ -147,7 +147,7 @@ export const ParentAccountManagementTab: React.FC = () => {
   const resendMutation = useMutation({
     mutationFn: (userId: string) => parentAccountService.resendActivation(userId),
     onSuccess: () => {
-      success('Đã gửi lại thông tin kích hoạt và mật khẩu khởi tạo tới Gmail/SĐT của phụ huynh.');
+      success('Đã gửi lại thông tin kích hoạt và mật khẩu khởi tạo tới email của phụ huynh.');
     },
     onError: (err: any) => {
       error(err?.response?.data?.message || err?.message || 'Lỗi gửi lại mã kích hoạt.');
@@ -834,7 +834,7 @@ export const ParentAccountManagementTab: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Số điện thoại (Tên đăng nhập) <span className="text-rose-500">*</span>
+                    Số điện thoại liên hệ <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -849,7 +849,7 @@ export const ParentAccountManagementTab: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Địa chỉ Gmail phụ huynh (Nhận tài khoản & mật khẩu) <span className="text-rose-500">*</span>
+                Địa chỉ Gmail phụ huynh (Tên đăng nhập & nhận mật khẩu) <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -960,8 +960,8 @@ export const ParentAccountManagementTab: React.FC = () => {
                 <span className="font-bold text-slate-800">{provisionResult.fullName}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Tên đăng nhập (SĐT):</span>
-                <span className="font-mono font-bold text-slate-800">{provisionResult.phoneNumber}</span>
+                <span className="text-slate-500">Tên đăng nhập (Email):</span>
+                <span className="font-mono font-bold text-slate-800">{provisionResult.username}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Mật khẩu mặc định:</span>

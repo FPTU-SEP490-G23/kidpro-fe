@@ -64,6 +64,63 @@ export interface BusStopCreateRequest {
   longitude?: number;
 }
 
+export interface TeacherBusRoute {
+  busId: string;
+  busNumber: string;
+  routeName: string;
+  driverName?: string;
+  driverPhone?: string;
+  capacity?: number;
+  stopsCount?: number;
+}
+
+export type BusTripStudentStatus = 'WAITING' | 'ONBOARD' | 'DEBOARDED';
+
+export interface BusTripStudent {
+  studentId: string;
+  studentName: string;
+  className?: string | null;
+  pickupAddress?: string | null;
+  stopId?: string | null;
+  stopName?: string | null;
+  parentPhone?: string | null;
+  pickupType?: string | null;
+  status: BusTripStudentStatus;
+  lastTime?: string | null;
+}
+
+export interface BusTripStop {
+  stopId: string;
+  stopName: string;
+  stopAddress?: string;
+  stopOrder: number;
+  estimatedTime?: string;
+  scheduledTime?: string;
+  studentCount: number;
+  boardedCount: number;
+  deboardedCount: number;
+  isPassed: boolean;
+  isDestination: boolean;
+}
+
+export interface BusTripState {
+  tripId: string;
+  routeName: string;
+  plateNumber: string;
+  driverName?: string;
+  driverPhone?: string;
+  totalStudents: number;
+  onboardCount: number;
+  deboardedCount: number;
+  remainingCount: number;
+  waitingCount: number;
+  isSafetyClosed: boolean;
+  stops: BusTripStop[];
+  students: BusTripStudent[];
+}
+
+export type BusAttendanceAction = 'BOARDING' | 'DEBOARDING';
+
 export interface TeacherOption {
   staffId: string;
   staffCode: string;

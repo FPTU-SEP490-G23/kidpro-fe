@@ -1,485 +1,483 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Bus,
-  MapPin,
-  Clock,
-  Phone,
-  UserCheck,
-  CheckCircle2,
   AlertTriangle,
-  ShieldCheck,
-  Upload,
+  Bus,
   Camera,
+  CheckCircle2,
+  Clock,
+  GraduationCap,
+  MapPin,
+  Phone,
   RefreshCw,
   Search,
-  Check,
-  Users
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { attendanceApi } from '../../../api/attendanceApi';
+import {
+  BusAttendanceAction,
+  BusTripState,
+  BusTripStop,
+  BusTripStudent,
+  TeacherBusRoute,
+} from '../../../types/bus.types';
 
-interface BusStudentItem {
-  id: string;
-  fullName: string;
-  className: string;
-  stopName: string;
-  parentPhone: string;
-  status: 'WAITING' | 'BOARDED' | 'DROPPED_OFF' | 'ABSENT';
-  boardedAt?: string;
-  droppedOffAt?: string;
-}
+const getErrorMessage = (error: unknown) => {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) return response.data.message;
+  }
+  return error instanceof Error ? error.message : 'Không thể thực hiện thao tác. Vui lòng thử lại.';
+};
+
+const statusLabel: Record<BusTripStudent['status'], string> = {
+  WAITING: 'Chờ điểm danh',
+  ONBOARD: 'Đang trên xe',
+  DEBOARDED: 'Đã xuống xe',
+};
 
 export const BusAttendanceTab: React.FC = () => {
   const queryClient = useQueryClient();
+  const [selectedRouteId, setSelectedRouteId] = useState('');
+  const [selectedStopId, setSelectedStopId] = useState('');
+  const [tripPeriod, setTripPeriod] = useState<'MORNING' | 'AFTERNOON'>('MORNING');
+  const [search, setSearch] = useState('');
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [emptyCabinConfirmed, setEmptyCabinConfirmed] = useState(false);
+  const [qrTailScanToken, setQrTailScanToken] = useState('');
+  const [safetyNote, setSafetyNote] = useState('');
+  const [cabinPhoto, setCabinPhoto] = useState<string | null>(null);
 
-  const [selectedTripType, setSelectedTripType] = useState<'MORNING' | 'AFTERNOON'>('MORNING');
-  const [selectedRouteId, setSelectedRouteId] = useState<string>('BUS-01');
-  const [searchStudent, setSearchStudent] = useState<string>('');
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'warning' | 'error'; text: string } | null>(null);
-
-  // Safety Closure State
-  const [emptyCabinConfirmed, setEmptyCabinConfirmed] = useState<boolean>(false);
-  const [safetyNote, setSafetyNote] = useState<string>('');
-  const [cabinPhotoPreview, setCabinPhotoPreview] = useState<string | null>(null);
-  const [isClosureCompleted, setIsClosureCompleted] = useState<boolean>(false);
-
-  // 1. Fetch Bus Routes
-  const { data: routes = [], isLoading: isLoadingRoutes } = useQuery({
+  const routesQuery = useQuery({
     queryKey: ['teacher-bus-routes'],
-    queryFn: async () => {
-      return await attendanceApi.getTeacherBusRoutes();
+    queryFn: attendanceApi.getTeacherBusRoutes,
+  });
+  const routes = routesQuery.data ?? [];
+
+  useEffect(() => {
+    if (!selectedRouteId && routes.length > 0) {
+      setSelectedRouteId(routes[0].busId);
+    } else if (selectedRouteId && !routes.some((route) => route.busId === selectedRouteId)) {
+      setSelectedRouteId(routes[0]?.busId ?? '');
+    }
+  }, [routes, selectedRouteId]);
+
+  const tripQuery = useQuery({
+    queryKey: ['teacher-bus-trip', selectedRouteId],
+    queryFn: () => attendanceApi.getBusTripStops(selectedRouteId),
+    enabled: Boolean(selectedRouteId),
+  });
+  const trip: BusTripState | undefined = tripQuery.data;
+  const stops = trip?.stops ?? [];
+  const students = trip?.students ?? [];
+  const selectedStop = stops.find((stop) => stop.stopId === selectedStopId);
+
+  useEffect(() => {
+    if (stops.length > 0 && !stops.some((stop) => stop.stopId === selectedStopId)) {
+      setSelectedStopId(stops[0].stopId);
+    }
+  }, [stops, selectedStopId]);
+
+  const stopStudents = useMemo(() => {
+    if (!selectedStop) return [];
+    let list: BusTripStudent[];
+    if (tripPeriod === 'MORNING') {
+      list = selectedStop.isDestination
+        ? students.filter((student) => student.status === 'ONBOARD')
+        : students.filter((student) => student.stopId === selectedStop.stopId && student.status !== 'DEBOARDED');
+    } else {
+      list = selectedStop.isDestination
+        ? students.filter((student) => student.status === 'WAITING' || student.status === 'DEBOARDED')
+        : students.filter((student) => student.stopId === selectedStop.stopId && student.status === 'ONBOARD');
+    }
+    const term = search.trim().toLocaleLowerCase('vi');
+    if (!term) return list;
+    return list.filter((student) =>
+      [student.studentName, student.className, student.parentPhone]
+        .some((value) => value?.toLocaleLowerCase('vi').includes(term)),
+    );
+  }, [selectedStop, students, tripPeriod, search]);
+
+  const mutation = useMutation({
+    mutationFn: ({ student, action }: { student: BusTripStudent; action: BusAttendanceAction }) =>
+      attendanceApi.recordBusCheckin({
+        tripId: selectedRouteId,
+        studentId: student.studentId,
+        stopId: selectedStopId,
+        action,
+      }),
+    onSuccess: (_, variables) => {
+      void queryClient.invalidateQueries({ queryKey: ['teacher-bus-trip', selectedRouteId] });
+      setNotice({
+        type: 'success',
+        text: `Đã ghi nhận ${variables.action === 'BOARDING' ? 'đón' : 'trả'} bé ${variables.student.studentName}.`,
+      });
     },
+    onError: (error) => setNotice({ type: 'error', text: getErrorMessage(error) }),
   });
 
-  // Demo Students on Bus
-  const [students, setStudents] = useState<BusStudentItem[]>([
-    {
-      id: 'stu-b1',
-      fullName: 'Trần Bảo An',
-      className: 'Lớp Mầm 1',
-      stopName: 'Trạm 1: 120 Hai Bà Trưng, Q.1',
-      parentPhone: '0903 111 222',
-      status: 'BOARDED',
-      boardedAt: '06:45',
-    },
-    {
-      id: 'stu-b2',
-      fullName: 'Lê Gia Hưng',
-      className: 'Lớp Chồi 2',
-      stopName: 'Trạm 2: 45 Lê Duẩn, Q.1',
-      parentPhone: '0912 333 444',
-      status: 'WAITING',
-    },
-    {
-      id: 'stu-b3',
-      fullName: 'Nguyễn Minh Khang',
-      className: 'Lớp Lá 1',
-      stopName: 'Trạm 2: 45 Lê Duẩn, Q.1',
-      parentPhone: '0988 555 666',
-      status: 'WAITING',
-    },
-    {
-      id: 'stu-b4',
-      fullName: 'Phạm Quỳnh Anh',
-      className: 'Lớp Mầm 2',
-      stopName: 'Trạm 3: 88 Nguyễn Đình Chiểu, Q.3',
-      parentPhone: '0934 777 888',
-      status: 'ABSENT',
-    },
-  ]);
-
-  // Check-in Mutation
-  const handleCheckin = (studentId: string, newStatus: 'BOARDED' | 'DROPPED_OFF') => {
-    const timeNow = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.id === studentId) {
-          return {
-            ...s,
-            status: newStatus,
-            boardedAt: newStatus === 'BOARDED' ? timeNow : s.boardedAt,
-            droppedOffAt: newStatus === 'DROPPED_OFF' ? timeNow : s.droppedOffAt,
-          };
-        }
-        return s;
-      })
-    );
-
-    const st = students.find((s) => s.id === studentId);
-    setToastMessage({
-      type: 'success',
-      text: `Đã xác nhận ${newStatus === 'BOARDED' ? 'lên xe' : 'xuống xe an toàn'} cho bé ${st?.fullName || ''} lúc ${timeNow}`,
-    });
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  // Handle Photo selection for safety closure
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setCabinPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Submit Safety Closure
-  const handleSafetyClosure = async () => {
-    if (!emptyCabinConfirmed) {
-      setToastMessage({
-        type: 'warning',
-        text: 'Vui lòng tích xác nhận đã rà soát khoang xe và không còn bé nào trên xe.',
+  const closureMutation = useMutation({
+    mutationFn: () => {
+      if (!selectedRouteId || !cabinPhoto || !qrTailScanToken.trim()) {
+        throw new Error('Cần ảnh khoang xe và mã QR đuôi xe.');
+      }
+      return attendanceApi.performBusSafetyClosure(selectedRouteId, {
+        photoUrl: cabinPhoto,
+        qrTailScanToken: qrTailScanToken.trim(),
+        remainingStudentsCount: trip?.remainingCount ?? 0,
+        notes: safetyNote.trim() || undefined,
       });
-      setTimeout(() => setToastMessage(null), 3500);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['teacher-bus-trip', selectedRouteId] });
+      setNotice({ type: 'success', text: 'Đã chốt an toàn chuyến xe.' });
+    },
+    onError: (error) => setNotice({ type: 'error', text: getErrorMessage(error) }),
+  });
+
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setNotice({ type: 'error', text: 'Ảnh phải nhỏ hơn 5 MB.' });
+      event.target.value = '';
       return;
     }
-
-    try {
-      await attendanceApi.performBusSafetyClosure('TRIP-TODAY', {
-        emptyCabinConfirmed: true,
-        photoUrl: cabinPhotoPreview || undefined,
-        note: safetyNote,
-      });
-    } catch {
-      // ignore
-    }
-
-    setIsClosureCompleted(true);
-    setToastMessage({
-      type: 'success',
-      text: 'Đã hoàn thành chốt an toàn chuyến xe! Dữ liệu đã được lưu trữ bảo mật.',
-    });
-    setTimeout(() => setToastMessage(null), 4000);
+    const reader = new FileReader();
+    reader.onload = () => setCabinPhoto(typeof reader.result === 'string' ? reader.result : null);
+    reader.onerror = () => setNotice({ type: 'error', text: 'Không thể đọc ảnh đã chọn.' });
+    reader.readAsDataURL(file);
   };
 
-  const filteredStudents = students.filter(
-    (s) =>
-      s.fullName.toLowerCase().includes(searchStudent.toLowerCase()) ||
-      s.className.toLowerCase().includes(searchStudent.toLowerCase()) ||
-      s.stopName.toLowerCase().includes(searchStudent.toLowerCase())
-  );
+  const actionForStop = (stop: BusTripStop): BusAttendanceAction => {
+    if (tripPeriod === 'MORNING') return stop.isDestination ? 'DEBOARDING' : 'BOARDING';
+    return stop.isDestination ? 'BOARDING' : 'DEBOARDING';
+  };
 
-  const boardedCount = students.filter((s) => s.status === 'BOARDED').length;
-  const waitingCount = students.filter((s) => s.status === 'WAITING').length;
-  const absentCount = students.filter((s) => s.status === 'ABSENT').length;
+  const route: TeacherBusRoute | undefined = routes.find((item) => item.busId === selectedRouteId);
+  const unassignedCount = students.filter((student) => !student.stopId).length;
+  const tripClosed = Boolean(trip?.isSafetyClosed);
 
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans']">
-      {/* Toast Alert */}
-      {toastMessage && (
+    <div className="space-y-5">
+      {notice && (
         <div
-          className={`p-4 rounded-2xl flex items-center gap-3 transition-all animate-in fade-in shadow-sm ${
-            toastMessage.type === 'success'
-              ? 'bg-[#78C2AD]/15 border border-[#78C2AD] text-[#1E4D40]'
-              : toastMessage.type === 'warning'
-              ? 'bg-amber-50 border border-amber-300 text-amber-900'
-              : 'bg-rose-50 border border-rose-300 text-rose-900'
+          role="status"
+          className={`flex items-center gap-2 rounded-2xl border p-3 text-sm font-semibold ${
+            notice.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-rose-200 bg-rose-50 text-rose-800'
           }`}
         >
-          {toastMessage.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 text-[#275A4E] shrink-0" />
-          ) : (
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
-          )}
-          <span className="font-semibold text-sm">{toastMessage.text}</span>
+          {notice.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+          <span className="flex-1">{notice.text}</span>
+          <button type="button" onClick={() => setNotice(null)} className="text-xs underline">Đóng</button>
         </div>
       )}
 
-      {/* Top Header Card */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[#1E4D40] flex items-center gap-2">
-            <Bus className="w-6 h-6 text-[#275A4E]" />
-            <span>Điểm Danh Xe Buýt Đưa Đón & Chốt An Toàn Khoang Xe</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Theo dõi danh sách học sinh đón tại từng trạm, check-in lên/xuống xe và quy trình bắt buộc chốt rỗng khoang xe phòng tránh bỏ quên trẻ.
-          </p>
-        </div>
-
-        {/* Trip Type Selector */}
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl shrink-0">
+      <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#1E4D40]">
+              <Bus className="h-5 w-5" />
+              Điểm danh xe buýt theo trạm
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">Chọn trạm để xem danh sách học sinh đã đăng ký tại điểm đó.</p>
+          </div>
           <button
             type="button"
-            onClick={() => setSelectedTripType('MORNING')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              selectedTripType === 'MORNING'
-                ? 'bg-white text-[#275A4E] shadow-xs'
-                : 'text-slate-600 hover:text-slate-800'
-            }`}
+            onClick={() => {
+              void routesQuery.refetch();
+              if (selectedRouteId) void tripQuery.refetch();
+            }}
+            disabled={routesQuery.isFetching || tripQuery.isFetching}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            <Clock className="w-3.5 h-3.5 text-[#E5A93C]" />
-            <span>Chuyến Sáng (Đón Đến Trường)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedTripType('AFTERNOON')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              selectedTripType === 'AFTERNOON'
-                ? 'bg-white text-[#275A4E] shadow-xs'
-                : 'text-slate-600 hover:text-slate-800'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-[#275A4E]" />
-            <span>Chuyến Chiều (Trả Về Nhà)</span>
+            <RefreshCw className={`h-4 w-4 ${routesQuery.isFetching || tripQuery.isFetching ? 'animate-spin' : ''}`} />
+            Làm mới
           </button>
         </div>
-      </div>
 
-      {/* Route Info & Stats Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#EBF7F4] p-4 rounded-2xl border border-[#78C2AD]/40 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#275A4E] text-white flex items-center justify-center shrink-0">
-            <Bus className="w-5 h-5 text-[#78C2AD]" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-[#1E4D40] uppercase">Tuyến Xe Phụ Trách</div>
-            <div className="text-sm font-extrabold text-[#1E4D40]">Tuyến số 01 (Q.1 - Q.5)</div>
-            <div className="text-[11px] text-slate-500">Biển số: 51B-123.45</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-amber-600" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-500 uppercase">Đang Chờ Đón</div>
-            <div className="text-xl font-extrabold text-amber-700">{waitingCount} bé</div>
-            <div className="text-[11px] text-slate-400">Tại các trạm tiếp theo</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#275A4E] flex items-center justify-center shrink-0">
-            <UserCheck className="w-5 h-5 text-[#275A4E]" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-500 uppercase">Đã Lên Xe</div>
-            <div className="text-xl font-extrabold text-[#275A4E]">{boardedCount} bé</div>
-            <div className="text-[11px] text-slate-400">Đang an toàn trên xe</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5 text-slate-500" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-500 uppercase">Nghỉ Phép Có Đơn</div>
-            <div className="text-xl font-extrabold text-slate-700">{absentCount} bé</div>
-            <div className="text-[11px] text-slate-400">Bố mẹ đã báo trước</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Student Check-in List */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="font-bold text-base text-[#1E4D40] flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#275A4E]" />
-            <span>Danh Sách Học Sinh Theo Điểm Dừng</span>
-          </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Tìm theo tên bé, lớp..."
-              value={searchStudent}
-              onChange={(e) => setSearchStudent(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-[#275A4E]"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {filteredStudents.map((st) => (
-            <div
-              key={st.id}
-              className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-                st.status === 'BOARDED'
-                  ? 'bg-emerald-50/50 border-emerald-200'
-                  : st.status === 'DROPPED_OFF'
-                  ? 'bg-blue-50/50 border-blue-200'
-                  : st.status === 'ABSENT'
-                  ? 'bg-slate-50 border-slate-200 opacity-60'
-                  : 'bg-white border-slate-200'
-              }`}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="text-xs font-bold text-slate-600">
+            Tuyến xe phụ trách
+            <select
+              value={selectedRouteId}
+              onChange={(event) => {
+                setSelectedRouteId(event.target.value);
+                setSelectedStopId('');
+              }}
+              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800"
+              disabled={routes.length === 0}
             >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
-                    st.status === 'BOARDED'
-                      ? 'bg-[#275A4E] text-white'
-                      : st.status === 'ABSENT'
-                      ? 'bg-slate-200 text-slate-600'
-                      : 'bg-amber-100 text-amber-800'
+              {routes.length === 0 && <option value="">Không có tuyến được phân công</option>}
+              {routes.map((item) => (
+                <option key={item.busId} value={item.busId}>
+                  {item.routeName} — {item.busNumber}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end">
+            <div className="grid w-full grid-cols-2 rounded-xl bg-slate-100 p-1">
+              {(['MORNING', 'AFTERNOON'] as const).map((period) => (
+                <button
+                  type="button"
+                  key={period}
+                  onClick={() => setTripPeriod(period)}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold ${
+                    tripPeriod === period ? 'bg-white text-[#275A4E] shadow-sm' : 'text-slate-500'
                   }`}
                 >
-                  {st.fullName.slice(0, 1)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-800">{st.fullName}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold">
-                      {st.className}
-                    </span>
-                    {st.status === 'BOARDED' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                        Đã lên xe ({st.boardedAt})
-                      </span>
-                    )}
-                    {st.status === 'DROPPED_OFF' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
-                        Đã trả trạm ({st.droppedOffAt})
-                      </span>
-                    )}
-                    {st.status === 'ABSENT' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold">
-                        Nghỉ học hôm nay
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      {st.stopName}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      {st.parentPhone}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                  {period === 'MORNING' ? 'Chuyến sáng · Đón đến trường' : 'Chuyến chiều · Trả về nhà'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 self-end md:self-auto">
-                {selectedTripType === 'MORNING' ? (
-                  st.status === 'WAITING' ? (
-                    <button
-                      type="button"
-                      onClick={() => handleCheckin(st.id, 'BOARDED')}
-                      className="px-3.5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <UserCheck className="w-4 h-4 text-[#78C2AD]" />
-                      <span>Xác Nhận Lên Xe</span>
-                    </button>
-                  ) : st.status === 'BOARDED' ? (
-                    <button
-                      type="button"
-                      onClick={() => handleCheckin(st.id, 'DROPPED_OFF')}
-                      className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Đã Đến Trường</span>
-                    </button>
-                  ) : null
-                ) : (
-                  st.status === 'BOARDED' ? (
-                    <button
-                      type="button"
-                      onClick={() => handleCheckin(st.id, 'DROPPED_OFF')}
-                      className="px-3.5 py-2 rounded-xl bg-[#275A4E] hover:bg-[#1E4D40] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Check className="w-4 h-4 text-[#78C2AD]" />
-                      <span>Đã Trả Bé Cho Phụ Huynh</span>
-                    </button>
-                  ) : null
-                )}
+        {routesQuery.isLoading || tripQuery.isLoading ? (
+          <div className="py-12 text-center text-sm text-slate-500">Đang tải tuyến xe và danh sách học sinh...</div>
+        ) : routesQuery.isError ? (
+          <div className="py-10 text-center text-sm text-rose-700">{getErrorMessage(routesQuery.error)}</div>
+        ) : routes.length === 0 ? (
+          <div className="py-10 text-center text-sm text-slate-500">Giáo viên chưa được phân công tuyến xe buýt.</div>
+        ) : tripQuery.isError ? (
+          <div className="py-10 text-center text-sm text-rose-700">{getErrorMessage(tripQuery.error)}</div>
+        ) : trip ? (
+          <>
+            <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-[#EBF7F4] p-4 sm:grid-cols-4">
+              <div>
+                <div className="text-[10px] font-bold uppercase text-slate-500">Tuyến xe</div>
+                <div className="mt-1 text-sm font-extrabold text-[#1E4D40]">{route?.busNumber ?? trip.plateNumber}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase text-slate-500">Tài xế</div>
+                <div className="mt-1 text-sm font-bold text-slate-800">{trip.driverName || 'Chưa cập nhật'}</div>
+                {trip.driverPhone && <div className="text-xs text-slate-500">{trip.driverPhone}</div>}
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase text-slate-500">Tổng học sinh</div>
+                <div className="mt-1 text-lg font-extrabold text-sky-700">{trip.totalStudents}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase text-slate-500">Trên xe / Còn lại</div>
+                <div className="mt-1 text-lg font-extrabold text-emerald-700">{trip.onboardCount} / {trip.remainingCount}</div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Safety Closure Card */}
-      <div
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}
-        className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 text-white border border-slate-700 space-y-5"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
+            {tripClosed && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                Chuyến xe hôm nay đã được chốt an toàn; không thể ghi nhận thêm lượt lên/xuống.
+              </div>
+            )}
+
+            <div className="mt-5">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-extrabold text-slate-800">
+                <MapPin className="h-4 w-4 text-[#275A4E]" />
+                Danh sách trạm đón / trả
+              </h3>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {stops.map((stop) => {
+                  const active = selectedStopId === stop.stopId;
+                  return (
+                    <button
+                      type="button"
+                      key={stop.stopId}
+                      onClick={() => setSelectedStopId(stop.stopId)}
+                      aria-pressed={active}
+                      className={`rounded-2xl border p-3 text-left transition ${
+                        active
+                          ? 'border-[#275A4E] bg-[#EBF7F4] ring-1 ring-[#275A4E]'
+                          : 'border-slate-200 bg-white hover:border-emerald-300'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                          stop.isDestination ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'
+                        }`}>
+                          {stop.isDestination ? <GraduationCap className="h-5 w-5" /> : <Bus className="h-5 w-5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-extrabold text-slate-800">
+                            Trạm {stop.stopOrder}: {stop.stopName}
+                          </div>
+                          {stop.stopAddress && <div className="mt-0.5 text-[11px] text-slate-500">{stop.stopAddress}</div>}
+                          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> {stop.estimatedTime || stop.scheduledTime || '--:--'}
+                            </span>
+                            <span className="font-bold text-emerald-700">
+                              {stop.isDestination ? 'Trả' : 'Đón'}: {stop.isDestination ? stop.deboardedCount : stop.boardedCount}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-[10px] font-semibold text-slate-400">{stop.studentCount} học sinh đăng ký</div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedStop && (
+              <div className="mt-5 rounded-2xl border border-slate-200 p-3 sm:p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-800">
+                      Học sinh tại {selectedStop.stopName}
+                    </h3>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      {tripPeriod === 'MORNING' ? 'Đón đến trường' : 'Trả về nhà'} · {stopStudents.length} học sinh
+                    </p>
+                  </div>
+                  <div className="relative sm:w-64">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Tìm tên, lớp, điện thoại..."
+                      className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-xs outline-none focus:border-[#275A4E]"
+                    />
+                  </div>
+                </div>
+
+                {stopStudents.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-500">Không có học sinh cần điểm danh ở trạm này.</div>
+                ) : (
+                  <div className="mt-3 divide-y divide-slate-100">
+                    {stopStudents.map((student) => {
+                      const action = actionForStop(selectedStop);
+                      const isReady = action === 'BOARDING'
+                        ? student.status === 'WAITING' || student.status === 'DEBOARDED'
+                        : student.status === 'ONBOARD';
+                      return (
+                        <div key={student.studentId} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 font-extrabold text-[#275A4E]">
+                              {student.studentName.slice(0, 1)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-bold text-slate-800">{student.studentName}</div>
+                              <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                                <span>{student.className || 'Chưa xếp lớp'}</span>
+                                {student.parentPhone && (
+                                  <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{student.parentPhone}</span>
+                                )}
+                                {student.lastTime && <span>{student.lastTime}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-3 sm:justify-end">
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                              student.status === 'ONBOARD'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : student.status === 'DEBOARDED'
+                                ? 'bg-sky-100 text-sky-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {statusLabel[student.status]}
+                            </span>
+                            {isReady && (
+                              <button
+                                type="button"
+                                disabled={mutation.isPending || tripClosed}
+                                onClick={() => mutation.mutate({ student, action })}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-[#275A4E] px-3 py-2 text-xs font-bold text-white hover:bg-[#1E4D40] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <UserCheck className="h-4 w-4" />
+                                {action === 'BOARDING' ? 'Điểm danh lên xe' : 'Điểm danh xuống xe'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {unassignedCount > 0 && (
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  Có {unassignedCount} đăng ký cũ chưa gắn với trạm cụ thể. Hãy cập nhật lựa chọn trạm trong đăng ký xe buýt để hiện đúng danh sách.
+                </span>
+              </div>
+            )}
+          </>
+        ) : null}
+      </section>
+
+      <section className="space-y-4 rounded-3xl bg-slate-900 p-4 text-white sm:p-6">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="h-6 w-6 shrink-0 text-amber-400" />
           <div>
-            <h3 className="font-extrabold text-base text-white">
-              Quy Trình Chốt An Toàn Khoang Xe Rỗng (Safety Sweep Confirmation)
-            </h3>
-            <p className="text-xs text-slate-300">
-              Quy chuẩn an toàn quốc tế: Giáo viên đưa đón phải đi dọc từ đầu đến cuối xe để kiểm tra từng hàng ghế, xác nhận không còn học sinh nào ngủ quên.
-            </p>
+            <h3 className="font-extrabold">Chốt an toàn khoang xe</h3>
+            <p className="mt-1 text-xs text-slate-300">Chỉ chốt khi không còn học sinh trên xe; hệ thống xác thực mã QR xe và ảnh khoang xe.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15 cursor-pointer hover:bg-white/15 transition">
-              <input
-                type="checkbox"
-                checked={emptyCabinConfirmed}
-                onChange={(e) => setEmptyCabinConfirmed(e.target.checked)}
-                className="w-5 h-5 rounded text-[#275A4E] focus:ring-[#78C2AD] mt-0.5 cursor-pointer"
-              />
-              <span className="text-xs font-bold leading-relaxed">
-                Tôi cam kết đã kiểm tra thực tế toàn bộ khoang xe buýt (tất cả các hàng ghế, gầm ghế) và xác nhận 100% khoang xe đã rỗng, không còn học sinh.
-              </span>
-            </label>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Ghi chú chuyến xe (nếu có):</label>
+        {trip?.isSafetyClosed ? (
+          <div className="rounded-xl bg-emerald-900/60 p-3 text-sm font-bold text-emerald-100">
+            Chuyến xe {trip.plateNumber} đã được chốt an toàn hôm nay.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-3">
+              <label className="flex items-start gap-2 rounded-xl bg-white/10 p-3 text-xs">
+                <input
+                  type="checkbox"
+                  checked={emptyCabinConfirmed}
+                  onChange={(event) => setEmptyCabinConfirmed(event.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>Tôi đã kiểm tra toàn bộ khoang xe và xác nhận không còn học sinh.</span>
+              </label>
+              <label className="block text-xs font-semibold text-slate-300">
+                Mã QR đuôi xe đã quét
+                <input
+                  value={qrTailScanToken}
+                  onChange={(event) => setQrTailScanToken(event.target.value)}
+                  placeholder="Nhập nội dung mã QR trên xe"
+                  className="mt-1 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-400"
+                />
+              </label>
               <textarea
                 rows={2}
-                placeholder="Ghi chú về tình hình giao thông, học sinh bỏ quên đồ đạc..."
                 value={safetyNote}
-                onChange={(e) => setSafetyNote(e.target.value)}
-                className="w-full text-xs p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-hidden focus:border-[#78C2AD]"
+                onChange={(event) => setSafetyNote(event.target.value)}
+                placeholder="Ghi chú chuyến xe (tùy chọn)"
+                className="w-full rounded-xl border border-white/20 bg-white/10 p-3 text-xs text-white placeholder:text-slate-400"
               />
             </div>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">
-                Ảnh minh chứng khoang xe rỗng (Chọn file ảnh từ máy tính):
+            <div className="space-y-3">
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/30 p-3 text-xs text-slate-300">
+                <Camera className="h-5 w-5 text-emerald-300" />
+                <span>{cabinPhoto ? 'Đã chọn ảnh khoang xe' : 'Chọn ảnh khoang xe rỗng (tối đa 5 MB)'}</span>
+                <input type="file" accept="image/*" onChange={handlePhotoSelect} className="sr-only" />
               </label>
-              <label className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-white/30 hover:border-[#78C2AD] bg-white/5 cursor-pointer transition">
-                {cabinPhotoPreview ? (
-                  <div className="relative w-full h-32 rounded-xl overflow-hidden">
-                    <img src={cabinPhotoPreview} alt="Cabin photo" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-xs font-bold text-white">
-                      Nhấp để chọn ảnh khác
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-1">
-                    <Upload className="w-8 h-8 mx-auto text-[#78C2AD]" />
-                    <div className="text-xs font-bold text-white">Tải ảnh chụp khoang xe rỗng</div>
-                    <div className="text-[10px] text-slate-400">Hỗ trợ JPG, PNG (tối đa 5MB)</div>
-                  </div>
-                )}
-                <input type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
-              </label>
+              {cabinPhoto && <img src={cabinPhoto} alt="Ảnh khoang xe" className="h-28 w-full rounded-xl object-cover" />}
+              <button
+                type="button"
+                disabled={
+                  closureMutation.isPending || !selectedRouteId || !emptyCabinConfirmed ||
+                  !cabinPhoto || !qrTailScanToken.trim() || (trip?.remainingCount ?? 0) > 0
+                }
+                onClick={() => closureMutation.mutate()}
+                className="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-extrabold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {closureMutation.isPending ? 'Đang chốt...' : 'Xác nhận chốt an toàn'}
+              </button>
+              {(trip?.remainingCount ?? 0) > 0 && (
+                <p className="text-[11px] text-amber-200">Còn {trip?.remainingCount} học sinh trên xe; chưa thể chốt.</p>
+              )}
             </div>
-
-            <button
-              type="button"
-              onClick={handleSafetyClosure}
-              disabled={isClosureCompleted}
-              className={`w-full py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2 cursor-pointer ${
-                isClosureCompleted
-                  ? 'bg-emerald-600 text-white cursor-not-allowed'
-                  : 'bg-[#E5A93C] hover:bg-amber-500 text-slate-950 shadow-amber-500/20'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>{isClosureCompleted ? 'Đã Hoàn Thành Chốt An Toàn' : 'Xác Nhận Chốt An Toàn Chuyến Đi'}</span>
-            </button>
           </div>
-        </div>
-      </div>
+        )}
+      </section>
     </div>
   );
 };
