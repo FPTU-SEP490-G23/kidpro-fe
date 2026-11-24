@@ -491,3 +491,32 @@ Hệ thống frontend `kidpro-fe` được xây dựng từ đầu để đáp �
   ✓ built in 13.17s
   ```
 - **Trạng thái sẵn sàng**: Hệ thống `kidpro-fe` đã sẵn sàng 100% để triển khai thực tế và vận hành trên môi trường Production!
+
+## 2026-11-22: Phiếu báo hỏng CSVC lưu DB + giáo vụ xử lý trên web
+- Backend: bảng facility.equipment_incident (docs/migration_equipment_incident.sql), entity EquipmentIncident, EquipmentIncidentRepository; ClassroomEquipmentServiceImpl lưu DB thay cho bộ nhớ tạm, ghi người báo; API GET /api/academic/equipment/incidents?status= và PATCH /{id}/status cho giáo vụ (PENDING/IN_PROGRESS/RESOLVED). Test 8/8.
+- App giáo viên: sửa EquipmentIncidentItem (incidentId UUID, reportedAt) nên danh sách phiếu đã gửi hiện lại; hiện ghi chú của giáo vụ.
+- Web giáo vụ: tab EquipmentIncidentReportsTab tại /academic/equipment-incidents, menu "Phiếu Báo Hỏng CSVC" (GIAO_VU, BGH).
+
+## 2026-11-22: Thông báo cho giáo vụ khi có phiếu báo hỏng CSVC mới
+- Backend: ClassroomEquipmentServiceImpl gọi SystemNotificationService.notifyRoles(ACADEMIC_STAFF) sau khi lưu phiếu (test 8/8).
+- Web: thông báo "Phiếu báo hỏng CSVC" bấm vào mở /academic/equipment-incidents; chuông thông báo tự tải lại mỗi 30 giây.
+
+## 2026-11-22: Bỏ BGH khỏi mục "Phiếu Báo Hỏng CSVC"
+- AcademicPage chuyển BGH sang /bgh/academic-planning nên BGH không mở được trang phiếu; chỉ để GIAO_VU (route giữ thêm SYSTEM_ADMIN).
+
+## 2026-11-22: Gộp phiếu báo hỏng CSVC vào trang /academic/equipment
+- Web: EquipmentWithIncidentsTab bọc EquipmentManagementTab + EquipmentIncidentReportsTab (nút chuyển "Danh mục thiết bị" / "Phiếu báo hỏng (n chờ xử lý)", ?view=incidents); bỏ route /academic/equipment-incidents, mục menu riêng, tab equipment_incidents; thông báo mở /academic/equipment?view=incidents.
+- Backend: câu thông báo trỏ tới "Danh mục thiết bị > Phiếu báo hỏng" (test 8/8).
+
+## 2026-11-22: Nối tab báo hỏng CSVC trên web giáo viên với API thật
+- ClassroomEquipmentIncidentTab: bỏ dữ liệu mẫu và mã phòng ghi cứng c-mam1; lấy lớp từ /teachers/my-classes, tải ảnh lên /teachers/uploads/photo (folder facility, bắt buộc ảnh), gửi phiếu và hiện lỗi thật, danh sách phiếu lấy từ DB kèm ghi chú giáo vụ.
+- equipmentIncidentApi: getByClass, report, uploadPhoto; bỏ attendanceApi.reportEquipmentIncident (không còn dùng).
+- Trang giáo vụ hiện nhãn "Khẩn cấp" cho phiếu mức HIGH.
+- Excel EN: sửa đường dẫn TC_WF14_14/15.
+
+## 2026-11-22: Báo hỏng CSVC & kế hoạch sửa chữa / mua sắm theo RP3 UC-66 A1, UC-67, BR-052
+- DB: docs/migration_facility_uc66_uc67.sql (equipment_incident thêm equipment_id, damaged_quantity, severity NORMAL/URGENT; bảng facility.maintenance_proposal).
+- Backend: báo hỏng chọn thiết bị trong danh mục phòng (GET .../incidents/class/{id}/equipment), chuyển số lượng GOOD->DAMAGED khi báo và DAMAGED->GOOD khi sửa xong; MSG-214/215/216; báo cả BGH + giáo vụ, khẩn cấp nhắc 2 giờ; ảnh facility chỉ JPG/PNG <= 10MB. Kế hoạch sửa chữa/mua sắm /api/academic/equipment/proposals: sửa chữa <= 10 triệu giáo vụ tự duyệt, > 10 triệu và mua sắm chờ BGH; BGH duyệt MSG-217 / từ chối (bắt buộc lý do) / MSG-218. Test 10 + 5 qua.
+- Web: giáo viên chọn thiết bị trong danh mục; giáo vụ có cảnh báo quá 2 giờ, nút "Lập kế hoạch sửa chữa", tab "Kế hoạch sửa chữa / mua sắm"; BGH tab "Sửa Chữa & Mua Sắm CSVC" (/bgh/school-setup?tab=facility); đề xuất mua sắm ở trang kiểm kê lớp gọi API thật, chặn 0 hạng mục.
+- App: form báo hỏng chọn thiết bị trong danh mục, số lượng, mức độ, kiểm tra ảnh.
+- Test WF14 (VI/EN): TC 01-07 sửa theo code, thêm Phase 6 TC 17-19, Cover v8.3 (331 TC).

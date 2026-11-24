@@ -198,18 +198,6 @@ export const attendanceApi = {
     return resp.data;
   },
 
-  // 10. Báo cáo sự cố thiết bị CSVC phòng học
-  reportEquipmentIncident: async (data: {
-    classroomId: string;
-    equipmentName: string;
-    description: string;
-    severity?: 'LOW' | 'MEDIUM' | 'HIGH';
-    photoUrl?: string;
-  }) => {
-    const resp = await axiosClient.post('/academic/equipment/incidents', data);
-    return resp.data;
-  },
-
   // 11. Danh sách sự cố thiết bị của phòng học
   getEquipmentIncidentsByClassroom: async (classroomId: string) => {
     try {

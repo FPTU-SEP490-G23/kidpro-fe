@@ -19,6 +19,15 @@ const STORAGE_KEY_PREFIX = 'kidpro_notifications_read_deleted_';
 export const inferNotificationActionUrl = (title: string, body: string, role?: string | null): string | undefined => {
   const combined = (title + ' ' + body).toLowerCase();
 
+  // Phiếu báo hỏng CSVC (UC-67) và kế hoạch sửa chữa / mua sắm (UC-66 A1)
+  if (combined.includes('phiếu báo hỏng csvc') || combined.includes('kế hoạch sửa chữa / mua sắm')
+      || combined.includes('kế hoạch đã được bgh phê duyệt') || combined.includes('kế hoạch bị bgh từ chối')) {
+    if (role === 'BGH' || role === 'PRINCIPAL') {
+      return '/bgh/school-setup?tab=facility';
+    }
+    return combined.includes('phiếu báo hỏng csvc') ? '/academic/equipment?view=incidents' : '/academic/equipment?view=proposals';
+  }
+
   // 1. Phê duyệt & Kế hoạch mở lớp
   if (combined.includes('kế hoạch mở lớp') || combined.includes('mở lớp') || combined.includes('phê duyệt lớp')) {
     if (role === 'BGH' || role === 'PRINCIPAL') {

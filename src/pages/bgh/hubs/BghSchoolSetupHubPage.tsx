@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Building2, CalendarDays, Layers, School } from 'lucide-react';
+import { Building2, CalendarDays, Layers, School, Wrench } from 'lucide-react';
 import AcademicYearsPage from '../../academic/years/AcademicYearsPage';
 import BghGradeQuotasPage from '../BghGradeQuotasPage';
 import BghClassroomsPage from '../BghClassroomsPage';
+import BghFacilityRepairsPage from '../BghFacilityRepairsPage';
 
-export type SchoolSetupTabKey = 'years' | 'quotas' | 'classrooms';
+export type SchoolSetupTabKey = 'years' | 'quotas' | 'classrooms' | 'facility';
 
 interface TabItem {
   key: SchoolSetupTabKey;
@@ -33,6 +34,12 @@ const TABS: TabItem[] = [
     description: 'Quản lý cơ sở vật chất, hệ thống phòng học tiêu chuẩn và phòng học chức năng chuyên đề.',
     icon: School,
   },
+  {
+    key: 'facility',
+    label: 'Sửa Chữa & Mua Sắm CSVC',
+    description: 'Phê duyệt kế hoạch sửa chữa / mua sắm trang thiết bị và theo dõi phiếu báo hỏng CSVC của giáo viên.',
+    icon: Wrench,
+  },
 ];
 
 interface Props {
@@ -44,7 +51,7 @@ export const BghSchoolSetupHubPage: React.FC<Props> = ({ initialTab = 'years' })
 
   const activeTab: SchoolSetupTabKey = useMemo(() => {
     const param = searchParams.get('tab');
-    if (param === 'years' || param === 'quotas' || param === 'classrooms') {
+    if (param === 'years' || param === 'quotas' || param === 'classrooms' || param === 'facility') {
       return param;
     }
     return initialTab;
@@ -107,6 +114,7 @@ export const BghSchoolSetupHubPage: React.FC<Props> = ({ initialTab = 'years' })
         {activeTab === 'years' && <AcademicYearsPage />}
         {activeTab === 'quotas' && <BghGradeQuotasPage />}
         {activeTab === 'classrooms' && <BghClassroomsPage />}
+        {activeTab === 'facility' && <BghFacilityRepairsPage />}
       </div>
     </div>
   );

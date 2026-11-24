@@ -152,8 +152,16 @@ export const academicApi = {
   transferClassroomEquipment: (data: TransferEquipmentPayload) => {
     return axiosClient.post<{ success: boolean; message: string }>('/classes/equipment/transfer', data);
   },
+  // Đề xuất cấp bù / mua sắm -> kế hoạch mua sắm trình BGH duyệt (UC-66 A1, BR-052)
   createEquipmentRequisition: (requisition: EquipmentRequisitionItem) => {
-    return axiosClient.post('/admin/equipment/requisitions', requisition);
+    return axiosClient.post('/academic/equipment/proposals', {
+      proposalType: 'PURCHASE',
+      title: `Đề xuất cấp bù / mua sắm: ${requisition.equipmentName}`,
+      equipmentName: requisition.equipmentName,
+      quantity: requisition.suggestedQuantity,
+      estimatedCost: requisition.estimatedBudget,
+      reason: requisition.reason,
+    });
   },
 
   // Xuất Sổ Điểm danh theo Mẫu Phòng/Bộ GD&ĐT

@@ -298,6 +298,10 @@ export const ClassroomEquipmentTab: React.FC = () => {
 
   // Gửi đề xuất mua sắm lên Ban Giám Hiệu
   const handleSendRequisition = async () => {
+    if (requisitionItems.length === 0) {
+      setFeedback({ type: 'warning', message: 'Không có hạng mục nào thiếu định mức hoặc hư hỏng để đề xuất mua sắm.' });
+      return;
+    }
     try {
       for (const req of requisitionItems) {
         await createRequisition(req);
@@ -307,12 +311,12 @@ export const ClassroomEquipmentTab: React.FC = () => {
         message: `Đã lập và gửi phiếu đề xuất cấp bù / mua sắm ${requisitionItems.length} hạng mục thiết bị lên Ban Giám Hiệu phê duyệt.`,
       });
       setShowRequisitionModal(false);
-    } catch {
+    } catch (err: any) {
+      // Không giả vờ thành công: báo lỗi thật để giáo vụ gửi lại
       setFeedback({
-        type: 'success',
-        message: `Đã lập và gửi phiếu đề xuất cấp bù / mua sắm ${requisitionItems.length} hạng mục thiết bị lên Ban Giám Hiệu phê duyệt.`,
+        type: 'error',
+        message: err?.response?.data?.message || MSG_004,
       });
-      setShowRequisitionModal(false);
     }
   };
 

@@ -48,10 +48,10 @@ import { ParentAccountManagementTab } from './tabs/ParentAccountManagementTab';
 import { ServiceSurveyTab } from '../parent/tabs/ServiceSurveyTab';
 import { HealthReportTab } from './tabs/HealthReportTab';
 import { ClubAssignmentTab } from './tabs/ClubAssignmentTab';
-import { EquipmentManagementTab } from './tabs/EquipmentManagementTab';
 import { AnnouncementManagementTab } from './tabs/AnnouncementManagementTab';
 import { SurveyManagementTab } from './tabs/SurveyManagementTab';
 import { MedicalBulletinTab } from './tabs/MedicalBulletinTab';
+import { EquipmentWithIncidentsTab } from './tabs/EquipmentWithIncidentsTab';
 
 export type AcademicTabKey =
   | 'lesson_plans'
@@ -434,7 +434,7 @@ export const AcademicPage: React.FC = () => {
         {activeTab === 'classroom_equipment' && <ClassroomEquipmentTab />}
         {activeTab === 'health_reports' && <HealthReportTab />}
         {activeTab === 'club_assignments' && <ClubAssignmentTab />}
-        {activeTab === 'equipment' && <EquipmentManagementTab />}
+        {activeTab === 'equipment' && <EquipmentWithIncidentsTab />}
         {activeTab === 'moet_attendance' && <MoetAttendanceReportTab />}
         {activeTab === 'year_archival' && <YearEndArchivalTab />}
         {activeTab === 'quality_surveys' && (

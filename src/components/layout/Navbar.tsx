@@ -49,6 +49,15 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     loadNotifications();
+    // Tự kiểm tra thông báo mới mỗi 30 giây (vd: giáo viên vừa gửi phiếu báo hỏng CSVC)
+    const timer = setInterval(async () => {
+      try {
+        setNotifications(await notificationApi.getNotifications(role, user?.id));
+      } catch {
+        // bỏ qua, lần sau thử lại
+      }
+    }, 30000);
+    return () => clearInterval(timer);
   }, [role, user?.id]);
 
   // Đóng notification popover khi click ra ngoài
