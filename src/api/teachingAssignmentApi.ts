@@ -11,7 +11,7 @@ export interface TeachingAssignmentItem {
   qualification: string;
   isHeadTeacher: boolean;
   assignedDate: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CLOSED';
   rejectionReason?: string;
 }
 

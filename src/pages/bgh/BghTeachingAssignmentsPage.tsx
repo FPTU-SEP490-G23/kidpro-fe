@@ -29,7 +29,7 @@ interface ClassAssignmentGroup {
   assistant?: TeachingAssignmentItem;
   otherAssignments: TeachingAssignmentItem[];
   allAssignments: TeachingAssignmentItem[];
-  status: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'CLOSED';
   rejectionReason?: string;
 }
 
@@ -45,7 +45,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { success, error } = useToast();
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'CLOSED'>('PENDING');
   const [rejectingClass, setRejectingClass] = useState<ClassAssignmentGroup | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -98,9 +98,12 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
     const result: ClassAssignmentGroup[] = [];
     map.forEach((group) => {
       const hasRejected = group.allAssignments.some((a) => a.status === 'REJECTED');
+      const allClosed = group.allAssignments.length > 0 && group.allAssignments.every((a) => a.status === 'CLOSED');
       const allApproved = group.allAssignments.length > 0 && group.allAssignments.every((a) => a.status === 'APPROVED');
 
-      if (hasRejected) {
+      if (allClosed) {
+        group.status = 'CLOSED';
+      } else if (hasRejected) {
         group.status = 'REJECTED';
       } else if (allApproved) {
         group.status = 'APPROVED';
@@ -313,6 +316,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
             { id: 'PENDING' as const, label: 'Chờ phê duyệt (PENDING)' },
             { id: 'APPROVED' as const, label: 'Đã phê duyệt (APPROVED)' },
             { id: 'REJECTED' as const, label: 'Bị từ chối (REJECTED)' },
+            { id: 'CLOSED' as const, label: 'Đã đóng (CLOSED)' },
             { id: 'ALL' as const, label: 'Tất cả các lớp' },
           ].map((tab) => (
             <button
@@ -343,6 +347,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
           {filteredClassGroups.map((group) => {
             const isApproved = group.status === 'APPROVED';
             const isRejected = group.status === 'REJECTED';
+            const isClosed = group.status === 'CLOSED';
             const isPending = group.status === 'PENDING';
 
             const hasHomeroom = Boolean(group.homeroom);
@@ -398,6 +403,12 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                           <span>CHỜ DUYỆT</span>
                         </span>
                       )}
+                      {isClosed && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                          <School className="w-3.5 h-3.5" />
+                          <span>ĐÃ ĐÓNG</span>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -412,13 +423,15 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                         </span>
                         {group.homeroom && (
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                            group.homeroom.status === 'APPROVED'
+                            group.homeroom.status === 'CLOSED'
+                              ? 'bg-purple-100 text-purple-800'
+                              : group.homeroom.status === 'APPROVED'
                               ? 'bg-emerald-100 text-emerald-800'
                               : group.homeroom.status === 'REJECTED'
                               ? 'bg-rose-100 text-rose-800'
                               : 'bg-amber-100 text-amber-800'
                           }`}>
-                            {group.homeroom.status === 'APPROVED' ? 'Đã duyệt' : group.homeroom.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+                            {group.homeroom.status === 'CLOSED' ? 'Đã đóng' : group.homeroom.status === 'APPROVED' ? 'Đã duyệt' : group.homeroom.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
                           </span>
                         )}
                       </div>
@@ -449,13 +462,15 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                         </span>
                         {group.assistant && (
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                            group.assistant.status === 'APPROVED'
+                            group.assistant.status === 'CLOSED'
+                              ? 'bg-purple-100 text-purple-800'
+                              : group.assistant.status === 'APPROVED'
                               ? 'bg-emerald-100 text-emerald-800'
                               : group.assistant.status === 'REJECTED'
                               ? 'bg-rose-100 text-rose-800'
                               : 'bg-amber-100 text-amber-800'
                           }`}>
-                            {group.assistant.status === 'APPROVED' ? 'Đã duyệt' : group.assistant.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
+                            {group.assistant.status === 'CLOSED' ? 'Đã đóng' : group.assistant.status === 'APPROVED' ? 'Đã duyệt' : group.assistant.status === 'REJECTED' ? 'Từ chối' : 'Chờ duyệt'}
                           </span>
                         )}
                       </div>
@@ -499,7 +514,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
 
                 {/* Footer Thao Tác Theo Lớp */}
                 <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-                  {!isApproved && (
+                  {!isApproved && !isClosed && (
                     <button
                       type="button"
                       disabled={!isEligible || approveClassMutation.isPending}
@@ -522,7 +537,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                     </button>
                   )}
 
-                  {!isRejected && (
+                  {!isRejected && !isClosed && (
                     <button
                       type="button"
                       onClick={() => openRejectModal(group)}
@@ -533,7 +548,7 @@ export const BghTeachingAssignmentsPage: React.FC = () => {
                   )}
 
                   {/* Khôi phục Chờ duyệt */}
-                  {(isApproved || isRejected) && (
+                  {(isApproved || isRejected) && !isClosed && (
                     <button
                       type="button"
                       onClick={() => resetClassMutation.mutate(group)}

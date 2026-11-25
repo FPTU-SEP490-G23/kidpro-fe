@@ -9,7 +9,7 @@ export type ClassStatus = 'PENDING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTE
 
 export type TeacherRole = 'HOMEROOM' | 'ASSISTANT';
 
-export type AssignmentStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+export type AssignmentStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'CLOSED';
 
 // =========================================================================
 // Quản lý Danh sách & Cập nhật Thông tin Lớp học
@@ -29,6 +29,7 @@ export interface ClassSummary {
   currentEnrollment: number;
   status: ClassStatus;
   assignmentStatus?: 'NOT_ASSIGNED' | 'PENDING_APPROVAL' | 'APPROVED' | string;
+  assignmentLocked?: boolean;
   homeroomTeacherId?: string;
   homeroomTeacherName?: string;
   createdAt?: string;

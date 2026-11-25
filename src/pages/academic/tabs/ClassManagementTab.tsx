@@ -221,6 +221,8 @@ export const ClassManagementTab: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academic-classes'] });
       queryClient.invalidateQueries({ queryKey: ['archived-classes'] });
+      queryClient.invalidateQueries({ queryKey: ['class-assignments-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['available-teachers'] });
       success('Lưu trữ hồ sơ lớp học thành công.');
       setArchivingClass(null);
       // Tự động chuyển view sang tab Đã lưu trữ
@@ -766,6 +768,11 @@ export const ClassManagementTab: React.FC = () => {
   const isSelectedYearReady = currentSelectedYear?.status === 'READY';
 
   const onOpenAssignModal = (c: ClassSummary) => {
+    if (c.assignmentLocked) {
+      error('Phân công của lớp đã được Ban Giám hiệu phê duyệt; không thể phân công thêm giáo viên.');
+      return;
+    }
+
     const classYear = academicYears.find((y: any) => y.id === (c as any).academicYearId || y.id === selectedYearId);
     if (classYear?.status === 'READY') {
       error('Niên khóa đang ở trạng thái Sẵn sàng (READY). Chỉ được phép phân công giáo viên khi Ban Giám hiệu chính thức kích hoạt vận hành (ACTIVE).');
@@ -778,8 +785,14 @@ export const ClassManagementTab: React.FC = () => {
   };
 
   const onSubmitAssign = (values: DraftAssignmentFormValues) => {
+    if (assigningClass?.assignmentLocked) {
+      error('Phân công của lớp đã được Ban Giám hiệu phê duyệt; không thể phân công thêm giáo viên.');
+      return;
+    }
+
     const isAlreadyInThisClass = assigningClassAssignments.some(
-      (a: any) => (a.teacherId === values.teacherId || a.staffId === values.teacherId) && a.status !== 'REJECTED'
+      (a: any) => (a.teacherId === values.teacherId || a.staffId === values.teacherId) &&
+        (a.status === 'PENDING_APPROVAL' || a.status === 'APPROVED')
     );
     if (isAlreadyInThisClass) {
       error('Giáo viên này đã được phân công trong lớp này. Theo quy định, một giáo viên không thể cùng đảm nhận cả 2 vai trò GVCN và Phụ tá trong cùng một lớp.');
@@ -1090,20 +1103,32 @@ export const ClassManagementTab: React.FC = () => {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                       {c.status !== 'ARCHIVED' && classFilterMode === 'ACTIVE' ? (
                         <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newParams = new URLSearchParams(searchParams);
-                              newParams.set('subtab', 'assignments');
-                              setSearchParams(newParams);
-                              setActiveSubTab('ASSIGNMENTS');
-                            }}
-                            className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40] hover:text-white text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/80 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer group"
-                            title="Chuyển sang trang Phân công giáo viên"
-                          >
-                            <UserCheck className="w-3.5 h-3.5 text-[#275A4E] group-hover:text-white" />
-                            <span>Phân công GV</span>
-                          </button>
+                          {c.assignmentLocked ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="flex-1 py-2.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 flex items-center justify-center gap-1.5 min-h-[44px] cursor-not-allowed"
+                              title="BGH đã duyệt phân công; không thể phân công thêm giáo viên."
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Đã duyệt phân công</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newParams = new URLSearchParams(searchParams);
+                                newParams.set('subtab', 'assignments');
+                                setSearchParams(newParams);
+                                setActiveSubTab('ASSIGNMENTS');
+                              }}
+                              className="flex-1 py-2.5 bg-slate-50 hover:bg-[#1E4D40] hover:text-white text-[#1E4D40] text-xs font-bold rounded-xl transition border border-slate-200/80 flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer group"
+                              title="Chuyển sang trang Phân công giáo viên"
+                            >
+                              <UserCheck className="w-3.5 h-3.5 text-[#275A4E] group-hover:text-white" />
+                              <span>Phân công GV</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => setArchivingClass(c)}
@@ -1409,6 +1434,16 @@ export const ClassManagementTab: React.FC = () => {
                               >
                                 <Lock className="w-3.5 h-3.5 text-slate-400" />
                                 <span>Khóa phân công</span>
+                              </button>
+                            ) : c.assignmentLocked ? (
+                              <button
+                                type="button"
+                                disabled
+                                className="px-3.5 py-2 bg-emerald-50 text-emerald-800 font-bold rounded-xl inline-flex items-center gap-1 min-h-[38px] cursor-not-allowed"
+                                title="BGH đã duyệt phân công; không thể phân công thêm giáo viên."
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span>Đã duyệt</span>
                               </button>
                             ) : isApproved ? (
                               <button
@@ -1867,7 +1902,8 @@ export const ClassManagementTab: React.FC = () => {
                   {availableTeachers.map((t) => {
                     const isLocked = t.status !== 'ACTIVE';
                     const isAlreadyInThisClass = assigningClassAssignments.some(
-                      (a: any) => (a.teacherId === t.id || a.staffId === t.id) && a.status !== 'REJECTED'
+                      (a: any) => (a.teacherId === t.id || a.staffId === t.id) &&
+                        (a.status === 'PENDING_APPROVAL' || a.status === 'APPROVED')
                     );
                     const isAssignedOtherClass = Boolean(
                       (t.isAssigned || t.assigned || t.isAssignedHomeroom || t.assignedHomeroom) &&
@@ -2075,7 +2111,11 @@ export const ClassManagementTab: React.FC = () => {
                               {a.staffCode || '-'}
                             </td>
                             <td className="py-2.5 px-3">
-                              {a.status === 'APPROVED' ? (
+                              {a.status === 'CLOSED' ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                                  <Lock className="w-3 h-3" /> Đã đóng
+                                </span>
+                              ) : a.status === 'APPROVED' ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                                   <CheckCircle className="w-3 h-3" /> Đã duyệt
                                 </span>
@@ -2086,7 +2126,7 @@ export const ClassManagementTab: React.FC = () => {
                               )}
                             </td>
                             <td className="py-2.5 px-3 text-right">
-                              {a.status !== 'APPROVED' ? (
+                              {a.status !== 'APPROVED' && a.status !== 'CLOSED' ? (
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteAssignment(a.id, a.teacherName)}
@@ -2098,7 +2138,9 @@ export const ClassManagementTab: React.FC = () => {
                                   <span>Xóa</span>
                                 </button>
                               ) : (
-                                <span className="text-[10px] text-slate-400 italic">Đã duyệt (bất biến)</span>
+                                <span className="text-[10px] text-slate-400 italic">
+                                  {a.status === 'CLOSED' ? 'Đã đóng (lưu lịch sử)' : 'Đã duyệt (bất biến)'}
+                                </span>
                               )}
                             </td>
                           </tr>
