@@ -61,9 +61,9 @@ export const CashReceiptsTab: React.FC = () => {
     }
   };
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = async (silent: boolean = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params: any = {};
       if (statusFilter !== 'ALL') params.status = statusFilter;
       if (searchTerm.trim()) params.keyword = searchTerm.trim();
@@ -72,15 +72,31 @@ export const CashReceiptsTab: React.FC = () => {
       setInvoices((res as any)?.data || res || []);
       fetchStats();
     } catch (err: any) {
-      showToast('error', err?.response?.data?.message || 'Không thể tải danh sách hóa đơn.');
+      if (!silent) {
+        showToast('error', err?.response?.data?.message || 'Không thể tải danh sách hóa đơn.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
+  };
+
+  const handleManualRefresh = async () => {
+    await financeApi.syncPayOsOrders().catch(() => undefined);
+    await fetchInvoices();
   };
 
   useEffect(() => {
     fetchInvoices();
   }, [statusFilter]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchInvoices(true);
+      }
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [statusFilter, searchTerm]);
 
   const openCashPayModal = (inv: InvoiceDto) => {
     setSelectedInvoice(inv);
@@ -537,7 +553,7 @@ export const CashReceiptsTab: React.FC = () => {
         </div>
 
         <button
-          onClick={fetchInvoices}
+          onClick={handleManualRefresh}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
         >
           <RefreshCw className="w-4 h-4" />

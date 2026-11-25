@@ -76,9 +76,9 @@ export const InvoiceIssuanceTab: React.FC = () => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchData = async () => {
+  const fetchData = async (silent: boolean = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       // 1. Kiểm tra trạng thái thẩm định & phê duyệt BGH của Bảng tổng hợp học phí kỳ này
       const summaryRes: any = await financeApi.getTuitionSummary({
         month: selectedMonth,
@@ -98,18 +98,34 @@ export const InvoiceIssuanceTab: React.FC = () => {
       } else {
         setInvoices([]);
       }
-      setSelectedInvoiceIds([]);
+      if (!silent) setSelectedInvoiceIds([]);
     } catch (err: any) {
-      showToast('error', err?.response?.data?.message || 'Không thể tải dữ liệu kỳ học phí.');
-      setInvoices([]);
+      if (!silent) {
+        showToast('error', err?.response?.data?.message || 'Không thể tải dữ liệu kỳ học phí.');
+        setInvoices([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
+  };
+
+  const handleManualRefresh = async () => {
+    await financeApi.syncPayOsOrders().catch(() => undefined);
+    await fetchData();
   };
 
   useEffect(() => {
     setDueDate(calculateDefaultDueDate(selectedMonth, selectedYear));
     fetchData();
+  }, [selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchData(true);
+      }
+    }, 15000);
+    return () => clearInterval(timer);
   }, [selectedMonth, selectedYear]);
 
   const toggleSelectAll = () => {
@@ -266,7 +282,7 @@ export const InvoiceIssuanceTab: React.FC = () => {
                 {/* Nút reload nhỏ */}
                 <button
                   type="button"
-                  onClick={fetchData}
+                  onClick={handleManualRefresh}
                   disabled={loading}
                   className="p-1.5 text-emerald-200 hover:text-white bg-emerald-900/60 hover:bg-emerald-800 rounded-lg transition cursor-pointer border border-emerald-600/50"
                   title="Làm mới dữ liệu kỳ này"

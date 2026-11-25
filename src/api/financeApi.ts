@@ -157,6 +157,10 @@ export const financeApi = {
     return axiosClient.post<PublishInvoicesResponseDto>('/finance/invoices/publish', data);
   },
 
+  syncPayOsOrders: () => {
+    return axiosClient.post<{ syncedCount: number; message: string }>('/finance/invoices/sync-payos');
+  },
+
   // ==========================================
   //  & THU TIỀN MẶT, XUẤT HÓA ĐƠN & BIÊN LAI THU TIỀN
   // ==========================================
